@@ -1,9 +1,5 @@
 #include "bme280.h"
 
-int bme280Fd;
-
-struct bme280_t bme280;
-
 s32 bme280_begin(const char *device);
 float bme280_readAltitude(int pressure, float seaLevel);
 

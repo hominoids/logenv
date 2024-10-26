@@ -1,9 +1,15 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <math.h>
 #include <linux/i2c-dev.h>
 
 #include "bme280-i2c.h"
+
+int bme280Fd;
+
+struct bme280_t bme280;
 
 s32 bme280_begin(const char *device)
 {
