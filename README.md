@@ -18,20 +18,24 @@ License: GPLv3.
 ## Usage
 ```
 logenv [options]
-        -l,  --log <file>            Log to <file>
-        -s,  --seconds <number>      Poll every <number> seconds
-        -f,  --frequency             CPU core frequency
-        -t,  --temperature           Thermal zone temperature
-        -b,  --bme280 <device>       BME280 Temperature (HK Weatherboard 2), default /dev/i2c-1
-             --bmp180 <device>       BMP180 Temperature (HK Weatherboard 1), default /dev/i2c-1
-        -p,  --power <tty>           Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
-        -d,  --date                  Date and Time stamp
-        -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
-        -v,  --verbose               Readable output
-        -q,  --quiet                 No output to stdout
-        -g,  --gnuplot <file>        Gnuplot script generation
-             --version               Version
-        -h,  --help                  Help screen
+
+Options:
+ -l,  --log <file>            Log to <file>
+ -s,  --seconds <number>      Poll every <number> seconds
+ -f,  --frequency             CPU core frequency
+ -t,  --temperature           Thermal zone temperature
+ -b,  --bme280 <device>       BME280 Temperature Sensor(HK Weatherboard 2), default /dev/i2c-1
+      --bmp180 <device>       BMP180 Temperature Sensor(HK Weatherboard 1), default /dev/i2c-1
+ -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
+      --smartpower3-ch2 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
+      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
+ -d,  --date                  Date and Time stamp
+ -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
+ -v,  --verbose               Readable output
+ -q,  --quiet                 No output to stdout
+ -g,  --gnuplot <file>        Gnuplot script generation
+      --version               Version
+ -h,  --help                  Help screen
 ```
 
 ### Examples

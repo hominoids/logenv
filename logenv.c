@@ -1,6 +1,6 @@
 /*
-    logenv Copyright 2019,2020 Edward A. Kisiel
-    hominoid @ www.forum.odroid.com
+    logenv Copyright 2019,2020, 2024 Edward A. Kisiel
+    hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,11 +15,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Code released under GPLv3: http://www.gnu.org/licenses/gpl.html
 
-   logenv - logs cpu temperature, cpu frequency, 
-            air temperature(BME280 on HardKernel Weatherboard),
-            volts, amps and watts (HK SmartPower2 microUSB output) to stdout
+   logenv - logs time stamp, cpu temperature, cpu frequency, 
+            air temperature(BME280, BMP180),
+            volts, amps and watts (HK SmartPower2 or SmartPower3 output)
             
-    20200202 Version .97 beta     
+    20200202 Version .97 beta HK SmartPower2
+    20241026 Version .98 beta added HK SmartPower3
+
+    void usage (void)
+    int itoa(int n, char s[])
+
 */
 
 #include <stddef.h>
@@ -32,7 +37,6 @@
 #include "bme280/bmp180.h"
 #include "bme280/bme280.h"
 #include "bme280/bme280-i2c.h"
-
 #include "logenv.h"
 
 int main(int argc, char **argv)
@@ -84,7 +88,7 @@ int main(int argc, char **argv)
         if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temperature")) {
             for (int c = 0; c <= 255; c++) {
                 char strChar[5] = {0};
-                itoa(c,strChar);           
+                itoa(c,strChar);
                 strcpy(thermalzone,thermalzone1);
                 strcat(thermalzone,strChar);
                 strcat(thermalzone,thermalzone2);
@@ -257,7 +261,7 @@ int main(int argc, char **argv)
             if(THERMAL_ENABLE != 0) {
                 for (int c = 0; c < THERMAL_ENABLE; c++) {
                     char strChar[5] = {0};
-                    itoa(c,strChar);           
+                    itoa(c,strChar);
                     strcpy(thermalzone,thermalzone1);
                     strcat(thermalzone,strChar);
                     strcat(thermalzone,thermalzone2);
@@ -310,7 +314,7 @@ int main(int argc, char **argv)
             }
             /*
              * read bmp180
-             */        
+             */
 
             if(WB_ENABLE == 1) {
                 temperature = BMP180_readTemperature();
@@ -333,8 +337,8 @@ int main(int argc, char **argv)
                 }
             }
             /*
-             * read SmartPower2 port
-             */        
+             * read SmartPower port
+             */
             if(SP_ENABLE != 0) {
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
                     printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
@@ -404,7 +408,7 @@ int main(int argc, char **argv)
             }
             /*
              * eol for stdout and log file
-             */        
+             */
             if(QUIET_ENABLE == 0) {
                 printf("\n");
             }
@@ -414,14 +418,14 @@ int main(int argc, char **argv)
             }
             /*
              * break if one and done or sleep
-             */        
+             */
             if(INTERACTIVE_ENABLE == 0) {
                 break;
             }
             i = i+INTERACTIVE_ENABLE;
             sleep(INTERACTIVE_ENABLE);
         }
-    } 
+    }
     else {  // build gnuplot script file
         /*
          * change layout if no power chart
@@ -537,7 +541,7 @@ void usage (void)
 
 int itoa(int n, char s[])
 {
-    int i =  0;         
+    int i =  0;
 
     if(n / 10 != 0)
         i = itoa(n/10, s);
