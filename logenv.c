@@ -430,7 +430,7 @@ int main(int argc, char **argv)
         /*
          * change layout if no power chart
          */
-        if(SP_ENABLE != 1) {
+        if(SP_ENABLE == 0) {
             gpscript_layout [21] = 50;
             gpscript_thermal [1][20] = 55;
             gpscript_thermal [2][14] = 51;
@@ -490,16 +490,16 @@ int main(int argc, char **argv)
         /*
          * build power chart
          */
-        if(SP_ENABLE == 1) {
+        if(SP_ENABLE != 0) {
             i=0;
             while (i < 12) {
                 fprintf(gnuplot_file,"%s",gpscript_power[i]);
                 i++;
             }
         fprintf(gnuplot_file, "plot ");
-        fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+3));
-        fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+4));
-        fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+5));
+        fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+2));
+        fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
+        fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+4));
         }
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
