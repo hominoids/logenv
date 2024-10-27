@@ -29,7 +29,7 @@ time_t now;
 struct tm *t;
 
 char spfile[255];
-char *smartpower2 = "/dev/ttyUSB0";
+char *smartpower = "/dev/ttyUSB0";
 char *weatherboard = "/dev/i2c-1";
 char *cpuonline = "/sys/devices/system/cpu/online";
 
@@ -44,7 +44,7 @@ char *thermalzone2 = "/temp";
 char logfile[255];
 char gplotfile[255];
 char spline[25];
-char version[] = "0.97";
+char version[] = "0.98 pre release";
 
 static int temperature;
 static int humidity;
@@ -54,6 +54,24 @@ static int coretemp;
 static float volt;
 static float amp;
 static float watt;
+
+static float sp_ms;
+static float in_mv;
+static float in_ma;
+static float in_w;
+static int  in_on;
+static float ch1_mv;
+static float ch1_ma;
+static float ch1_w;
+static int  ch1_on;
+static int  ch1_int;
+static float ch2_mv;
+static float ch2_ma;
+static float ch2_w;
+static int ch2_on;
+static int ch2_int;
+static int chk_comp;
+static int chk_xor;
 
 static int SP_ENABLE = 0;
 static int WB_ENABLE = 0;

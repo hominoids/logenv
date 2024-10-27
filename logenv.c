@@ -123,19 +123,41 @@ int main(int argc, char **argv)
             }
             WB_ENABLE = 1;
        }
-        if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--power")) {
+        if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && strlen(argv[i+1]) >= 7) {
-                    smartpower2 = argv[i+1];
+                    smartpower = argv[i+1];
                 }
-                if((pwr_in = fopen(smartpower2, "r")) == NULL) {
-                    printf("\nERROR: Can not open SmartPower2 at %s\n\n", smartpower2);
-                    usage();;
+                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    usage();
                 }
-//                system("stty -F /dev/ttyUSB0 115200 -parenb -parodd -cmspar cs8 -hupcl -cstopb cread clocal -crtscts");
-//                system("stty -F /dev/ttyUSB0 1:0:18b2:0:3:1c:7f:15:4:5:1:0:11:13:1a:0:12:f:17:16:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0");
+            }
+            SP_ENABLE = 31;
         }
-            SP_ENABLE = 1;
+        if(!strcmp(argv[i], "--smartpower3-ch2")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && strlen(argv[i+1]) >= 7) {
+                    smartpower = argv[i+1];
+                }
+                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    usage();
+                }
+            }
+            SP_ENABLE = 32;
+        }
+        if(!strcmp(argv[i], "--smartpower2")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && strlen(argv[i+1]) >= 7) {
+                    smartpower = argv[i+1];
+                }
+                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    usage();
+                }
+           }
+            SP_ENABLE = 2;
         }
         if(!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quiet")) {
             QUIET_ENABLE = 1;
@@ -314,48 +336,71 @@ int main(int argc, char **argv)
              * read SmartPower2 port
              */        
             if(SP_ENABLE != 0) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 7) {
-                    if((pwr_in = fopen(argv[i+1], "r")) == NULL) {
-                        printf("\nERROR: Can not open SmartPower2 at %s\n\n", argv[i+1]);
-                        usage();
-                    }
+                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    usage();
                 }
-                else {
-                    if((pwr_in = fopen(smartpower2, "r")) == NULL) {
-                        printf("\nERROR: Can not open SmartPower2 at %s\n\n", smartpower2);
-                        usage();;
+                if(SP_ENABLE == 2) {
+                    fscanf(pwr_in, "%fV %s %fW", &volt, spline, &watt);
+                    if(strstr(spline,"mA")) {
+                        sscanf(spline,"%fmA", &amp);
+                        if(QUIET_ENABLE == 0) {
+                            if(VERBOSE_ENABLE == 1) {
+                                printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
+                            }
+                            else {
+                                printf(",%.2f,.%.0f,%.2f", volt, amp, watt);
+                            }
+                        }
+                        if(LOG_ENABLE == 1) {
+                            fprintf(log_file,",%.2f,.%.0f,%.2f", volt, amp, watt);
+                        }
                     }
+                    else {
+                        sscanf(spline,"%fA", &amp);
+                        if(QUIET_ENABLE == 0) {
+                            if(VERBOSE_ENABLE == 1) {
+                                printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
+                            }
+                            else {
+                                printf(",%.2f,%.2f,%.2f", volt, amp, watt);
+                            }
+                        }
+                        if(LOG_ENABLE == 1) {
+                            fprintf(log_file,",%.2f,%.2f,%.2f", volt, amp, watt);
+                        }
+                    }
+                    fclose(pwr_in);
                 }
-                fscanf(pwr_in, "%fV %s %fW", &volt, spline, &watt);
-                if(strstr(spline,"mA")) {
-                    sscanf(spline,"%fmA", &amp);
+                if(SP_ENABLE == 31 || SP_ENABLE == 32) {
+                    fscanf(pwr_in, "%f,%f,%f,%f,%i,%f,%f,%f,%i,%i,%f,%f,%f,%i,%i,%i,%i", &sp_ms, \
+                        &in_mv, &in_ma, &in_w, &in_on, \
+                            &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
+                                &ch2_mv, &ch2_ma, &ch2_w, &ch2_on, &ch2_int, \
+                                    &chk_comp, &chk_xor);
+                    if(SP_ENABLE == 31) {
+                        volt = ch1_mv;
+                        amp = ch1_ma;
+                        watt = ch1_w;
+                    }
+                    else {
+                        volt = ch2_mv;
+                        amp = ch2_ma;
+                        watt = ch2_w;
+                    }
                     if(QUIET_ENABLE == 0) {
                         if(VERBOSE_ENABLE == 1) {
-                            printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
+                            printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt/1000, amp/1000, watt/1000);
                         }
                         else {
-                            printf(",%.2f,.%.0f,%.2f", volt, amp, watt);
+                            printf(",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                         }
                     }
                     if(LOG_ENABLE == 1) {
-                        fprintf(log_file,",%.2f,.%.0f,%.2f", volt, amp, watt);
+                        fprintf(log_file,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                     }
+                    fclose(pwr_in);
                 }
-                else {
-                    sscanf(spline,"%fA", &amp);
-                    if(QUIET_ENABLE == 0) {
-                        if(VERBOSE_ENABLE == 1) {
-                            printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
-                        }
-                        else {
-                            printf(",%.2f,%.2f,%.2f", volt, amp, watt);
-                        }
-                    }
-                    if(LOG_ENABLE == 1) {
-                        fprintf(log_file,",%.2f,%.2f,%.2f", volt, amp, watt);
-                    }
-                }
-                fclose(pwr_in);
             }
             /*
              * eol for stdout and log file
@@ -461,16 +506,18 @@ int main(int argc, char **argv)
 void usage (void)
 {
         printf("\nlogenv - Version %s Copyright (C) 2019,2020 by Edward Kisiel\n", version);
-        printf("logs seconds, cpu frequency, thermal zones, sensor temperature, volts, amps and watts\n\n");
+        printf("logs time, cpu frequency, thermal zones, sensor temperature, volts, amps and watts\n\n");
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");
         printf(" -s,  --seconds <number>      Poll every <number> seconds\n");        
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -b,  --bme280 <device>       BME280 Temperature (HK Weatherboard 2), default /dev/i2c-1\n");
-        printf("      --bmp180 <device>       BMP180 Temperature (HK Weatherboard 1), default /dev/i2c-1\n");
-        printf(" -p,  --power <tty>           Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
+        printf(" -b,  --bme280 <device>       BME280 Temperature Sensor(HK Weatherboard 2), default /dev/i2c-1\n");
+        printf("      --bmp180 <device>       BMP180 Temperature Sensor(HK Weatherboard 1), default /dev/i2c-1\n");
+        printf(" -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
+        printf("      --smartpower3-ch2 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
+        printf("      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable output\n"); 
