@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020, 2024 Edward A. Kisiel
+    logenv Copyright 2019,2020,2024 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Code released under GPLv3: http://www.gnu.org/licenses/gpl.html
 
-   logenv - logs time stamp, cpu temperature, cpu frequency, 
+   logenv - logs count or time stamp, thermal zone temperature, cpu frequency, 
             air temperature(BME280, BMP180),
             volts, amps and watts (HK SmartPower2 or SmartPower3 output)
             
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
         if(!strcmp(argv[i], "-g") || !strcmp(argv[i], "--gnuplot")) {
             strcpy(gplotfile, argv[i+1]);
             if((gnuplot_file = fopen(gplotfile, "w")) == NULL) {
-                printf("\nERROR: Can not open gnuplot script file %s\n\n", argv[i+1]);
+                printf("\nERROR: Cannot open gnuplot script file %s\n\n", argv[i+1]);
                 usage();
             }
             GNUPLOT_ENABLE = 1;
@@ -68,15 +68,11 @@ int main(int argc, char **argv)
         }
         if(!strcmp(argv[i], "--version")) {
             printf("\nlogenv version %s\n", version);
-            printf("Copyright (C) 2019,2020 Edward Kisiel\n");
-            printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n");
-            printf("This is free software: you are free to change and redistribute it.\n");
-            printf("There is NO WARRANTY, to the extent permitted by law.\n");
             COUNT_ENABLE = 0;
         }
         if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--frequency")) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
-                printf("\nERROR: Can not open %s\n", cpuonline);
+                printf("\nERROR: Cannot open %s\n", cpuonline);
                 exit(0);
             }
             size_t size = 0;
@@ -105,11 +101,11 @@ int main(int argc, char **argv)
                     weatherboard = argv[i+1];
                     }
                 if(bme280_begin(weatherboard) < 0) {
-                    printf("\nERROR: Can not open WeatherBoard2(BME280) at %s\n", weatherboard);
+                    printf("\nERROR: Cannot open BME280 at %s\n", weatherboard);
                     usage();
                 }
                 if(bme280_set_power_mode(BME280_NORMAL_MODE) < 0) {
-                    printf("\nERROR: Can not set power mode for BME280 at %s\n", weatherboard);
+                    printf("\nERROR: Cannot set power mode for BME280 at %s\n", weatherboard);
                     exit(0);
                 }
             }
@@ -121,7 +117,7 @@ int main(int argc, char **argv)
                     weatherboard = argv[i+1];
                     }
                 if(bmp180_begin(weatherboard) < 0) {
-                    printf("\nERROR: Can not open WeatherBoard2(BMP180) at %s\n", weatherboard);
+                    printf("\nERROR: Cannot open BMP180 at %s\n", weatherboard);
                     usage();
                 }
             }
@@ -133,7 +129,7 @@ int main(int argc, char **argv)
                     smartpower = argv[i+1];
                 }
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
-                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     usage();
                 }
             }
@@ -145,7 +141,7 @@ int main(int argc, char **argv)
                     smartpower = argv[i+1];
                 }
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
-                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     usage();
                 }
             }
@@ -157,7 +153,7 @@ int main(int argc, char **argv)
                     smartpower = argv[i+1];
                 }
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
-                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     usage();
                 }
            }
@@ -197,7 +193,7 @@ int main(int argc, char **argv)
             }
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
-                printf("\nERROR: Can not open %s\n\n", logfile);
+                printf("\nERROR: Cannot open %s\n\n", logfile);
                 usage();
                 }
                 if(COUNT_ENABLE) {
@@ -228,7 +224,7 @@ int main(int argc, char **argv)
                     strcat(cpufreq,strChar);
                     strcat(cpufreq,cpufreq2);
                     if((cpu_freq = fopen(cpufreq, "r")) == NULL) {
-                        printf("\nERROR: Can not open %s\n", cpufreq);
+                        printf("\nERROR: Cannot open %s\n", cpufreq);
                         exit(0);
                     } 
                     fscanf(cpu_freq, "%d", &freq);
@@ -341,7 +337,7 @@ int main(int argc, char **argv)
              */
             if(SP_ENABLE != 0) {
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
-                    printf("\nERROR: Can not open SmartPower at %s\n\n", smartpower);
+                    printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     usage();
                 }
                 if(SP_ENABLE == 2) {
@@ -535,8 +531,8 @@ int main(int argc, char **argv)
 
 void usage (void)
 {
-        printf("\nlogenv - Version %s Copyright (C) 2019,2020 by Edward Kisiel\n", version);
-        printf("logs time, cpu frequency, thermal zones, sensor temperature, volts, amps and watts\n\n");
+        printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024 by Edward Kisiel\n", version);
+        printf("logs count or time stamp, cpu frequency, thermal zones, sensor temperature, volts, amps and watts\n\n");
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");
