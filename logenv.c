@@ -445,8 +445,34 @@ int main(int argc, char **argv)
          * Beginning of gnuplot script
          */
         i=0;
-        while (i < 53) {
+        while (i < 12) {
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
+            i++;
+        }
+        /*
+         * get thermal zone names and set titles
+         */
+        char strChar[5] = {0};
+        for (int c = 0; c < THERMAL_ENABLE; c++) {
+            itoa(c,strChar);
+            strcpy(thermaltype,thermalzone1);
+            strcat(thermaltype,strChar);
+            strcat(thermaltype,thermaltype1);
+            if((thermal_type = fopen(thermaltype, "r")) == NULL) {
+                break;
+            }
+            fscanf(thermal_type, "%s", thermalname);
+            fclose(thermal_type);
+            fprintf(gnuplot_file,"%s%s\"",gpscript_thermal_title[c][0], thermalname);
+            fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[c][2]);
+        }
+        if(WB_ENABLE != 0) {
+            fprintf(gnuplot_file,"%s%s\"",gpscript_thermal_title[8][0],gpscript_thermal_title[8][1]);
+            fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
+        }
+        i=0;
+        while (i < 10) {
+            fprintf(gnuplot_file,"%s",gpscript_mid[i]);
             i++;
         }
         fprintf(gnuplot_file,"%s",gpscript_layout);

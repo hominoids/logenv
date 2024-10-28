@@ -23,7 +23,7 @@
 void usage(void);
 int itoa(int, char[]);
 
-FILE *pwr_in, *cpu_online, *cpu_freq, *cpu_thermal, *log_file, *gnuplot_file;
+FILE *pwr_in, *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *log_file, *gnuplot_file;
 
 time_t now;
 struct tm *t;
@@ -40,6 +40,10 @@ char *cpufreq2 = "/cpufreq/scaling_cur_freq";
 char thermalzone[255];
 char *thermalzone1 = "/sys/devices/virtual/thermal/thermal_zone";
 char *thermalzone2 = "/temp";
+
+char thermaltype[255];
+char *thermaltype1 = "/type";
+static char thermalname[255];
 
 char logfile[255];
 char gplotfile[255];
@@ -86,7 +90,7 @@ static int GNUPLOT_ENABLE = 0;
 static int COUNT_ENABLE = 1;
 static int DT_ENABLE = 0;
 
-static char gpscript_start [53][80] = { 
+static char gpscript_start [12][80] = { 
     "#!/usr/bin/gnuplot --persist\n",
     "#\n",   
     "#\n",
@@ -94,55 +98,31 @@ static char gpscript_start [53][80] = {
     "# ambient temperature and power for multiple cpu cores from a data file\n",
     "# formated as \"count,freq1,freq2,freq3,freq4,freq5,freq6,freq7,freq8,\n",
     "#               core1,core2,core3,core4,gpu,airtemp,volts,amps,watts\"\n",
-    "#\n",
-    "# Author: hominoid @ www.forum.odroid.com\n",
-    "# 05/03/2017 version 1.0 Public domain with no warranty of any kind\n",
-    "# 02/02/2020 version 1.1 Added ambient temp, volts, amps, watts\n",
-    "#\n",
-    "# Version 5.x\n",
-    "# Use: gnuplot -c logenv.gpl chart.png datafile.csv\n",
-    "#\n",
-    "# Version 4.x\n",
-    "# Use: gnuplot logenv.gpl\n",
-    "#\n",
-    "# version 4.x only, uncomment file names instead of on the commandline\n\n",
-
-    "#ARG1 = \"chart.png\"\n",
-    "#ARG2 = \"datafile.csv\"\n\n",
+    "#\n\n",
 
     "set term pngcairo size 1024,1280 enhanced font \'Verdana,10\'\n",
     "set output ARG1\n",
     "set datafile separator \",\"\n\n",
 
-    "# title and line style definitions\n\n",
+    "# title and line style definitions\n\n"};
 
-    "data_title1 = \"Thermal Zone 0\"\n",
-    "set style line 1 lc rgb \"dark-violet\" lw 1\n\n",
 
-    "data_title2 = \"Thermal Zone 1\"\n",
-    "set style line 2 lc rgb \"orange\" lw 1\n\n",
+static char gpscript_thermal_title[9][3][50] = { 
+    {"data_title1 = \"", "Thermal Zone 0", "set style line 1 lc rgb \"dark-violet\" lw 1\n\n"},
+    {"data_title2 = \"", "Thermal Zone 1", "set style line 2 lc rgb \"orange\" lw 1\n\n"},
+    {"data_title3 = \"", "Thermal Zone 2", "set style line 3 lc rgb \"blue\" lw 1\n\n"},
+    {"data_title4 = \"", "Thermal Zone 3", "set style line 4 lc rgb \"forest-green\" lw 1\n\n"},
+    {"data_title5 = \"", "Thermal Zone 4", "set style line 5 lc rgb \"red\" lw 1\n\n"},
+    {"data_title6 = \"", "Thermal Zone 5", "set style line 6 lc rgb \"cyan\" lw 1\n\n"},
+    {"data_title7 = \"", "Thermal Zone 6", "set style line 7 lc rgb \"khaki\" lw 1\n\n"},
+    {"data_title8 = \"", "Thermal Zone 7", "set style line 8 lc rgb \"light-blue\" lw 1\n\n"},
+    {"data_title9 = \"", "Ambient Temp", "set style line 8 lc rgb \"black\" lw 1\n\n"}
+    };
 
-    "data_title3 = \"Thermal Zone 2\"\n",
-    "set style line 3 lc rgb \"blue\" lw 1\n\n",
+static char gpscript_thermal_end [1][3] = {
+    "\"\n"};
 
-    "data_title4 = \"Thermal Zone 3\"\n",
-    "set style line 4 lc rgb \"forest-green\" lw 1\n\n",
-
-    "data_title5 = \"Thermal Zone 4\"\n",
-    "set style line 5 lc rgb \"red\" lw 1\n\n",
-
-    "data_title6 = \"Thermal Zone 5\"\n",
-    "set style line 6 lc rgb \"cyan\" lw 1\n\n",
-
-    "data_title7 = \"Thermal Zone 6\"\n",
-    "set style line 7 lc rgb \"khaki\" lw 1\n\n",
-
-    "data_title8 = \"Thermal Zone 7\"\n",
-    "set style line 8 lc rgb \"light-blue\" lw 1\n\n",
-
-    "data_title9 = \"Ambient Temp\"\n",
-    "set style line 8 lc rgb \"black\" lw 1\n\n",
-    
+static char gpscript_mid [10][45] = {     
     "# border and grid line styles\n",
     "set style line 9 lc rgb \"black\" lt 1 lw 1\n",
     "set style line 10 lc rgb \"black\" lt 0 lw 1\n\n",
@@ -167,7 +147,7 @@ static char gpscript_thermal [13][60] = {
     "# temperature y axis\n",
     "set ylabel \'Temperature (c)\' font \'Verdana,12\'\n",
     "set yrange [0:100]\n",
-    "set ytics 0,2 border nomirror out\n",
+    "set ytics 0,5 border nomirror out\n",
     "set mytics\n",
     "# temperature x axis\n",
     "set xlabel \'Time (seconds)\'\n",
