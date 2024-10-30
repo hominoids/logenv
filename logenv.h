@@ -1,6 +1,6 @@
 /*
-    logenv Copyright 2019,2020 Edward A. Kisiel
-    hominoid @ www.forum.odroid.com
+    logenv Copyright 2019,2020,2024 Edward A. Kisiel
+    hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

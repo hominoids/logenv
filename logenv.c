@@ -265,13 +265,21 @@ int main(int argc, char **argv)
                         break;
                     }
                     fscanf(cpu_thermal, "%d", &coretemp);
-                    fclose(cpu_thermal);
+                    fclose(cpu_thermal);         
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%d", coretemp);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
                         if(VERBOSE_ENABLE == 1) {
-                            printf("\n Thermal Zone %d = %dc", c, coretemp/1000);
+                            strcpy(thermaltype,thermalzone1);
+                            strcat(thermaltype,strChar);
+                            strcat(thermaltype,thermaltype1);
+                            if((thermal_type = fopen(thermaltype, "r")) == NULL) {
+                                break;
+                            }
+                            fscanf(thermal_type, "%s", thermalname);
+                            fclose(thermal_type);
+                            printf("\n %s = %dc", thermalname, coretemp/1000);
                         }
                         else {
                             printf(",%d", coretemp/1000);
@@ -542,7 +550,7 @@ void usage (void)
         printf(" -b,  --bme280 <device>       BME280 Temperature Sensor(HK Weatherboard 2), default /dev/i2c-1\n");
         printf("      --bmp180 <device>       BMP180 Temperature Sensor(HK Weatherboard 1), default /dev/i2c-1\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
-        printf("      --smartpower3-ch2 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
+        printf("      --smartpower3-ch2 <tty>");
         printf("      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
