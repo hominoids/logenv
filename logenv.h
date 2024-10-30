@@ -43,13 +43,15 @@ char *thermalzone2 = "/temp";
 
 char thermaltype[255];
 char *thermaltype1 = "/type";
-static char thermalname[255];
+char thermalname[255];
 
 char logfile[255];
 char gplotfile[255];
 char spline[25];
 char version[] = "0.98 pre release";
+char charttitle[255] = "Main Title";
 
+static int xmtics = 10;
 static int temperature;
 static int humidity;
 static int pressure;
@@ -136,10 +138,18 @@ static char gpscript_mid [10][45] = {
     "# legend top right corner\n",
     "set key default noauto font \'Verdana,10\'\n\n"};
 
-static char gpscript_layout [65] = {
-    "set multiplot layout 3,1 title \"Main Title\" font \'Verdana,16\'\n\n"};
+static char gpscript_layout [2][65] = {
+    "set multiplot layout 3,1 title \"",
+    "\" font \'Verdana,16\'\n\n"};
 
-static char gpscript_thermal [13][60] = {
+static char gpscript_xaxis [5][35] = {
+    "# seconds x axis\n",
+    "set xlabel \'Time (seconds)\'\n",
+    "set xtics 0,",
+    " border nomirror out rotate\n",
+    "set mxtics\n\n"};
+
+static char gpscript_thermal [9][60] = {
     "# temperature plot\n",
     "set size ratio 0 1,.5\n",
     "set origin 0,.5\n",
@@ -148,11 +158,7 @@ static char gpscript_thermal [13][60] = {
     "set ylabel \'Temperature (c)\' font \'Verdana,12\'\n",
     "set yrange [0:100]\n",
     "set ytics 0,5 border nomirror out\n",
-    "set mytics\n",
-    "# temperature x axis\n",
-    "set xlabel \'Time (seconds)\'\n",
-    "set xtics 0,10 border nomirror out rotate\n",
-    "set mxtics\n\n"};
+    "set mytics\n\n"};
     
 static char gpscript_freq [11][55] = {
     "# frequency plot\n",

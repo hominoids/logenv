@@ -176,6 +176,12 @@ int main(int argc, char **argv)
             DT_ENABLE = 1;
             COUNT_ENABLE = 0;
         }
+        if(!strcmp(argv[i], "--xmtics")) {
+            xmtics = atoi(argv[i+1]);
+        }
+        if(!strcmp(argv[i], "--title")) {
+            strcpy(charttitle, argv[i+1]);
+        }
     }
     if (GNUPLOT_ENABLE == 0) {
         /*
@@ -435,15 +441,15 @@ int main(int argc, char **argv)
          * change layout if no power chart
          */
         if(SP_ENABLE == 0) {
-            gpscript_layout [21] = 50;
-            gpscript_thermal [1][20] = 55;
-            gpscript_thermal [2][14] = 51;
-            gpscript_freq [1][20] = 51;
-            gpscript_freq [2][14] = 48;
-            if(INTERACTIVE_ENABLE != 0) {
-                itoa(INTERACTIVE_ENABLE, &gpscript_thermal [11][12]);
-                strcat(gpscript_thermal [11]," border nomirror out rotate\n");
-            }
+            gpscript_layout[0][21] = 50;
+            gpscript_thermal[1][20] = 55;
+            gpscript_thermal[2][14] = 51;
+            gpscript_freq[1][20] = 51;
+            gpscript_freq[2][14] = 48;
+//            if(INTERACTIVE_ENABLE != 0) {
+//                itoa(INTERACTIVE_ENABLE, &gpscript_thermal[11][12]);
+//                strcat(gpscript_thermal [11]," border nomirror out rotate\n");
+//            }
         }
         /*
          * Beginning of gnuplot script
@@ -479,12 +485,26 @@ int main(int argc, char **argv)
             fprintf(gnuplot_file,"%s",gpscript_mid[i]);
             i++;
         }
-        fprintf(gnuplot_file,"%s",gpscript_layout);
+        /*
+         * set chart title
+         */
+        fprintf(gnuplot_file,"%s",gpscript_layout[0]);
+        fprintf(gnuplot_file,"%s",charttitle);
+        fprintf(gnuplot_file,"%s",gpscript_layout[1]);
+        /*
+         * set x axis major tic value
+         */
+        fprintf(gnuplot_file,"%s",gpscript_xaxis[0]);
+        fprintf(gnuplot_file,"%s",gpscript_xaxis[1]);
+        fprintf(gnuplot_file,"%s",gpscript_xaxis[2]);
+        fprintf(gnuplot_file,"%d",xmtics);
+        fprintf(gnuplot_file,"%s",gpscript_xaxis[3]);
+        fprintf(gnuplot_file,"%s",gpscript_xaxis[4]);
         /*
          * build thermal zone chart
          */
         i=0;
-        while (i < 13) {
+        while (i < 9) {
             fprintf(gnuplot_file,"%s",gpscript_thermal[i]);
             i++;
         }
@@ -550,20 +570,22 @@ void usage (void)
         printf(" -b,  --bme280 <device>       BME280 Temperature Sensor(HK Weatherboard 2), default /dev/i2c-1\n");
         printf("      --bmp180 <device>       BMP180 Temperature Sensor(HK Weatherboard 1), default /dev/i2c-1\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
-        printf("      --smartpower3-ch2 <tty>");
+        printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
+        printf("      --title <string>        Chart title to <string>\n");
+        printf("      --xmtics <number>       Chart x-axis major second tics to <number>\n");
         printf("      --version               Version\n");
         printf(" -h,  --help                  Help screen\n\n");
         printf("Example:\n\n");
         printf("Data capture every 2 seconds:\n");
         printf("logenv -l logfile.csv -s 2 -f -t -b /dev/i2c-1 -p /dev/ttyUSB0\n\n");
         printf("Gnuplot script generation for data capture:\n");
-        printf("logenv -g gplotscript.gpl -s 2 -f -t -b -p \n\n");
+        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -s 2 -f -t -b -p \n\n");
         printf("Gnuplot chart creation:\n");
         printf("gnuplot -c gplotscript.gpl chart.png logfile.csv\n\n");
         exit(0);
