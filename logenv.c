@@ -436,23 +436,9 @@ int main(int argc, char **argv)
             sleep(INTERACTIVE_ENABLE);
         }
     }
-    else {  // build gnuplot script file
+    else { 
         /*
-         * change layout if no power chart
-         */
-        if(SP_ENABLE == 0) {
-            gpscript_layout[0][21] = 50;
-            gpscript_thermal[1][20] = 55;
-            gpscript_thermal[2][14] = 51;
-            gpscript_freq[1][20] = 51;
-            gpscript_freq[2][14] = 48;
-//            if(INTERACTIVE_ENABLE != 0) {
-//                itoa(INTERACTIVE_ENABLE, &gpscript_thermal[11][12]);
-//                strcat(gpscript_thermal [11]," border nomirror out rotate\n");
-//            }
-        }
-        /*
-         * Beginning of gnuplot script
+         * Build of gnuplot script
          */
         i=0;
         while (i < 12) {
@@ -473,11 +459,11 @@ int main(int argc, char **argv)
             }
             fscanf(thermal_type, "%s", thermalname);
             fclose(thermal_type);
-            fprintf(gnuplot_file,"%s%s\"",gpscript_thermal_title[c][0], thermalname);
+            fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[c][0], thermalname);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[c][2]);
         }
         if(WB_ENABLE != 0) {
-            fprintf(gnuplot_file,"%s%s\"",gpscript_thermal_title[8][0],gpscript_thermal_title[8][1]);
+            fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[8][0], gpscript_thermal_title[8][1]);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
         }
         i=0;
@@ -486,11 +472,57 @@ int main(int argc, char **argv)
             i++;
         }
         /*
-         * set chart title
+         * set chart layout, size, origin and title
          */
         fprintf(gnuplot_file,"%s",gpscript_layout[0]);
-        fprintf(gnuplot_file,"%s",charttitle);
+        if(SP_ENABLE > 0 && CPU_ENABLE > 0 && THERMAL_ENABLE > 0) {
+            fprintf(gnuplot_file, "%s", three2one);
+            strcpy(gpscript_freq1, "set size 1,.2\n");
+            strcpy(gpscript_freq2, "set origin 0,.3\n");
+            strcpy(gpscript_thermal1, "set size 1,.5\n");
+            strcpy(gpscript_thermal2, "set origin 0,.5\n");
+            strcpy(gpscript_power1, "set size 1,.3\n");
+            strcpy(gpscript_power2, "set origin 0,0\n");
+        }
+        if(SP_ENABLE == 0 && CPU_ENABLE > 0 && THERMAL_ENABLE > 0) {
+            fprintf(gnuplot_file,"%s", two2one);
+            strcpy(gpscript_freq1, "set size 1,.5\n");
+            strcpy(gpscript_freq2, "set origin 0,0\n");
+            strcpy(gpscript_thermal1, "set size 1,.5\n");
+            strcpy(gpscript_thermal2, "set origin 0,.5\n");
+        }
+        if(SP_ENABLE == 0 && CPU_ENABLE == 0 && THERMAL_ENABLE > 0) {
+            fprintf(gnuplot_file,"%s", one2one);
+            strcpy(gpscript_thermal1, "set size 1,1\n");
+            strcpy(gpscript_thermal2, "set origin 0,0\n");
+        }
+        if(SP_ENABLE == 0 && CPU_ENABLE > 0 && THERMAL_ENABLE == 0) {
+            fprintf(gnuplot_file,"%s",one2one);
+            strcpy(gpscript_freq1, "set size 1,1\n");
+            strcpy(gpscript_freq2, "set origin 0,0\n");
+        }
+        if(SP_ENABLE > 0 && CPU_ENABLE == 0 && THERMAL_ENABLE == 0) {
+            fprintf(gnuplot_file,"%s",one2one);
+            strcpy(gpscript_power1, "set size 1,1\n");
+            strcpy(gpscript_power2, "set origin 0,0\n");
+        }
+        if(SP_ENABLE > 0 && CPU_ENABLE > 0 && THERMAL_ENABLE == 0) {
+            fprintf(gnuplot_file,"%s",two2one);
+            strcpy(gpscript_freq1, "set size 1,.5\n");
+            strcpy(gpscript_freq2, "set origin 0,.5\n");
+            strcpy(gpscript_power1, "set size 1,.5\n");
+            strcpy(gpscript_power2, "set origin 0,0\n");
+        }
+        if(SP_ENABLE > 0 && CPU_ENABLE == 0 && THERMAL_ENABLE > 0) {
+            fprintf(gnuplot_file,"%s",two2one);
+            strcpy(gpscript_thermal1, "set size 2,.5\n");
+            strcpy(gpscript_thermal2, "set origin 0,.5\n");
+            strcpy(gpscript_power1, "set size 1,.5\n");
+            strcpy(gpscript_power2, "set origin 0,0\n");
+        }
         fprintf(gnuplot_file,"%s",gpscript_layout[1]);
+        fprintf(gnuplot_file,"%s",charttitle);
+        fprintf(gnuplot_file,"%s",gpscript_layout[2]);
         /*
          * set x axis major tic value
          */
@@ -503,53 +535,93 @@ int main(int argc, char **argv)
         /*
          * build thermal zone chart
          */
-        i=0;
-        while (i < 9) {
-            fprintf(gnuplot_file,"%s",gpscript_thermal[i]);
+        if(THERMAL_ENABLE != 0) {
+            i=0;
+            while (i < 9) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_thermal[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_thermal1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_thermal2);
+                        i++;
+                    }
+                }
+            }
+            i=0;
+            fprintf(gnuplot_file, "plot ");
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(CPU_ENABLE+2), i+1, i+1);
             i++;
+            while (i < THERMAL_ENABLE) {
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(CPU_ENABLE+2), i+1, i+1);
+                i++;
+            }
+            if(WB_ENABLE > 0) {
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1 title data_title9", i+(CPU_ENABLE+2));
+            }
+            fprintf(gnuplot_file, "\n\n");
         }
-        i=0;
-        fprintf(gnuplot_file, "plot ");
-        fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(CPU_ENABLE+2), i+1, i+1);
-        i++;
-        while (i < THERMAL_ENABLE) {
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(CPU_ENABLE+2), i+1, i+1);
-            i++;
-        }
-        if(WB_ENABLE > 0) {
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1 title data_title9", i+(CPU_ENABLE+2));
-        }
-        fprintf(gnuplot_file, "\n\n");
         /*
          * build frequency chart
          */
-        i=0;
-        while (i < 12) {
-            fprintf(gnuplot_file,"%s",gpscript_freq[i]);
+        if(CPU_ENABLE != 0) {
+            i=0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_freq[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_freq1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_freq2);
+                        i++;
+                    }
+                }
+            }
+            i=0;
+            fprintf(gnuplot_file, "plot ");
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 notitle", i+2, i+1);
             i++;
+            while (i < CPU_ENABLE) {
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", i+2, i+1);
+                i++;
+            }
+            fprintf(gnuplot_file, "\n\n");
         }
-        i=0;
-        fprintf(gnuplot_file, "plot ");
-        fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 notitle", i+2, i+1);
-        i++;
-        while (i < CPU_ENABLE) {
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", i+2, i+1);
-            i++;
-        }
-        fprintf(gnuplot_file, "\n\n");
         /*
          * build power chart
          */
         if(SP_ENABLE != 0) {
             i=0;
-            while (i < 12) {
-                fprintf(gnuplot_file,"%s",gpscript_power[i]);
-                i++;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_power[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_power1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_power2);
+                        i++;
+                    }
+                }
             }
-        fprintf(gnuplot_file, "plot ");
-        fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+2));
-        fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
-        fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+4));
+            fprintf(gnuplot_file, "plot ");
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+2));
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+4));
         }
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
@@ -577,8 +649,8 @@ void usage (void)
         printf(" -v,  --verbose               Readable output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
-        printf("      --title <string>        Chart title to <string>\n");
-        printf("      --xmtics <number>       Chart x-axis major second tics to <number>\n");
+        printf("      --title <string>        Chart title <string>\n");
+        printf("      --xmtics <number>       Chart x-axis major second tics <number>\n");
         printf("      --version               Version\n");
         printf(" -h,  --help                  Help screen\n\n");
         printf("Example:\n\n");
