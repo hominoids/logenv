@@ -459,15 +459,14 @@ int main(int argc, char **argv)
             }
             fscanf(thermal_type, "%s", thermalname);
             fclose(thermal_type);
-            fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[c][0], thermalname);
-            fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[c][2]);
+            fprintf(gnuplot_file,"%s%s\"\n", gpscript_thermal_title[c][0], thermalname);
         }
         if(WB_ENABLE != 0) {
             fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[8][0], gpscript_thermal_title[8][1]);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
         }
         i=0;
-        while (i < 10) {
+        while (i < 18) {
             fprintf(gnuplot_file,"%s",gpscript_mid[i]);
             i++;
         }
@@ -515,7 +514,7 @@ int main(int argc, char **argv)
         }
         if(SP_ENABLE > 0 && CPU_ENABLE == 0 && THERMAL_ENABLE > 0) {
             fprintf(gnuplot_file,"%s",two2one);
-            strcpy(gpscript_thermal1, "set size 2,.5\n");
+            strcpy(gpscript_thermal1, "set size 1,.5\n");
             strcpy(gpscript_thermal2, "set origin 0,.5\n");
             strcpy(gpscript_power1, "set size 1,.5\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
@@ -571,7 +570,7 @@ int main(int argc, char **argv)
          */
         if(CPU_ENABLE != 0) {
             i=0;
-            while (i < 11) {
+            while (i < 9) {
                 if(i != 1 && i != 2) {
                     fprintf(gnuplot_file,"%s",gpscript_freq[i]);
                     i++;

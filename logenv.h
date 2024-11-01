@@ -100,7 +100,7 @@ static char gpscript_power1[30];
 static char gpscript_power2[30];
 static char charttitle[255] = "Main Title";
 
-static char gpscript_start[12][80] = { 
+static char gpscript_start[12][75] = { 
     "#!/usr/bin/gnuplot --persist\n",
     "#\n",   
     "#\n",
@@ -114,23 +114,30 @@ static char gpscript_start[12][80] = {
     "set output ARG1\n",
     "set datafile separator \",\"\n\n",
 
-    "# title and line style definitions\n\n"};
+    "# title and line style definitions\n\n" };
 
 
-static char gpscript_thermal_title[9][3][50] = { 
-    {"data_title1 = \"", "Thermal Zone 0", "set style line 1 lc rgb \"dark-violet\" lw 1\n\n"},
-    {"data_title2 = \"", "Thermal Zone 1", "set style line 2 lc rgb \"orange\" lw 1\n\n"},
-    {"data_title3 = \"", "Thermal Zone 2", "set style line 3 lc rgb \"blue\" lw 1\n\n"},
-    {"data_title4 = \"", "Thermal Zone 3", "set style line 4 lc rgb \"forest-green\" lw 1\n\n"},
-    {"data_title5 = \"", "Thermal Zone 4", "set style line 5 lc rgb \"red\" lw 1\n\n"},
-    {"data_title6 = \"", "Thermal Zone 5", "set style line 6 lc rgb \"cyan\" lw 1\n\n"},
-    {"data_title7 = \"", "Thermal Zone 6", "set style line 7 lc rgb \"khaki\" lw 1\n\n"},
-    {"data_title8 = \"", "Thermal Zone 7", "set style line 8 lc rgb \"light-blue\" lw 1\n\n"},
-    {"data_title9 = \"", "Ambient Temp", "set style line 8 lc rgb \"black\" lw 1\n\n"}
-    };
+static char gpscript_thermal_title[9][2][32] = { 
+    {"data_title1 = \"", "Thermal Zone 0"},
+    {"data_title2 = \"", "Thermal Zone 1"},
+    {"data_title3 = \"", "Thermal Zone 2"},
+    {"data_title4 = \"", "Thermal Zone 3"},
+    {"data_title5 = \"", "Thermal Zone 4"},
+    {"data_title6 = \"", "Thermal Zone 5"},
+    {"data_title7 = \"", "Thermal Zone 6"},
+    {"data_title8 = \"", "Thermal Zone 7"},
+    {"data_title9 = \"", "Ambient Temp"} };
 
-static char gpscript_mid[10][45] = {     
-    "# border and grid line styles\n",
+static char gpscript_mid[18][45] = {     
+    "\n# line styles\n",
+    "set style line 1 lc rgb \"dark-violet\" lw 1\n",
+    "set style line 2 lc rgb \"orange\" lw 1\n",
+    "set style line 3 lc rgb \"blue\" lw 1\n",
+    "set style line 4 lc rgb \"forest-green\" lw 1\n",
+    "set style line 5 lc rgb \"red\" lw 1\n",
+    "set style line 6 lc rgb \"cyan\" lw 1\n",
+    "set style line 7 lc rgb \"khaki\" lw 1\n",
+    "set style line 8 lc rgb \"light-blue\" lw 1\n",
     "set style line 9 lc rgb \"black\" lt 1 lw 1\n",
     "set style line 10 lc rgb \"black\" lt 0 lw 1\n\n",
 
@@ -148,14 +155,14 @@ static char gpscript_layout[3][65] = {
     " title \"",
     "\" font \'Verdana,16\'\n\n"};
 
-static char gpscript_xaxis [5][35] = {
+static char gpscript_xaxis [5][30] = {
     "# seconds x axis\n",
     "set xlabel \'Time (seconds)\'\n",
     "set xtics 0,",
     " border nomirror out rotate\n",
     "set mxtics\n\n"};
 
-static char gpscript_thermal[9][60] = {
+static char gpscript_thermal[9][55] = {
     "# temperature plot\n",
     "set size 1,.5\n",
     "set origin 0,.5\n",
@@ -166,7 +173,7 @@ static char gpscript_thermal[9][60] = {
     "set ytics 0,5 border nomirror out\n",
     "set mytics\n\n"};
     
-static char gpscript_freq[11][55] = {
+static char gpscript_freq[9][55] = {
     "# frequency plot\n",
     "set size 1,.2\n",
     "set origin 0,.3\n",
@@ -175,14 +182,12 @@ static char gpscript_freq[11][55] = {
     "set ylabel \'Frequency (GHz)\' font \'Verdana,12\'\n",
     "set yrange [0:4]\n",
     "set ytics 0,.5 border nomirror out\n",
-    "#set format y \'%.1f\'\n",
-    "# frequency x axis\n",
-    "set xlabel \'Time (seconds)\'\n\n"};
+    "#set format y \'%.1f\'\n\n"};
 
 static char gpscript_power[11][55] = {
     "# power plot\n",
     "set size 1,.3\n",
-    "set origin 0,.0\n",
+    "set origin 0,0\n",
     "set lmargin 11\n",
     "# power y axis\n",
     "set ylabel \'Amps, Volts, Watts\' font \'Verdana,12\'\n",
