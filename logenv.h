@@ -111,7 +111,7 @@ static char gpscript_start[12][75] = {
     "#               core1,core2,core3,core4,gpu,airtemp,volts,amps,watts\"\n",
     "#\n\n",
 
-    "set term pngcairo size 1024,1280 enhanced font \'Verdana,10\'\n",
+    "set term pngcairo size 1280,1024 enhanced font \'Verdana,10\'\n",
     "set output ARG1\n",
     "set datafile separator \",\"\n\n",
 
@@ -136,9 +136,9 @@ static char gpscript_mid[18][45] = {
     "set style line 3 lc rgb \"blue\" lw 1\n",
     "set style line 4 lc rgb \"forest-green\" lw 1\n",
     "set style line 5 lc rgb \"red\" lw 1\n",
-    "set style line 6 lc rgb \"cyan\" lw 1\n",
-    "set style line 7 lc rgb \"khaki\" lw 1\n",
-    "set style line 8 lc rgb \"yellow\" lw 1\n",
+    "set style line 6 lc rgb \"dark-cyan\" lw 1\n",
+    "set style line 7 lc rgb \"dark-magenta\" lw 1\n",
+    "set style line 8 lc rgb \"royalblue\" lw 1\n",
     "set style line 9 lc rgb \"black\" lt 1 lw 1\n",
     "set style line 10 lc rgb \"black\" lt 0 lw 1\n\n",
 
@@ -181,7 +181,7 @@ static char gpscript_freq[9][55] = {
     "set lmargin 11\n",
     "# frequency y axis\n",
     "set ylabel \'Frequency (GHz)\' font \'Verdana,12\'\n",
-    "set yrange [0:4]\n",
+    "set yrange [0:5]\n",
     "set ytics 0,.5 border nomirror out\n",
     "#set format y \'%.1f\'\n\n"};
 
