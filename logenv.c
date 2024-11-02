@@ -16,7 +16,7 @@
     Code released under GPLv3: http://www.gnu.org/licenses/gpl.html
 
    logenv - logs count or time stamp, thermal zone temperature, cpu frequency, 
-            air temperature(BME280, BMP180),
+            air temperature(BME280, BMP180, MCP9808),
             volts, amps and watts (HK SmartPower2 or SmartPower3 output)
             
     20200202 Version .97 beta HK SmartPower2
@@ -352,17 +352,17 @@ int main(int argc, char **argv)
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
                     if(VERBOSE_ENABLE == 1) {
-                        printf("\n\n MCP9808 Sensor = %.2lfc", (double)temperature * 0.0625);
+                        printf("\n\n MCP9808 Sensor = %.2lfc", (double)temp * 0.0625);
                     }
                     else {
-                        printf(",%.2lf", (double)temperature * 0.0625);
+                        printf(",%.2lf", (double)temp * 0.0625);
                     }
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%d", temperature);
+                    fprintf(log_file,",%.2lf", (double)temp * 0.0625);
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", (double)temperature * 0.0625);
+                    fprintf(log_file,",%.2lf", (double)temp * 0.0625);
                 }
             }
             /*
@@ -684,9 +684,16 @@ int main(int argc, char **argv)
                 }
             }
             fprintf(gnuplot_file, "plot ");
-            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+2));
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+4));
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+4));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+4));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+5));
+            }
         }
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
@@ -704,15 +711,15 @@ void usage (void)
         printf(" -s,  --seconds <number>      Poll every <number> seconds\n");        
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-1\n");
-        printf("      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-1\n");
-        printf("      --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-1\n");
+        printf(" -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0\n");
+        printf("      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0\n");
+        printf("      --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-0\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
-        printf(" -v,  --verbose               Readable output\n"); 
+        printf(" -v,  --verbose               Readable dashboard output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");

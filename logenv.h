@@ -30,7 +30,7 @@ struct tm *t;
 int  file;
 char spfile[255];
 char *smartpower = "/dev/ttyUSB0";
-char *sensor = "/dev/i2c-1";
+char *sensor = "/dev/i2c-0";
 char *cpuonline = "/sys/devices/system/cpu/online";
 
 char cpufreq[255];
