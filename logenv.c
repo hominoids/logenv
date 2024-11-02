@@ -34,6 +34,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 #include "bme280/bmp180.h"
 #include "bme280/bme280.h"
 #include "bme280/bme280-i2c.h"
@@ -95,34 +98,60 @@ int main(int argc, char **argv)
                 THERMAL_ENABLE++;
             }
         }
-        if(!strcmp(argv[i], "-b") || !strcmp(argv[i], "--bmp280")) {
+        if(!strcmp(argv[i], "-b") || !strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 8) {
-                    weatherboard = argv[i+1];
+                if((i+1) < argc && strlen(argv[i+1]) >= 10) {
+                    sensor = argv[i+1];
                     }
-                if(bme280_begin(weatherboard) < 0) {
-                    printf("\nERROR: Cannot open BME280 at %s\n", weatherboard);
+                if(bme280_begin(sensor) < 0) {
+                    printf("\nERROR: Cannot open BME280 at %s\n", sensor);
                     usage();
                 }
                 if(bme280_set_power_mode(BME280_NORMAL_MODE) < 0) {
-                    printf("\nERROR: Cannot set power mode for BME280 at %s\n", weatherboard);
+                    printf("\nERROR: Cannot set power mode for BME280 at %s\n", sensor);
                     exit(0);
                 }
             }
-            WB_ENABLE = 2;
-       }
+            SENSOR_ENABLE = 2;
+        }
         if(!strcmp(argv[i], "--bmp180")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && strlen(argv[i+1]) >= 8) {
-                    weatherboard = argv[i+1];
+                    sensor = argv[i+1];
                     }
-                if(bmp180_begin(weatherboard) < 0) {
-                    printf("\nERROR: Cannot open BMP180 at %s\n", weatherboard);
+                if(bmp180_begin(sensor) < 0) {
+                    printf("\nERROR: Cannot open BMP180 at %s\n", sensor);
                     usage();
                 }
             }
-            WB_ENABLE = 1;
-       }
+            SENSOR_ENABLE = 1;
+        }
+        if(!strcmp(argv[i], "--mcp9808")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && strlen(argv[i+1]) >= 10) {
+                    sensor = argv[i+1];
+                    }
+                if((file = open(sensor, O_RDWR)) < 0) {
+                    printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
+                    usage();
+                }
+	            // Get I2C device, MCP9808 I2C address is 0x18(24)
+	            ioctl(file, I2C_SLAVE, 0x18);
+	            // Select configuration register(0x01)
+	            // Continuous conversion mode, Power-up default(0x00, 0x00)
+	            char config[3] = {0};
+	            config[0] = 0x01;
+	            config[1] = 0x00;
+	            config[2] = 0x00;
+	            write(file, config, 3);
+	            // Select resolution rgister(0x08)
+	            // Resolution = +0.0625 / C(0x03)
+	            config[0] = 0x08;
+	            config[1] = 0x03;
+	            write(file, config, 2);
+            }
+            SENSOR_ENABLE = 3;
+        }
         if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && strlen(argv[i+1]) >= 7) {
@@ -300,9 +329,46 @@ int main(int argc, char **argv)
                 }
             }
             /*
+             * read mcp9808
+             */        
+            if(SENSOR_ENABLE == 3) {
+	            // Read 2 bytes of data from register(0x05)
+	            // temp msb, temp lsb
+	            char reg[1] = {0x05};
+	            write(file, reg, 1);
+	            char data[2] = {0};
+	            if(read(file, data, 2) != 2) {
+		            printf("ERROR : MCP9808 Read Error \n");
+                    exit(0);
+	            }
+	            // Convert the data to 13-bits
+	            int temp = ((data[0] & 0x1F) * 256 + data[1]);
+	            if(temp > 4095) {
+		            temp -= 8192;
+	            }
+	            temperature = temp * 0.0625;
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                    printf(",%d", temperature);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
+                    if(VERBOSE_ENABLE == 1) {
+                        printf("\n\n MCP9808 Sensor = %.2lfc", (double)temperature * 0.0625);
+                    }
+                    else {
+                        printf(",%.2lf", (double)temperature * 0.0625);
+                    }
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                    fprintf(log_file,",%d", temperature);
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                    fprintf(log_file,",%.2lf", (double)temperature * 0.0625);
+                }
+            }
+            /*
              * read bme280
              */        
-            if(WB_ENABLE == 2) {
+            if(SENSOR_ENABLE == 2) {
                 bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
@@ -326,7 +392,7 @@ int main(int argc, char **argv)
              * read bmp180
              */
 
-            if(WB_ENABLE == 1) {
+            if(SENSOR_ENABLE == 1) {
                 temperature = BMP180_readTemperature();
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
@@ -461,7 +527,7 @@ int main(int argc, char **argv)
             fclose(thermal_type);
             fprintf(gnuplot_file,"%s%s\"\n", gpscript_thermal_title[c][0], thermalname);
         }
-        if(WB_ENABLE != 0) {
+        if(SENSOR_ENABLE != 0) {
             fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[8][0], gpscript_thermal_title[8][1]);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
         }
@@ -560,8 +626,8 @@ int main(int argc, char **argv)
                 fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(CPU_ENABLE+2), i+1, i+1);
                 i++;
             }
-            if(WB_ENABLE > 0) {
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1 title data_title9", i+(CPU_ENABLE+2));
+            if(SENSOR_ENABLE > 0) {
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(CPU_ENABLE+2));
             }
             fprintf(gnuplot_file, "\n\n");
         }
@@ -619,7 +685,7 @@ int main(int argc, char **argv)
             }
             fprintf(gnuplot_file, "plot ");
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+2));
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 8 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+4));
         }
         fprintf(gnuplot_file,"%s",gpscript_end);
@@ -638,8 +704,9 @@ void usage (void)
         printf(" -s,  --seconds <number>      Poll every <number> seconds\n");        
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -b,  --bme280 <device>       BME280 Temperature Sensor(HK Weatherboard 2), default /dev/i2c-1\n");
-        printf("      --bmp180 <device>       BMP180 Temperature Sensor(HK Weatherboard 1), default /dev/i2c-1\n");
+        printf(" -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-1\n");
+        printf("      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-1\n");
+        printf("      --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-1\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");

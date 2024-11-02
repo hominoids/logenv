@@ -27,9 +27,10 @@ FILE *pwr_in, *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *log_file, *g
 time_t now;
 struct tm *t;
 
+int  file;
 char spfile[255];
 char *smartpower = "/dev/ttyUSB0";
-char *weatherboard = "/dev/i2c-1";
+char *sensor = "/dev/i2c-1";
 char *cpuonline = "/sys/devices/system/cpu/online";
 
 char cpufreq[255];
@@ -53,7 +54,7 @@ char two2one[] = "2,1";
 char three2one[] = "3,1";
 
 static int SP_ENABLE = 0;
-static int WB_ENABLE = 0;
+static int SENSOR_ENABLE = 0;
 static int CPU_ENABLE = 0;
 static int THERMAL_ENABLE = 0;
 static int QUIET_ENABLE = 0;
@@ -137,7 +138,7 @@ static char gpscript_mid[18][45] = {
     "set style line 5 lc rgb \"red\" lw 1\n",
     "set style line 6 lc rgb \"cyan\" lw 1\n",
     "set style line 7 lc rgb \"khaki\" lw 1\n",
-    "set style line 8 lc rgb \"light-blue\" lw 1\n",
+    "set style line 8 lc rgb \"yellow\" lw 1\n",
     "set style line 9 lc rgb \"black\" lt 1 lw 1\n",
     "set style line 10 lc rgb \"black\" lt 0 lw 1\n\n",
 

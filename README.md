@@ -28,8 +28,9 @@ Options:
  -s,  --seconds <number>      Poll every <number> seconds
  -f,  --frequency             CPU core frequency
  -t,  --temperature           Thermal zone temperature
- -b,  --bme280 <device>       BME280 Temperature Sensor(HK Weatherboard 2), default /dev/i2c-1
-      --bmp180 <device>       BMP180 Temperature Sensor(HK Weatherboard 1), default /dev/i2c-1
+ -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-1
+      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-1
+      --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-1\n");
  -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
       --smartpower3-ch2 <tty>
       --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
