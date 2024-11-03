@@ -135,7 +135,7 @@ int main(int argc, char **argv)
                     printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
                     usage();
                 }
-	            // Get I2C device, MCP9808 I2C address is 0x18(24)
+	            // Get I2C device, MCP9808 address is 0x18
 	            ioctl(file, I2C_SLAVE, 0x18);
 	            // Select configuration register(0x01)
 	            // Continuous conversion mode, Power-up default(0x00, 0x00)
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 	            config[1] = 0x00;
 	            config[2] = 0x00;
 	            write(file, config, 3);
-	            // Select resolution rgister(0x08)
+	            // Select resolution register(0x08)
 	            // Resolution = +0.0625 / C(0x03)
 	            config[0] = 0x08;
 	            config[1] = 0x03;
@@ -162,6 +162,7 @@ int main(int argc, char **argv)
                     usage();
                 }
             }
+            fclose(pwr_in);
             SP_ENABLE = 31;
         }
         if(!strcmp(argv[i], "--smartpower3-ch2")) {
@@ -174,6 +175,7 @@ int main(int argc, char **argv)
                     usage();
                 }
             }
+            fclose(pwr_in);
             SP_ENABLE = 32;
         }
         if(!strcmp(argv[i], "--smartpower2")) {
@@ -186,6 +188,7 @@ int main(int argc, char **argv)
                     usage();
                 }
            }
+            fclose(pwr_in);
             SP_ENABLE = 2;
         }
         if(!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quiet")) {
