@@ -27,16 +27,16 @@
 
 */
 
+#include <ctype.h>
+#include <fcntl.h>
+#include <linux/i2c-dev.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
-#include <unistd.h>
-#include <time.h>
-#include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
-#include <fcntl.h>
+#include <time.h>
+#include <unistd.h>
 #include "bme280/bmp180.h"
 #include "bme280/bme280.h"
 #include "bme280/bme280-i2c.h"
@@ -44,35 +44,64 @@
 
 int main(int argc, char **argv)
 {
-    /*
-    * parse command line options
-    */
     if(argc == 1) {
         usage();
     }
+    /*
+     * check if creating gnuplot script
+     */
     int i = argc;
     while (i--) {
         if(!strcmp(argv[i], "-g") || !strcmp(argv[i], "--gnuplot")) {
             strcpy(gplotfile, argv[i+1]);
             if((gnuplot_file = fopen(gplotfile, "w")) == NULL) {
                 printf("\nERROR: Cannot open gnuplot script file %s\n\n", argv[i+1]);
-                usage();
+                exit(0);
             }
             GNUPLOT_ENABLE = 1;
         }
     }
+    /*
+     * parse command line options
+     */
     i = argc;
     while (i--) {
         if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
             usage();
         }
-        if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
-            VERBOSE_ENABLE = 1;
-        }
         if(!strcmp(argv[i], "--version")) {
             printf("\nlogenv version %s\n", version);
             COUNT_ENABLE = 0;
         }
+        if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "--date")) {
+            DT_ENABLE = 1;
+            COUNT_ENABLE = 0;
+        }
+        if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
+            VERBOSE_ENABLE = 1;
+        }
+        if(!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quiet")) {
+            QUIET_ENABLE = 1;
+        }
+        if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--seconds")) {
+            INTERACTIVE_ENABLE = atoi(argv[i+1]);
+        }
+        if(!strcmp(argv[i], "-l") || !strcmp(argv[i], "--log")) {
+            strcpy(logfile, argv[i+1]);
+            LOG_ENABLE = 1;
+        }
+        if(!strcmp(argv[i], "-r") || !strcmp(argv[i], "--raw")) {
+            RAW_ENABLE = 1;
+        }
+        if(!strcmp(argv[i], "--xmtics")) {
+            xmtics = atoi(argv[i+1]);
+        }
+        if(!strcmp(argv[i], "--title")) {
+            strcpy(charttitle, argv[i+1]);
+        }
+        /*
+         * CPU frequency command line options
+         */
         if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--frequency")) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
                 printf("\nERROR: Cannot open %s\n", cpuonline);
@@ -84,6 +113,9 @@ int main(int argc, char **argv)
             fclose(cpu_online);
             CPU_ENABLE = atoi(&line[2])+1;
         }
+        /*
+         * thermal zones command line options
+         */
         if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temperature")) {
             for (int c = 0; c <= 255; c++) {
                 char strChar[5] = {0};
@@ -98,6 +130,9 @@ int main(int argc, char **argv)
                 THERMAL_ENABLE++;
             }
         }
+        /*
+         * external sensor command line options
+         */
         if(!strcmp(argv[i], "-b") || !strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && strlen(argv[i+1]) >= 10) {
@@ -121,7 +156,7 @@ int main(int argc, char **argv)
                     }
                 if(bmp180_begin(sensor) < 0) {
                     printf("\nERROR: Cannot open BMP180 at %s\n", sensor);
-                    usage();
+                    exit(0);
                 }
             }
             SENSOR_ENABLE = 1;
@@ -131,27 +166,33 @@ int main(int argc, char **argv)
                 if((i+1) < argc && strlen(argv[i+1]) >= 10) {
                     sensor = argv[i+1];
                     }
-                if((file = open(sensor, O_RDWR)) < 0) {
+                if((sensor_in = open(sensor, O_RDWR)) < 0) {
                     printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
-                    usage();
+                    exit(0);
                 }
-	            // Get I2C device, MCP9808 address is 0x18
-	            ioctl(file, I2C_SLAVE, 0x18);
-	            // Select configuration register(0x01)
-	            // Continuous conversion mode, Power-up default(0x00, 0x00)
-	            char config[3] = {0};
-	            config[0] = 0x01;
-	            config[1] = 0x00;
-	            config[2] = 0x00;
-	            write(file, config, 3);
-	            // Select resolution register(0x08)
-	            // Resolution = +0.0625 / C(0x03)
-	            config[0] = 0x08;
-	            config[1] = 0x03;
-	            write(file, config, 2);
+                ioctl(sensor_in, I2C_SLAVE, 0x18);
+                /*
+                 * Select configuration register(0x01)
+                 * Continuous conversion mode, Power-up default(0x00, 0x00)
+                 */
+                char config[3] = {0};
+                config[0] = 0x01;
+                config[1] = 0x00;
+                config[2] = 0x00;
+                write(sensor_in, config, 3);
+                /*
+                 * Select resolution register(0x08)
+                 * Resolution = +0.0625 / C(0x03)
+                 */
+                config[0] = 0x08;
+                config[1] = 0x03;
+                write(sensor_in, config, 2);
             }
             SENSOR_ENABLE = 3;
         }
+        /*
+         * smartpower options command line options
+         */
         if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && strlen(argv[i+1]) >= 7) {
@@ -159,10 +200,10 @@ int main(int argc, char **argv)
                 }
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    usage();
+                    exit(0);
                 }
-            }
             fclose(pwr_in);
+            }
             SP_ENABLE = 31;
         }
         if(!strcmp(argv[i], "--smartpower3-ch2")) {
@@ -172,10 +213,10 @@ int main(int argc, char **argv)
                 }
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    usage();
+                    exit(0);
                 }
-            }
             fclose(pwr_in);
+            }
             SP_ENABLE = 32;
         }
         if(!strcmp(argv[i], "--smartpower2")) {
@@ -185,34 +226,11 @@ int main(int argc, char **argv)
                 }
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    usage();
+                    exit(0);
                 }
-           }
             fclose(pwr_in);
+           }
             SP_ENABLE = 2;
-        }
-        if(!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quiet")) {
-            QUIET_ENABLE = 1;
-        }
-        if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--seconds")) {
-            INTERACTIVE_ENABLE = atoi(argv[i+1]);
-        }
-        if(!strcmp(argv[i], "-l") || !strcmp(argv[i], "--log")) {
-            strcpy(logfile, argv[i+1]);
-            LOG_ENABLE = 1;
-        }
-        if(!strcmp(argv[i], "-r") || !strcmp(argv[i], "--raw")) {
-            RAW_ENABLE = 1;
-        }
-        if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "--date")) {
-            DT_ENABLE = 1;
-            COUNT_ENABLE = 0;
-        }
-        if(!strcmp(argv[i], "--xmtics")) {
-            xmtics = atoi(argv[i+1]);
-        }
-        if(!strcmp(argv[i], "--title")) {
-            strcpy(charttitle, argv[i+1]);
         }
     }
     if (GNUPLOT_ENABLE == 0) {
@@ -232,7 +250,7 @@ int main(int argc, char **argv)
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
                 printf("\nERROR: Cannot open %s\n\n", logfile);
-                usage();
+                exit(0);
                 }
                 if(COUNT_ENABLE) {
                     fprintf(log_file,"%d", i);
@@ -332,24 +350,28 @@ int main(int argc, char **argv)
                 }
             }
             /*
-             * read mcp9808
+             * read mcp9808 temperature sensor
              */        
             if(SENSOR_ENABLE == 3) {
-	            // Read 2 bytes of data from register(0x05)
-	            // temp msb, temp lsb
-	            char reg[1] = {0x05};
-	            write(file, reg, 1);
-	            char data[2] = {0};
-	            if(read(file, data, 2) != 2) {
-		            printf("ERROR : MCP9808 Read Error \n");
+                /*
+                 * Read 2 bytes of data from register(0x05)
+                 * temp msb, temp lsb
+                 */
+                char reg[1] = {0x05};
+                write(sensor_in, reg, 1);
+                char data[2] = {0};
+                if(read(sensor_in, data, 2) != 2) {
+                    printf("ERROR : MCP9808 Read Error \n");
                     exit(0);
-	            }
-	            // Convert the data to 13-bits
-	            int temp = ((data[0] & 0x1F) * 256 + data[1]);
-	            if(temp > 4095) {
-		            temp -= 8192;
-	            }
-	            temperature = temp * 0.0625;
+                }
+                /*
+                 * Convert the data to 13-bits
+                 */
+                int temp = ((data[0] & 0x1F) * 256 + data[1]);
+                if(temp > 4095) {
+                    temp -= 8192;
+                }
+                temperature = temp * 0.0625;
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
                 }
@@ -369,8 +391,8 @@ int main(int argc, char **argv)
                 }
             }
             /*
-             * read bme280
-             */        
+             * read bme280 temperature sensor
+             */
             if(SENSOR_ENABLE == 2) {
                 bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
@@ -392,7 +414,7 @@ int main(int argc, char **argv)
                 }
             }
             /*
-             * read bmp180
+             * read bmp180 temperature sensor
              */
 
             if(SENSOR_ENABLE == 1) {
@@ -421,7 +443,7 @@ int main(int argc, char **argv)
             if(SP_ENABLE != 0) {
                 if((pwr_in = fopen(smartpower, "r")) == NULL) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    usage();
+                    exit(0);
                 }
                 if(SP_ENABLE == 2) {
                     fscanf(pwr_in, "%fV %s %fW", &volt, spline, &watt);
@@ -456,7 +478,7 @@ int main(int argc, char **argv)
                     fclose(pwr_in);
                 }
                 if(SP_ENABLE == 31 || SP_ENABLE == 32) {
-                    fscanf(pwr_in, "%f,%f,%f,%f,%i,%f,%f,%f,%i,%i,%f,%f,%f,%i,%i,%i,%i", &sp_ms, \
+                    fscanf(pwr_in, "%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x", &sp_ms, \
                         &in_mv, &in_ma, &in_w, &in_on, \
                             &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
                                 &ch2_mv, &ch2_ma, &ch2_w, &ch2_on, &ch2_int, \
@@ -711,7 +733,7 @@ void usage (void)
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");
-        printf(" -s,  --seconds <number>      Poll every <number> seconds\n");        
+        printf(" -s,  --seconds <number>      Poll every <number> seconds\n");
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
         printf(" -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0\n");
