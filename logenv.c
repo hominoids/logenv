@@ -137,9 +137,12 @@ int main(int argc, char **argv) {
          */
         if(!strcmp(argv[i], "-b") || !strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 10) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     sensor = argv[i+1];
-                    }
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    sensor = argv[i+2];
+                }
                 if(bme280_begin(sensor) < 0) {
                     printf("\nERROR: Cannot open BME280 at %s\n", sensor);
                     exit(0);
@@ -153,9 +156,12 @@ int main(int argc, char **argv) {
         }
         if(!strcmp(argv[i], "--bmp180")) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 8) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     sensor = argv[i+1];
-                    }
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    sensor = argv[i+2];
+                }
                 if(bmp180_begin(sensor) < 0) {
                     printf("\nERROR: Cannot open BMP180 at %s\n", sensor);
                     exit(0);
@@ -165,9 +171,12 @@ int main(int argc, char **argv) {
         }
         if(!strcmp(argv[i], "--mcp9808")) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 10) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     sensor = argv[i+1];
-                    }
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    sensor = argv[i+2];
+                }
                 if((sensor_in = open(sensor, O_RDWR)) < 0) {
                     printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
                     exit(0);
@@ -195,8 +204,7 @@ int main(int argc, char **argv) {
         /*
          * smartpower options command line options
          */
-        if((!strcmp(argv[i], "-p") && strcmp(argv[i+1], "--smartpower3-ch2")) || !strcmp(argv[i], "--smartpower3-ch1") || \
-            (!strcmp(argv[i], "-p") && !strcmp(argv[i+1], "--smartpower3-ch1"))) {
+        if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     smartpower = argv[i+1];
@@ -213,7 +221,7 @@ int main(int argc, char **argv) {
             }
             SP_ENABLE = 31;
         }
-        if(!strcmp(argv[i], "--smartpower3-ch2") || (!strcmp(argv[i], "-p") && !strcmp(argv[i+1], "--smartpower3-ch2"))) {
+        if(!strcmp(argv[i], "--smartpower3-ch2")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     smartpower = argv[i+1];
@@ -230,7 +238,7 @@ int main(int argc, char **argv) {
             }
             SP_ENABLE = 32;
         }
-        if(!strcmp(argv[i], "--smartpower2") || (!strcmp(argv[i], "-p") && !strcmp(argv[i+1], "--smartpower2"))) {
+        if(!strcmp(argv[i], "--smartpower2")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     smartpower = argv[i+1];
@@ -245,7 +253,7 @@ int main(int argc, char **argv) {
                 set_interface_attribs(pwr_in, B115200);
                 close(pwr_in);
            }
-            SP_ENABLE = 2;
+           SP_ENABLE = 2;
         }
     }
     if (GNUPLOT_ENABLE == 0) {
