@@ -24,9 +24,10 @@
 
     void usage (void)
     int itoa(int n, char s[])
+    int set_interface_attribs(int fd, int speed)
 
 */
-
+#include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <linux/i2c-dev.h>
@@ -35,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <termios.h>
 #include <time.h>
 #include <unistd.h>
 #include "bme280/bmp180.h"
@@ -42,8 +44,8 @@
 #include "bme280/bme280-i2c.h"
 #include "logenv.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
+
     if(argc == 1) {
         usage();
     }
@@ -56,7 +58,7 @@ int main(int argc, char **argv)
             strcpy(gplotfile, argv[i+1]);
             if((gnuplot_file = fopen(gplotfile, "w")) == NULL) {
                 printf("\nERROR: Cannot open gnuplot script file %s\n\n", argv[i+1]);
-                exit(0);
+                usage();
             }
             GNUPLOT_ENABLE = 1;
         }
@@ -140,7 +142,7 @@ int main(int argc, char **argv)
                     }
                 if(bme280_begin(sensor) < 0) {
                     printf("\nERROR: Cannot open BME280 at %s\n", sensor);
-                    usage();
+                    exit(0);
                 }
                 if(bme280_set_power_mode(BME280_NORMAL_MODE) < 0) {
                     printf("\nERROR: Cannot set power mode for BME280 at %s\n", sensor);
@@ -193,42 +195,55 @@ int main(int argc, char **argv)
         /*
          * smartpower options command line options
          */
-        if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
+        if((!strcmp(argv[i], "-p") && strcmp(argv[i+1], "--smartpower3-ch2")) || !strcmp(argv[i], "--smartpower3-ch1") || \
+            (!strcmp(argv[i], "-p") && !strcmp(argv[i+1], "--smartpower3-ch1"))) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 7) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     smartpower = argv[i+1];
                 }
-                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    smartpower = argv[i+2];
+                }
+                if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-            fclose(pwr_in);
+                set_interface_attribs(pwr_in, B115200);
+                close(pwr_in);
             }
             SP_ENABLE = 31;
         }
-        if(!strcmp(argv[i], "--smartpower3-ch2")) {
+        if(!strcmp(argv[i], "--smartpower3-ch2") || (!strcmp(argv[i], "-p") && !strcmp(argv[i+1], "--smartpower3-ch2"))) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 7) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     smartpower = argv[i+1];
                 }
-                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    smartpower = argv[i+2];
+                }
+                if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-            fclose(pwr_in);
+                set_interface_attribs(pwr_in, B115200);
+                close(pwr_in);
             }
             SP_ENABLE = 32;
         }
-        if(!strcmp(argv[i], "--smartpower2")) {
+        if(!strcmp(argv[i], "--smartpower2") || (!strcmp(argv[i], "-p") && !strcmp(argv[i+1], "--smartpower2"))) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && strlen(argv[i+1]) >= 7) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     smartpower = argv[i+1];
                 }
-                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    smartpower = argv[i+2];
+                }
+                if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-            fclose(pwr_in);
+                set_interface_attribs(pwr_in, B115200);
+                close(pwr_in);
            }
             SP_ENABLE = 2;
         }
@@ -239,13 +254,17 @@ int main(int argc, char **argv)
          */
         i=0;
         while(i >= 0) {
+            /*
+             * count or date and time stamp
+             */
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && COUNT_ENABLE == 1) {
                 printf("%d", i);
             }
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1) {
                 now = time((time_t *)NULL);
                 t = localtime(&now);
-                printf("%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                printf("%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, \
+                        t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
             }
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
@@ -258,7 +277,8 @@ int main(int argc, char **argv)
                 else {
                     now = time((time_t *)NULL);
                     t = localtime(&now);
-                    fprintf(log_file,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                    fprintf(log_file,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
+                            t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
                 }
             }
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
@@ -320,10 +340,10 @@ int main(int argc, char **argv)
                     if((cpu_thermal = fopen(thermalzone, "r")) == NULL) {
                         break;
                     }
-                    fscanf(cpu_thermal, "%d", &coretemp);
-                    fclose(cpu_thermal);         
+                    fscanf(cpu_thermal, "%f", &coretemp);
+                    fclose(cpu_thermal);
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%d", coretemp);
+                        printf(",%f", coretemp);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
                         if(VERBOSE_ENABLE == 1) {
@@ -335,23 +355,23 @@ int main(int argc, char **argv)
                             }
                             fscanf(thermal_type, "%s", thermalname);
                             fclose(thermal_type);
-                            printf("\n %s = %dc", thermalname, coretemp/1000);
+                            printf("\n %s = %.2fc", thermalname, coretemp/1000);
                         }
                         else {
-                            printf(",%d", coretemp/1000);
+                            printf(",%.2f", coretemp/1000);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%d", coretemp);
+                    fprintf(log_file,",%f", coretemp);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%d", coretemp/1000);
+                    fprintf(log_file,",%.2f", coretemp/1000);
                     }
                 }
             }
             /*
              * read mcp9808 temperature sensor
-             */        
+             */
             if(SENSOR_ENABLE == 3) {
                 /*
                  * Read 2 bytes of data from register(0x05)
@@ -391,7 +411,7 @@ int main(int argc, char **argv)
                 }
             }
             /*
-             * read bme280 temperature sensor
+             * read bme280
              */
             if(SENSOR_ENABLE == 2) {
                 bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
@@ -414,9 +434,8 @@ int main(int argc, char **argv)
                 }
             }
             /*
-             * read bmp180 temperature sensor
+             * read bmp180
              */
-
             if(SENSOR_ENABLE == 1) {
                 temperature = BMP180_readTemperature();
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
@@ -438,15 +457,24 @@ int main(int argc, char **argv)
                 }
             }
             /*
-             * read SmartPower port
+             * SmartPower enabled
              */
-            if(SP_ENABLE != 0) {
-                if((pwr_in = fopen(smartpower, "r")) == NULL) {
+            if(SP_ENABLE > 0) {
+                if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
+                /*
+                 * read SmartPower2
+                 */
                 if(SP_ENABLE == 2) {
-                    fscanf(pwr_in, "%fV %s %fW", &volt, spline, &watt);
+                    unsigned char temp[4];
+                    int sp_read = 0;
+                    if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
+                        printf("Error from read: %d: %s\n", sp_read, strerror(errno));
+                    }
+                    temp[sp_read] = 0;
+                    sscanf(temp, "%f,%s,%f", &volt, spline, &watt);
                     if(strstr(spline,"mA")) {
                         sscanf(spline,"%fmA", &amp);
                         if(QUIET_ENABLE == 0) {
@@ -475,14 +503,23 @@ int main(int argc, char **argv)
                             fprintf(log_file,",%.2f,%.2f,%.2f", volt, amp, watt);
                         }
                     }
-                    fclose(pwr_in);
                 }
+                /*
+                 * read SmartPower3
+                 */
                 if(SP_ENABLE == 31 || SP_ENABLE == 32) {
-                    fscanf(pwr_in, "%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x", &sp_ms, \
+                    unsigned char temp[82];
+                    int sp_read = 0;
+                    if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
+                        printf("Error from read: %d: %s\n", sp_read, strerror(errno));
+                    }
+                    temp[sp_read] = 0;
+                    sscanf(temp, "%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
+                        &sp_ms, \
                         &in_mv, &in_ma, &in_w, &in_on, \
-                            &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
-                                &ch2_mv, &ch2_ma, &ch2_w, &ch2_on, &ch2_int, \
-                                    &chk_comp, &chk_xor);
+                        &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
+                        &ch2_mv, &ch2_ma, &ch2_w, &ch2_on, &ch2_int, \
+                        &chk_comp, &chk_xor);
                     if(SP_ENABLE == 31) {
                         volt = ch1_mv;
                         amp = ch1_ma;
@@ -504,8 +541,8 @@ int main(int argc, char **argv)
                     if(LOG_ENABLE == 1) {
                         fprintf(log_file,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                     }
-                    fclose(pwr_in);
                 }
+                close(pwr_in);
             }
             /*
              * eol for stdout and log file
@@ -521,6 +558,8 @@ int main(int argc, char **argv)
              * break if one and done or sleep
              */
             if(INTERACTIVE_ENABLE == 0) {
+                close(sensor_in);
+                close(pwr_in);
                 break;
             }
             i = i+INTERACTIVE_ENABLE;
@@ -726,8 +765,7 @@ int main(int argc, char **argv)
 }
 
 
-void usage (void)
-{
+void usage (void) {
         printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024 by Edward Kisiel\n", version);
         printf("logs count or time stamp, cpu frequency, thermal zones, sensor temperature, volts, amps and watts\n\n");
         printf("usage: logenv [options]\n\n");
@@ -761,8 +799,8 @@ void usage (void)
         exit(0);
 }
 
-int itoa(int n, char s[])
-{
+
+int itoa(int n, char s[]) {
     int i =  0;
 
     if(n / 10 != 0)
@@ -774,4 +812,42 @@ int itoa(int n, char s[])
     s[i] = '\0';
 
     return i;
+}
+
+
+int set_interface_attribs(int fd, int speed) {
+    struct termios tty;
+
+    if (tcgetattr(fd, &tty) < 0) {
+        printf("Error from tcgetattr: %s\n", strerror(errno));
+        return -1;
+    }
+
+    cfsetospeed(&tty, (speed_t)speed);
+    cfsetispeed(&tty, (speed_t)speed);
+
+    tty.c_cflag |= CLOCAL | CREAD;
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;                       /* 8-bit characters */
+    tty.c_cflag &= ~PARENB;                   /* no parity bit */
+    tty.c_cflag &= ~CSTOPB;                   /* 1 stop bit */
+    tty.c_cflag &= ~CRTSCTS;                  /* no hardware flowcontrol */
+    tty.c_lflag |= ICANON | ISIG;             /* canonical input */
+    tty.c_lflag &= ~(ECHO | ECHOE | ECHONL | IEXTEN);
+    tty.c_iflag &= ~IGNCR;                    /* preserve carriage return */
+    tty.c_iflag &= ~INPCK;
+    tty.c_iflag &= ~(INLCR | ICRNL | IUCLC | IMAXBEL);
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);   /* no SW flowcontrol */
+
+    tty.c_oflag &= ~OPOST;
+
+    tty.c_cc[VEOL] = 0;
+    tty.c_cc[VEOL2] = 0;
+    tty.c_cc[VEOF] = 0x04;
+
+    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
+        printf("Error from tcsetattr: %s\n", strerror(errno));
+        return -1;
+    }
+    return 0;
 }

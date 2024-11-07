@@ -21,13 +21,16 @@
 
 void usage(void);
 int itoa(int, char[]);
+int set_interface_attribs(int, int);
 
-FILE *pwr_in, *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *log_file, *gnuplot_file;
+FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *log_file, *gnuplot_file;
 
 time_t now;
 struct tm *t;
 
+int  pwr_in;
 int  sensor_in;
+
 char spfile[255];
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
@@ -71,7 +74,7 @@ static int temperature;
 static int humidity;
 static int pressure;
 static int freq;
-static int coretemp;
+static float coretemp;
 static float volt;
 static float amp;
 static float watt;
