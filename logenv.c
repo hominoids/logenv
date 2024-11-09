@@ -54,8 +54,10 @@ int main(int argc, char **argv) {
      */
     int i = argc;
     while (i--) {
+
         if(!strcmp(argv[i], "-g") || !strcmp(argv[i], "--gnuplot")) {
             strcpy(gplotfile, argv[i+1]);
+
             if((gnuplot_file = fopen(gplotfile, "w")) == NULL) {
                 printf("\nERROR: Cannot open gnuplot script file %s\n\n", argv[i+1]);
                 usage();
@@ -84,6 +86,17 @@ int main(int argc, char **argv) {
         }
         if(!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quiet")) {
             QUIET_ENABLE = 1;
+        }
+        if(!strcmp(argv[i], "-u") || !strcmp(argv[i], "--usage")) {
+            if((cpu_online = fopen(cpuonline, "r")) == NULL) {
+                printf("\nERROR: Cannot open %s\n", cpuonline);
+                exit(0);
+            }
+            size_t size = 0;
+            char *line = 0;
+            ssize_t linesize = getline(&line, &size, cpu_online);
+            fclose(cpu_online);
+            USAGE_ENABLE = atoi(&line[2])+1;
         }
         if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--seconds")) {
             INTERACTIVE_ENABLE = atoi(argv[i+1]);
@@ -119,6 +132,7 @@ int main(int argc, char **argv) {
          * thermal zones command line options
          */
         if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temperature")) {
+
             for (int c = 0; c <= 255; c++) {
                 char strChar[5] = {0};
                 itoa(c,strChar);
@@ -127,7 +141,7 @@ int main(int argc, char **argv) {
                 strcat(thermalzone,thermalzone2);
                 if((cpu_thermal = fopen(thermalzone, "r")) == NULL) {
                     break;
-                } 
+                }
                 fclose(cpu_thermal);
                 THERMAL_ENABLE++;
             }
@@ -296,11 +310,11 @@ int main(int argc, char **argv) {
                 }
                 printf("\n");
             }
-           
             /*
              * open and read each core frequency file
              */
             if(CPU_ENABLE != 0) {
+
                 for (int c = 0; c < CPU_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
@@ -339,6 +353,7 @@ int main(int argc, char **argv) {
              * open and read each thermal zone file
              */
             if(THERMAL_ENABLE != 0) {
+
                 for (int c = 0; c < THERMAL_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
@@ -351,7 +366,7 @@ int main(int argc, char **argv) {
                     fscanf(cpu_thermal, "%f", &coretemp);
                     fclose(cpu_thermal);
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", coretemp);
+                        printf(",%.0f", coretemp);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
                         if(VERBOSE_ENABLE == 1) {
@@ -422,6 +437,7 @@ int main(int argc, char **argv) {
              * read bme280
              */
             if(SENSOR_ENABLE == 2) {
+
                 bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
@@ -445,6 +461,7 @@ int main(int argc, char **argv) {
              * read bmp180
              */
             if(SENSOR_ENABLE == 1) {
+
                 temperature = BMP180_readTemperature();
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
@@ -468,6 +485,7 @@ int main(int argc, char **argv) {
              * SmartPower enabled
              */
             if(SP_ENABLE > 0) {
+
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
@@ -516,8 +534,10 @@ int main(int argc, char **argv) {
                  * read SmartPower3
                  */
                 if(SP_ENABLE == 31 || SP_ENABLE == 32) {
+
                     unsigned char temp[82];
                     int sp_read = 0;
+
                     if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
@@ -528,6 +548,7 @@ int main(int argc, char **argv) {
                         &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
                         &ch2_mv, &ch2_ma, &ch2_w, &ch2_on, &ch2_int, \
                         &chk_comp, &chk_xor);
+
                     if(SP_ENABLE == 31) {
                         volt = ch1_mv;
                         amp = ch1_ma;
@@ -553,11 +574,85 @@ int main(int argc, char **argv) {
                 close(pwr_in);
             }
             /*
+             * open and read proc stat
+             */
+            if(USAGE_ENABLE != 0) {
+
+                float r = 0;;
+                int tck = sysconf(_SC_CLK_TCK);
+
+                if((cpu_use = fopen(cpuusage, "r")) == NULL) {
+                    printf("\nERROR: Cannot open %s\n", cpuusage);
+                    exit(0);
+                }
+
+                for (int c = 0; c <= USAGE_ENABLE; c++) {
+                    char t[20];
+                    char us[10][256] = {0};
+                    unsigned long int u[10][256] = {0};
+                    char *endptr;
+
+                    if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
+                        &us[2][c], &us[3][c], &us[4][c], &us[5][c], &us[6][c], &us[7][c], &us[8][c], &us[9][c])) != 11) {
+                        printf("\nERROR: Reading %s\n", cpuusage);
+                        exit(0);
+                    }
+                    u[0][c] = strtol(&us[0][c], &endptr, 10);
+                    u[1][c] = strtol(&us[1][c], &endptr, 10);
+                    u[2][c] = strtol(&us[2][c], &endptr, 10);
+                    u[3][c] = strtol(&us[3][c], &endptr, 10);
+                    u[4][c] = strtol(&us[4][c], &endptr, 10);
+                    u[5][c] = strtol(&us[5][c], &endptr, 10);
+                    u[6][c] = strtol(&us[6][c], &endptr, 10);
+                    u[7][c] = strtol(&us[7][c], &endptr, 10);
+                    u[8][c] = strtol(&us[8][c], &endptr, 10);
+                    u[9][c] = strtol(&us[9][c], &endptr, 10);
+
+                    r = u[3][c] - use[3][c];
+	                r /= INTERACTIVE_ENABLE * tck;
+	                r = 1 - r;
+                    r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%ld", u[3][c]);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
+                        if(VERBOSE_ENABLE ==1) {
+                            printf(" %.2f%% ", r);
+                            if(c == USAGE_ENABLE) {
+                                printf("\n");
+                            }
+                        }
+                        else {
+                            printf(",%.2f", r);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%ld", u[3][c]);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2f", r);
+                    }
+                    use[0][c] = u[0][c];
+                    use[1][c] = u[1][c];
+                    use[2][c] = u[2][c];
+                    use[3][c] = u[3][c];
+                    use[4][c] = u[4][c];
+                    use[5][c] = u[5][c];
+                    use[6][c] = u[6][c];
+                    use[7][c] = u[7][c];
+                    use[8][c] = u[8][c];
+                    use[9][c] = u[9][c];
+                }
+                fclose(cpu_use);
+            }
+            /*
              * eol for stdout and log file
              */
             if(QUIET_ENABLE == 0) {
                 printf("\n");
             }
+
             if(LOG_ENABLE == 1) {
                 fprintf(log_file,"\n");
                 fclose(log_file);
@@ -570,11 +665,12 @@ int main(int argc, char **argv) {
                 close(pwr_in);
                 break;
             }
+
             i = i+INTERACTIVE_ENABLE;
             sleep(INTERACTIVE_ENABLE);
         }
     }
-    else { 
+    else {
         /*
          * Build of gnuplot script
          */
@@ -599,10 +695,12 @@ int main(int argc, char **argv) {
             fclose(thermal_type);
             fprintf(gnuplot_file,"%s%s\"\n", gpscript_thermal_title[c][0], thermalname);
         }
+
         if(SENSOR_ENABLE != 0) {
             fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[8][0], gpscript_thermal_title[8][1]);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
         }
+
         i=0;
         while (i < 18) {
             fprintf(gnuplot_file,"%s",gpscript_mid[i]);
@@ -621,6 +719,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power1, "set size 1,.3\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
+
         if(SP_ENABLE == 0 && CPU_ENABLE > 0 && THERMAL_ENABLE > 0) {
             fprintf(gnuplot_file,"%s", two2one);
             strcpy(gpscript_freq1, "set size 1,.5\n");
@@ -628,21 +727,25 @@ int main(int argc, char **argv) {
             strcpy(gpscript_thermal1, "set size 1,.5\n");
             strcpy(gpscript_thermal2, "set origin 0,.5\n");
         }
+
         if(SP_ENABLE == 0 && CPU_ENABLE == 0 && THERMAL_ENABLE > 0) {
             fprintf(gnuplot_file,"%s", one2one);
             strcpy(gpscript_thermal1, "set size 1,1\n");
             strcpy(gpscript_thermal2, "set origin 0,0\n");
         }
+
         if(SP_ENABLE == 0 && CPU_ENABLE > 0 && THERMAL_ENABLE == 0) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_freq1, "set size 1,1\n");
             strcpy(gpscript_freq2, "set origin 0,0\n");
         }
+
         if(SP_ENABLE > 0 && CPU_ENABLE == 0 && THERMAL_ENABLE == 0) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_power1, "set size 1,1\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
+
         if(SP_ENABLE > 0 && CPU_ENABLE > 0 && THERMAL_ENABLE == 0) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_freq1, "set size 1,.5\n");
@@ -650,6 +753,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power1, "set size 1,.5\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
+
         if(SP_ENABLE > 0 && CPU_ENABLE == 0 && THERMAL_ENABLE > 0) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_thermal1, "set size 1,.5\n");
@@ -657,6 +761,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power1, "set size 1,.5\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
+
         fprintf(gnuplot_file,"%s",gpscript_layout[1]);
         fprintf(gnuplot_file,"%s",charttitle);
         fprintf(gnuplot_file,"%s",gpscript_layout[2]);
@@ -673,6 +778,7 @@ int main(int argc, char **argv) {
          * build thermal zone chart
          */
         if(THERMAL_ENABLE != 0) {
+
             i=0;
             while (i < 9) {
                 if(i != 1 && i != 2) {
@@ -690,6 +796,7 @@ int main(int argc, char **argv) {
                     }
                 }
             }
+
             i=0;
             fprintf(gnuplot_file, "plot ");
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(CPU_ENABLE+2), i+1, i+1);
@@ -698,6 +805,7 @@ int main(int argc, char **argv) {
                 fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(CPU_ENABLE+2), i+1, i+1);
                 i++;
             }
+
             if(SENSOR_ENABLE > 0) {
                 fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(CPU_ENABLE+2));
             }
@@ -707,6 +815,7 @@ int main(int argc, char **argv) {
          * build frequency chart
          */
         if(CPU_ENABLE != 0) {
+
             i=0;
             while (i < 9) {
                 if(i != 1 && i != 2) {
@@ -724,6 +833,7 @@ int main(int argc, char **argv) {
                     }
                 }
             }
+
             i=0;
             fprintf(gnuplot_file, "plot ");
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 notitle", i+2, i+1);
@@ -755,7 +865,9 @@ int main(int argc, char **argv) {
                     }
                 }
             }
+
             fprintf(gnuplot_file, "plot ");
+
             if(SENSOR_ENABLE == 0) {
                 fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (CPU_ENABLE+THERMAL_ENABLE+2));
                 fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (CPU_ENABLE+THERMAL_ENABLE+3));
@@ -767,6 +879,39 @@ int main(int argc, char **argv) {
                 fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (CPU_ENABLE+THERMAL_ENABLE+5));
             }
         }
+        /*
+         * build usage chart
+         */
+        if(USAGE_ENABLE != 0) {
+            i=0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_usage[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_usage1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_usage2);
+                        i++;
+                    }
+                }
+            }
+
+            i=0;
+            fprintf(gnuplot_file, "plot ");
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 notitle", i+2, i+1);
+            i++;
+            while (i < CPU_ENABLE) {
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", i+2, i+1);
+                i++;
+            }
+            fprintf(gnuplot_file, "\n\n");
+        }
+
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
     }
@@ -788,6 +933,7 @@ void usage (void) {
         printf(" -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
+        printf(" -u,  --usage                 CPU core usage\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable dashboard output\n"); 

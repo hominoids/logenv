@@ -23,7 +23,7 @@ void usage(void);
 int itoa(int, char[]);
 int set_interface_attribs(int, int);
 
-FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *log_file, *gnuplot_file;
+FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *log_file, *gnuplot_file;
 
 time_t now;
 struct tm *t;
@@ -31,10 +31,12 @@ struct tm *t;
 int  pwr_in;
 int  sensor_in;
 
-char spfile[255];
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
 char *cpuonline = "/sys/devices/system/cpu/online";
+char *cpuusage = "/proc/stat";
+
+static unsigned long int use[10][256] = {0};
 
 char cpufreq[255];
 char *cpufreq1 = "/sys/devices/system/cpu/cpu";
@@ -48,13 +50,15 @@ char thermaltype[255];
 char *thermaltype1 = "/type";
 char thermalname[255];
 
+char spfile[255];
+char spline[25];
 char logfile[255];
 char gplotfile[255];
-char spline[25];
 char version[] = "0.98 pre release";
 char one2one[] = "1,1";
 char two2one[] = "2,1";
 char three2one[] = "3,1";
+char four2one[] = "4,1";
 
 static int SP_ENABLE = 0;
 static int SENSOR_ENABLE = 0;
@@ -68,6 +72,7 @@ static int RAW_ENABLE = 0;
 static int GNUPLOT_ENABLE = 0;
 static int COUNT_ENABLE = 1;
 static int DT_ENABLE = 0;
+static int USAGE_ENABLE = 0;
 
 static int xmtics = 10;
 static int temperature;
@@ -102,6 +107,8 @@ static char gpscript_thermal1[30];
 static char gpscript_thermal2[30];
 static char gpscript_power1[30];
 static char gpscript_power2[30];
+static char gpscript_usage1[30];
+static char gpscript_usage2[30];
 static char charttitle[255] = "Main Title";
 
 static char gpscript_start[12][75] = { 
@@ -199,6 +206,19 @@ static char gpscript_power[11][55] = {
     "set ytics 0,1 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# power x axis\n",
+    "set noxlabel\n\n"};
+
+static char gpscript_usage[11][55] = {
+    "# proc stat plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# power y axis\n",
+    "set ylabel \'Core Usage\' font \'Verdana,12\'\n",
+    "set yrange [0:101]\n",
+    "set ytics 0,1 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# usage x axis\n",
     "set noxlabel\n\n"};
 
 static char gpscript_end[18] = {"unset multiplot\n" };
