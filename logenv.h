@@ -62,7 +62,7 @@ char four2one[] = "4,1";
 
 static int SP_ENABLE = 0;
 static int SENSOR_ENABLE = 0;
-static int CPU_ENABLE = 0;
+static int FREQ_ENABLE = 0;
 static int THERMAL_ENABLE = 0;
 static int QUIET_ENABLE = 0;
 static int VERBOSE_ENABLE = 0;
@@ -210,13 +210,13 @@ static char gpscript_power[11][55] = {
 
 static char gpscript_usage[11][55] = {
     "# proc stat plot\n",
-    "set size 1,.3\n",
+    "set size 1,.2\n",
     "set origin 0,0\n",
     "set lmargin 11\n",
     "# power y axis\n",
-    "set ylabel \'Core Usage\' font \'Verdana,12\'\n",
+    "set ylabel \'% Core Use\' font \'Verdana,12\'\n",
     "set yrange [0:101]\n",
-    "set ytics 0,1 border nomirror out\n",
+    "set ytics 0,10 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# usage x axis\n",
     "set noxlabel\n\n"};
