@@ -111,9 +111,9 @@ static char gpscript_usage1[30];
 static char gpscript_usage2[30];
 static char charttitle[255] = "Main Title";
 
-static char gpscript_start[11][75] = { 
+static char gpscript_start[11][75] = {
     "#!/usr/bin/gnuplot --persist\n",
-    "#\n",   
+    "#\n",
     "#\n",
     "# GNUPLOT script generated from logenv that plots temperature, frequency,\n",
     "# ambient temperature, power and CPU core usage from a data file\n",
@@ -127,7 +127,7 @@ static char gpscript_start[11][75] = {
     "# title and line style definitions\n\n" };
 
 
-static char gpscript_thermal_title[9][2][32] = { 
+static char gpscript_thermal_title[9][2][32] = {
     {"data_title1 = \"", "Thermal Zone 0"},
     {"data_title2 = \"", "Thermal Zone 1"},
     {"data_title3 = \"", "Thermal Zone 2"},
@@ -138,7 +138,7 @@ static char gpscript_thermal_title[9][2][32] = {
     {"data_title8 = \"", "Thermal Zone 7"},
     {"data_title9 = \"", "Ambient Temp"} };
 
-static char gpscript_mid[18][45] = {     
+static char gpscript_mid[18][45] = {
     "\n# line styles\n",
     "set style line 1 lc rgb \"dark-violet\" lw 1\n",
     "set style line 2 lc rgb \"orange\" lw 1\n",

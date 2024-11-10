@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Code released under GPLv3: http://www.gnu.org/licenses/gpl.html
 
-   logenv - logs count or time stamp, thermal zone temperature, cpu frequency, 
+   logenv - logs count or time stamp, thermal zone temperature, cpu frequency,
             air temperature(BME280, BMP180, MCP9808),
             volts, amps and watts (HK SmartPower2 or SmartPower3 output)
             
@@ -579,8 +579,8 @@ int main(int argc, char **argv) {
             if(USAGE_ENABLE != 0) {
 
                 float r = 0;
-		float s = 0;
-		float sum = 0;
+                float s = 0;
+                float sum = 0;
 
                 if((cpu_use = fopen(cpuusage, "r")) == NULL) {
                     printf("\nERROR: Cannot open %s\n", cpuusage);
@@ -609,14 +609,14 @@ int main(int argc, char **argv) {
                     u[8][c] = strtol(&us[8][c], &endptr, 10);
                     u[9][c] = strtol(&us[9][c], &endptr, 10);
 
-		    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
-			+ u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c]; 
-		    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
-			  + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c]; 
+                    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
+                        + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
+                    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
+                        + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c];
 
                     r = u[3][c] - use[3][c];
-		    	r /= (s-sum);
-	                r = 1 - r;
+                    r /= (s-sum);
+                    r = 1 - r;
                     r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
