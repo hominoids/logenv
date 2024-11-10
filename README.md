@@ -2,7 +2,7 @@
 
 
 ## Introduction
-logenv is a command-line utility for the aggregating, logging and charting of timestamped CPU core frequency, thermal zone temperatures, ambient temperature, volts, amps and watts.  It can also generate GNUplot scripts for any collected data set.
+logenv is a command-line utility for the aggregating, logging and charting of timestamped CPU core frequency, thermal zone temperatures, ambient temperature, volts, amps and watts and CPU core usage.  It can also generate GNUplot scripts for any collected data set.
 
 License: GPLv3.
 
@@ -19,7 +19,8 @@ License: GPLv3.
 logenv [options]
 
 logenv - Version 0.98 pre release Copyright (C) 2019,2020,2024 by Edward Kisiel
-logs count or time stamp, cpu frequency, thermal zones, sensor temperature, volts, amps and watts
+logs count or time stamp, CPU frequency, thermal zone temperatures,
+external sensor temperature, volts, amps and watts and CPU core usage.
 
 usage: logenv [options]
 
@@ -34,6 +35,7 @@ Options:
  -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
       --smartpower3-ch2 <tty>
       --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
+ -u,  --usage                 CPU core usage
  -d,  --date                  Date and Time stamp
  -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
  -v,  --verbose               Readable dashboard output

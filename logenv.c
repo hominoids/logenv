@@ -574,7 +574,7 @@ int main(int argc, char **argv) {
                 close(pwr_in);
             }
             /*
-             * open and read proc stat
+             * read proc stat
              */
             if(USAGE_ENABLE != 0) {
 
@@ -675,7 +675,7 @@ int main(int argc, char **argv) {
          * Build of gnuplot script
          */
         i = 0;
-        while (i < 12) {
+        while (i < 11) {
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
             i++;
         }
@@ -981,7 +981,7 @@ int main(int argc, char **argv) {
                 power = 3;
             }
             fprintf(gnuplot_file, "plot ");
-            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3, i+1);
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
             i++;
             while (i < USAGE_ENABLE) {
                 fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3, i+1);
@@ -998,7 +998,8 @@ int main(int argc, char **argv) {
 
 void usage (void) {
         printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024 by Edward Kisiel\n", version);
-        printf("logs count or time stamp, cpu frequency, thermal zones, sensor temperature, volts, amps and watts\n\n");
+        printf("logs count or time stamp, CPU frequency, thermal zone temperatures,\n");
+        printf("external sensor temperature, volts, amps and watts and CPU core usage\n\n");
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");

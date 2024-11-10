@@ -111,14 +111,13 @@ static char gpscript_usage1[30];
 static char gpscript_usage2[30];
 static char charttitle[255] = "Main Title";
 
-static char gpscript_start[12][75] = { 
+static char gpscript_start[11][75] = { 
     "#!/usr/bin/gnuplot --persist\n",
     "#\n",   
     "#\n",
     "# GNUPLOT script generated from logenv that plots temperature, frequency,\n",
-    "# ambient temperature and power for multiple cpu cores from a data file\n",
-    "# formated as \"count,freq1,freq2,freq3,freq4,freq5,freq6,freq7,freq8,\n",
-    "#               core1,core2,core3,core4,gpu,airtemp,volts,amps,watts\"\n",
+    "# ambient temperature, power and CPU core usage from a data file\n",
+    "# formated as \"count,freq1-N,thermal1-N,sensor,volts,amps,watts,usage1-N\"\n",
     "#\n\n",
 
     "set term pngcairo size 1280,1024 enhanced font \'Verdana,10\'\n",
