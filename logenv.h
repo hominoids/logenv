@@ -36,7 +36,7 @@ char *sensor = "/dev/i2c-0";
 char *cpuonline = "/sys/devices/system/cpu/online";
 char *cpuusage = "/proc/stat";
 
-static unsigned long int use[10][256] = {0};
+static double long use[10][256] = {0};
 
 char cpufreq[255];
 char *cpufreq1 = "/sys/devices/system/cpu/cpu";
@@ -84,7 +84,7 @@ static float volt;
 static float amp;
 static float watt;
 
-static unsigned long int sp_ms;
+static double long sp_ms;
 static unsigned int in_mv;
 static unsigned int in_ma;
 static unsigned int in_w;

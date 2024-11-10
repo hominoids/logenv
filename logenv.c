@@ -542,7 +542,7 @@ int main(int argc, char **argv) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
                     temp[sp_read] = 0;
-                    sscanf(temp, "%ld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
+                    sscanf(temp, "%dld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
                         &sp_ms, \
                         &in_mv, &in_ma, &in_w, &in_on, \
                         &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
@@ -590,7 +590,7 @@ int main(int argc, char **argv) {
                 for (int c = 0; c <= USAGE_ENABLE; c++) {
                     char t[20];
                     char us[10][256] = {0};
-                    unsigned long int u[10][256] = {0};
+                    double long u[10][256] = {0};
                     char *endptr;
 
                     if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
@@ -598,16 +598,16 @@ int main(int argc, char **argv) {
                         printf("\nERROR: Reading %s\n", cpuusage);
                         exit(0);
                     }
-                    u[0][c] = strtol(&us[0][c], &endptr, 10);
-                    u[1][c] = strtol(&us[1][c], &endptr, 10);
-                    u[2][c] = strtol(&us[2][c], &endptr, 10);
-                    u[3][c] = strtol(&us[3][c], &endptr, 10);
-                    u[4][c] = strtol(&us[4][c], &endptr, 10);
-                    u[5][c] = strtol(&us[5][c], &endptr, 10);
-                    u[6][c] = strtol(&us[6][c], &endptr, 10);
-                    u[7][c] = strtol(&us[7][c], &endptr, 10);
-                    u[8][c] = strtol(&us[8][c], &endptr, 10);
-                    u[9][c] = strtol(&us[9][c], &endptr, 10);
+                    u[0][c] = strtoll(&us[0][c], &endptr, 10);
+                    u[1][c] = strtoll(&us[1][c], &endptr, 10);
+                    u[2][c] = strtoll(&us[2][c], &endptr, 10);
+                    u[3][c] = strtoll(&us[3][c], &endptr, 10);
+                    u[4][c] = strtoll(&us[4][c], &endptr, 10);
+                    u[5][c] = strtoll(&us[5][c], &endptr, 10);
+                    u[6][c] = strtoll(&us[6][c], &endptr, 10);
+                    u[7][c] = strtoll(&us[7][c], &endptr, 10);
+                    u[8][c] = strtoll(&us[8][c], &endptr, 10);
+                    u[9][c] = strtoll(&us[9][c], &endptr, 10);
 
                     s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
                         + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
@@ -620,13 +620,21 @@ int main(int argc, char **argv) {
                     r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%ld", u[3][c]);
+                        printf(",%dld", u[3][c]);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
                         if(VERBOSE_ENABLE ==1) {
-                            printf(" %.2f%% ", r);
-                            if(c == USAGE_ENABLE) {
-                                printf("\n");
+                            if(c == 0) {
+                                printf("CPU = %.2f%% ", r);
+                                if(c == USAGE_ENABLE) {
+                                    printf("\n");
+                                }
+                            }
+                            else {
+                                printf("core%d = %.2f%% ", r, c);
+                                if(c == USAGE_ENABLE) {
+                                    printf("\n");
+                                }
                             }
                         }
                         else {
@@ -634,7 +642,7 @@ int main(int argc, char **argv) {
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%ld", u[3][c]);
+                        fprintf(log_file,",%dld", u[3][c]);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2f", r);
@@ -1015,9 +1023,9 @@ void usage (void) {
         printf(" -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0\n");
         printf("      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0\n");
         printf("      --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-0\n");
-        printf(" -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
+        printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
-        printf("      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
+        printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
         printf(" -u,  --usage                 CPU core usage\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");

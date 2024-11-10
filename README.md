@@ -32,9 +32,9 @@ Options:
  -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0
       --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0
       --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-0
- -p,  --smartpower3-ch1 <tty> Volt,Amp,Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
+ -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
       --smartpower3-ch2 <tty>
-      --smartpower2 <tty>     Volt,Amp,Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
+      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
  -u,  --usage                 CPU core usage
  -d,  --date                  Date and Time stamp
  -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
