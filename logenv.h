@@ -70,9 +70,10 @@ static int INTERACTIVE_ENABLE = 0;
 static int LOG_ENABLE = 0;
 static int RAW_ENABLE = 0;
 static int GNUPLOT_ENABLE = 0;
-static int COUNT_ENABLE = 1;
+static int COUNT_ENABLE = 0;
 static int DT_ENABLE = 0;
 static int USAGE_ENABLE = 0;
+static int OPTIONS_COUNT = 0;
 
 static int xmtics = 10;
 static int temperature;

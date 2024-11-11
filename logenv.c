@@ -80,6 +80,7 @@ int main(int argc, char **argv) {
         if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "--date")) {
             DT_ENABLE = 1;
             COUNT_ENABLE = 0;
+            OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
             VERBOSE_ENABLE = 1;
@@ -97,9 +98,11 @@ int main(int argc, char **argv) {
             ssize_t linesize = getline(&line, &size, cpu_online);
             fclose(cpu_online);
             USAGE_ENABLE = atoi(&line[2])+1;
+            OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--seconds")) {
             INTERACTIVE_ENABLE = atoi(argv[i+1]);
+            COUNT_ENABLE = 1;
         }
         if(!strcmp(argv[i], "-l") || !strcmp(argv[i], "--log")) {
             strcpy(logfile, argv[i+1]);
@@ -127,6 +130,7 @@ int main(int argc, char **argv) {
             ssize_t linesize = getline(&line, &size, cpu_online);
             fclose(cpu_online);
             FREQ_ENABLE = atoi(&line[2])+1;
+            OPTIONS_COUNT++;
         }
         /*
          * thermal zones command line options
@@ -145,6 +149,7 @@ int main(int argc, char **argv) {
                 fclose(cpu_thermal);
                 THERMAL_ENABLE++;
             }
+            OPTIONS_COUNT++;
         }
         /*
          * external sensor command line options
@@ -167,6 +172,7 @@ int main(int argc, char **argv) {
                 }
             }
             SENSOR_ENABLE = 2;
+            OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "--bmp180")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -182,6 +188,7 @@ int main(int argc, char **argv) {
                 }
             }
             SENSOR_ENABLE = 1;
+            OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "--mcp9808")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -214,6 +221,7 @@ int main(int argc, char **argv) {
                 write(sensor_in, config, 2);
             }
             SENSOR_ENABLE = 3;
+            OPTIONS_COUNT++;
         }
         /*
          * smartpower options command line options
@@ -234,6 +242,7 @@ int main(int argc, char **argv) {
                 close(pwr_in);
             }
             SP_ENABLE = 31;
+            OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "--smartpower3-ch2")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -251,6 +260,7 @@ int main(int argc, char **argv) {
                 close(pwr_in);
             }
             SP_ENABLE = 32;
+            OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "--smartpower2")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -268,6 +278,7 @@ int main(int argc, char **argv) {
                 close(pwr_in);
            }
            SP_ENABLE = 2;
+           OPTIONS_COUNT++;
         }
     }
     if (GNUPLOT_ENABLE == 0) {
@@ -275,18 +286,32 @@ int main(int argc, char **argv) {
          * primary poll loop
          */
         i = 0;
+        int c = OPTIONS_COUNT;
         while(i >= 0) {
             /*
              * count or date and time stamp
              */
-            if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && COUNT_ENABLE == 1) {
+            if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 0 && COUNT_ENABLE == 1) {
                 printf("%d", i);
             }
-            if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1) {
+            if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1 && COUNT_ENABLE == 1) {
                 now = time((time_t *)NULL);
                 t = localtime(&now);
                 printf("%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, \
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+            }
+            if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1 && COUNT_ENABLE == 0) {
+                now = time((time_t *)NULL);
+                t = localtime(&now);
+                if(OPTIONS_COUNT != 0) {
+                    printf("%4d-%02d-%02d %02d:%02d:%02d,", t->tm_year+1900, t->tm_mon+1, \
+                        t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                    OPTIONS_COUNT--;
+                }
+                else {
+                    printf("%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, \
+                        t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                }
             }
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
@@ -330,15 +355,21 @@ int main(int argc, char **argv) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%d", freq);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
-                        if(VERBOSE_ENABLE ==1) {
-                            printf(" %.2lfGHz ", (double)freq/1000000);
-                            if(c == FREQ_ENABLE - 1) {
-                                printf("\n");
-                            }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE ==1) {
+                        printf(" %.2lfGHz ", (double)freq/1000000);
+                        if(c == FREQ_ENABLE - 1) {
+                            printf("\n");
                         }
-                        else {
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
                             printf(",%.2lf", (double)freq/1000000);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE-1) {
+                            printf("%.2lf,", (double)freq/1000000);
+                        }
+                        if(OPTIONS_COUNT == 1 && c == FREQ_ENABLE-1) {
+                            printf("%.2lf", (double)freq/1000000);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
@@ -348,6 +379,7 @@ int main(int argc, char **argv) {
                         fprintf(log_file,",%.2lf", (double)freq/1000000);
                     }
                 }
+                OPTIONS_COUNT--;
             }
             /*
              * open and read each thermal zone file
@@ -368,29 +400,37 @@ int main(int argc, char **argv) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%.0f", coretemp);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
-                        if(VERBOSE_ENABLE == 1) {
-                            strcpy(thermaltype,thermalzone1);
-                            strcat(thermaltype,strChar);
-                            strcat(thermaltype,thermaltype1);
-                            if((thermal_type = fopen(thermaltype, "r")) == NULL) {
-                                break;
-                            }
-                            fscanf(thermal_type, "%s", thermalname);
-                            fclose(thermal_type);
-                            printf("\n %s = %.2fc", thermalname, coretemp/1000);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        strcpy(thermaltype,thermalzone1);
+                        strcat(thermaltype,strChar);
+                        strcat(thermaltype,thermaltype1);
+                        if((thermal_type = fopen(thermaltype, "r")) == NULL) {
+                            break;
                         }
-                        else {
+                        fscanf(thermal_type, "%s", thermalname);
+                        fclose(thermal_type);
+                        printf("\n %s = %.2fc", thermalname, coretemp/1000);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
                             printf(",%.2f", coretemp/1000);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
+                            printf("%.2f,", coretemp/1000);
+                        }
+                        if(OPTIONS_COUNT == 1 && c == THERMAL_ENABLE-1) {
+                            printf("%.2f", coretemp/1000);
                         }
                     }
+
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%f", coretemp);
+                        fprintf(log_file,",%f", coretemp);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2f", coretemp/1000);
+                        fprintf(log_file,",%.2f", coretemp/1000);
                     }
                 }
+                OPTIONS_COUNT--;
             }
             /*
              * read mcp9808 temperature sensor
@@ -418,12 +458,19 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
-                    if(VERBOSE_ENABLE == 1) {
-                        printf("\n\n MCP9808 Sensor = %.2lfc", (double)temp * 0.0625);
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n MCP9808 Sensor = %.2lfc", (double)temp * 0.0625);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        printf(",%.2lf", (double)temp * 0.0625);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {  
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", (double)temp * 0.0625);
+                        OPTIONS_COUNT--;
                     }
                     else {
-                        printf(",%.2lf", (double)temp * 0.0625);
+                        printf("%.2lf", (double)temp * 0.0625);
                     }
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
@@ -442,12 +489,19 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
-                    if(VERBOSE_ENABLE == 1) {
-                        printf("\n\n BME280 Sensor = %.2lfc", (double)temperature/100);
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n BME280 Sensor = %.2lfc", (double)temperature/100);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        printf(",%.2lf", (double)temperature/100);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {        
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", (double)temperature/100);
+                        OPTIONS_COUNT--;
                     }
                     else {
-                        printf(",%.2lf", (double)temperature/100);
+                        printf("%.2lf", (double)temperature/100);
                     }
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
@@ -466,12 +520,19 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%d", temperature);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
-                    if(VERBOSE_ENABLE == 1) {
-                        printf("\n\n BMP180 Sensor = %.2lfc", (double)temperature/100);
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n BMP180 Sensor = %.2lfc", (double)temperature/100);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    printf(",%.2lf", (double)temperature);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", (double)temperature);
+                        OPTIONS_COUNT--;
                     }
                     else {
-                        printf(",%.2lf", (double)temperature);
+                        printf("%.2lf,", (double)temperature);
                     }
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
@@ -503,12 +564,19 @@ int main(int argc, char **argv) {
                     sscanf(temp, "%f,%s,%f", &volt, spline, &watt);
                     if(strstr(spline,"mA")) {
                         sscanf(spline,"%fmA", &amp);
-                        if(QUIET_ENABLE == 0) {
-                            if(VERBOSE_ENABLE == 1) {
-                                printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
+                        if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                            printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                                printf(",%.2f,.%.0f,%.2f", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1) {
+                                printf("%.2f,.%.0f,%.2f,", volt, amp, watt);
+                                OPTIONS_COUNT--;
                             }
                             else {
-                                printf(",%.2f,.%.0f,%.2f", volt, amp, watt);
+                                printf("%.2f,.%.0f,%.2f", volt, amp, watt);
                             }
                         }
                         if(LOG_ENABLE == 1) {
@@ -517,12 +585,19 @@ int main(int argc, char **argv) {
                     }
                     else {
                         sscanf(spline,"%fA", &amp);
-                        if(QUIET_ENABLE == 0) {
-                            if(VERBOSE_ENABLE == 1) {
-                                printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
+                        if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                            printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                                printf(",%.2f,%.2f,%.2f", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT > 1) {
+                                printf("%.2f,%.2f,%.2f,", volt, amp, watt);
+                                OPTIONS_COUNT--;
                             }
                             else {
-                                printf(",%.2f,%.2f,%.2f", volt, amp, watt);
+                                printf("%.2f,%.2f,%.2f", volt, amp, watt);
                             }
                         }
                         if(LOG_ENABLE == 1) {
@@ -542,7 +617,7 @@ int main(int argc, char **argv) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
                     temp[sp_read] = 0;
-                    sscanf(temp, "%dld,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
+                    sscanf(temp, "%Lf,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
                         &sp_ms, \
                         &in_mv, &in_ma, &in_w, &in_on, \
                         &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
@@ -559,12 +634,19 @@ int main(int argc, char **argv) {
                         amp = ch2_ma;
                         watt = ch2_w;
                     }
-                    if(QUIET_ENABLE == 0) {
-                        if(VERBOSE_ENABLE == 1) {
-                            printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt/1000, amp/1000, watt/1000);
+                    if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt/1000, amp/1000, watt/1000);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        printf(",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
+                            OPTIONS_COUNT--;
                         }
                         else {
-                            printf(",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                            printf("%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                         }
                     }
                     if(LOG_ENABLE == 1) {
@@ -620,29 +702,35 @@ int main(int argc, char **argv) {
                     r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%dld", u[3][c]);
+                        printf(",%Lf", u[3][c]);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0) {
-                        if(VERBOSE_ENABLE ==1) {
-                            if(c == 0) {
-                                printf("CPU = %.2f%% ", r);
-                                if(c == USAGE_ENABLE) {
-                                    printf("\n");
-                                }
-                            }
-                            else {
-                                printf("core%d = %.2f%% ", r, c);
-                                if(c == USAGE_ENABLE) {
-                                    printf("\n");
-                                }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE ==1) {
+                        if(c == 0) {
+                            printf("CPU = %.2f%% ", r);
+                            if(c == USAGE_ENABLE) {
+                                printf("\n");
                             }
                         }
                         else {
+                            printf("core%d = %.2f%% ", c, r);
+                            if(c == USAGE_ENABLE) {
+                                printf("\n");
+                            }
+                        }
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
                             printf(",%.2f", r);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c < USAGE_ENABLE-1) {
+                            printf("%.2f,", r);
+                        }
+                        if(OPTIONS_COUNT == 1 && c == USAGE_ENABLE-1) {
+                            printf("%.2f", r);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%dld", u[3][c]);
+                        fprintf(log_file,",%Lf", u[3][c]);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2f", r);
@@ -658,6 +746,7 @@ int main(int argc, char **argv) {
                     use[8][c] = u[8][c];
                     use[9][c] = u[9][c];
                 }
+                OPTIONS_COUNT--;
                 fclose(cpu_use);
             }
             /*
@@ -679,7 +768,7 @@ int main(int argc, char **argv) {
                 close(pwr_in);
                 break;
             }
-
+            OPTIONS_COUNT = c;
             i = i+INTERACTIVE_ENABLE;
             sleep(INTERACTIVE_ENABLE);
         }
