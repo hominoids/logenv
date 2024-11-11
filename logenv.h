@@ -21,7 +21,7 @@
 
 void usage(void);
 int itoa(int, char[]);
-int set_interface_attribs(int, int);
+int set_interface_attribs(int, int, bool);
 void sleep_ms(int);
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *log_file, *gnuplot_file;
@@ -52,7 +52,9 @@ char *thermaltype1 = "/type";
 char thermalname[255];
 
 char spfile[255];
-char spline[25];
+char spline[5];
+char spline1[5];
+char spline2[5];
 char logfile[255];
 char gplotfile[255];
 char version[] = "0.98 pre release";

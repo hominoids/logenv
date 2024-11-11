@@ -24,7 +24,7 @@
 
     void usage (void)
     int itoa(int n, char s[])
-    int set_interface_attribs(int fd, int speed)
+    int set_interface_attribs(int fd, int speed, int canconical)
     void sleep_ms(int milliseconds)
 
 */
@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <linux/i2c-dev.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -240,7 +241,7 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-                set_interface_attribs(pwr_in, B115200);
+                set_interface_attribs(pwr_in, B115200, true);
                 close(pwr_in);
             }
             SP_ENABLE = 31;
@@ -258,7 +259,7 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-                set_interface_attribs(pwr_in, B115200);
+                set_interface_attribs(pwr_in, B115200, true);
                 close(pwr_in);
             }
             SP_ENABLE = 32;
@@ -276,7 +277,7 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-                set_interface_attribs(pwr_in, B115200);
+                set_interface_attribs(pwr_in, B115200, false);
                 close(pwr_in);
            }
            SP_ENABLE = 2;
@@ -557,15 +558,14 @@ int main(int argc, char **argv) {
                  * read SmartPower2
                  */
                 if(SP_ENABLE == 2) {
-                    unsigned char temp[4];
+                    unsigned char temp[18];
                     int sp_read = 0;
                     if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
                     temp[sp_read] = 0;
-                    sscanf(temp, "%f,%s,%f", &volt, spline, &watt);
-                    if(strstr(spline,"mA")) {
-                        sscanf(spline,"%fmA", &amp);
+                    sscanf(temp, "%f%s %f%s %f%s", &volt, spline, &amp, spline1, &watt, spline2);
+                    if(strstr(spline1,"mA")) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                             printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
                         }
@@ -585,8 +585,7 @@ int main(int argc, char **argv) {
                             fprintf(log_file,",%.2f,.%.0f,%.2f", volt, amp, watt);
                         }
                     }
-                    else {
-                        sscanf(spline,"%fA", &amp);
+                    if(strstr(spline1,"A")) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                             printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
                         }
@@ -682,6 +681,7 @@ int main(int argc, char **argv) {
                         printf("\nERROR: Reading %s\n", cpuusage);
                         exit(0);
                     }
+
                     u[0][c] = strtoll(&us[0][c], &endptr, 10);
                     u[1][c] = strtoll(&us[1][c], &endptr, 10);
                     u[2][c] = strtoll(&us[2][c], &endptr, 10);
@@ -693,12 +693,12 @@ int main(int argc, char **argv) {
                     u[8][c] = strtoll(&us[8][c], &endptr, 10);
                     u[9][c] = strtoll(&us[9][c], &endptr, 10);
 
-                    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
+                    s = u[1][c] + u[2][c] + u[3][c] + u[4][c] \
                         + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
-                    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
+                    sum = use[1][c] + use[2][c] + use[3][c] + use[4][c] \
                         + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c];
 
-                    r = u[3][c] - use[3][c];
+                    r = i == 0 && INTERACTIVE_ENABLE != 0 ? (s-sum) : u[3][c] - use[3][c];
                     r /= (s-sum);
                     r = 1 - r;
                     r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
@@ -1117,7 +1117,8 @@ void usage (void) {
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
-        printf(" -u,  --usage                 CPU core usage\n");
+        printf(" -u,  --usage                 CPU core usage (core 0 to core n-1)\n");
+        printf(" -U,                          Total CPU usage\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable dashboard output\n"); 
@@ -1153,7 +1154,7 @@ int itoa(int n, char s[]) {
 }
 
 
-int set_interface_attribs(int fd, int speed) {
+int set_interface_attribs(int fd, int speed, bool canconical) {
     struct termios tty;
 
     if (tcgetattr(fd, &tty) < 0) {
@@ -1170,7 +1171,7 @@ int set_interface_attribs(int fd, int speed) {
     tty.c_cflag &= ~PARENB;                   /* no parity bit */
     tty.c_cflag &= ~CSTOPB;                   /* 1 stop bit */
     tty.c_cflag &= ~CRTSCTS;                  /* no hardware flowcontrol */
-    tty.c_lflag |= ICANON | ISIG;             /* canonical input */
+    tty.c_lflag |= canconical == true ? ICANON | ISIG : ~ICANON | ISIG;  /* canonical input */
     tty.c_lflag &= ~(ECHO | ECHOE | ECHONL | IEXTEN);
     tty.c_iflag &= ~IGNCR;                    /* preserve carriage return */
     tty.c_iflag &= ~INPCK;

@@ -26,16 +26,17 @@ usage: logenv [options]
 
 Options:
  -l,  --log <file>            Log to <file>
- -s,  --milliseconds <number> Poll every <number> milliseconds
+ -i,  --milliseconds <number> Poll Interval <number> in milliseconds
  -f,  --frequency             CPU core frequency
  -t,  --temperature           Thermal zone temperature
- -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0
+ -a,  --bme280 <device>       Ambient Temperature Sensor, BME280 Temperature Sensor default /dev/i2c-0
       --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0
       --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-0
  -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
       --smartpower3-ch2 <tty>
       --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
- -u,  --usage                 CPU core usage
+ -u,  --usage                 CPU core usage (core 0 to core n-1)
+ -U,                          Total CPU usage
  -d,  --date                  Date and Time stamp
  -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
  -v,  --verbose               Readable dashboard output
