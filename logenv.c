@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
             USAGE_ENABLE = atoi(&line[2])+1;
             OPTIONS_COUNT++;
         }
-        if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--milliseconds")) {
+        if(!strcmp(argv[i], "-i") || !strcmp(argv[i], "--milliseconds")) {
             INTERACTIVE_ENABLE = atoi(argv[i+1]);
             COUNT_ENABLE = 1;
         }
@@ -154,9 +154,9 @@ int main(int argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * external sensor command line options
+         * ambient temperature command line options
          */
-        if(!strcmp(argv[i], "-b") || !strcmp(argv[i], "--bme280")) {
+        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     sensor = argv[i+1];
@@ -1108,12 +1108,12 @@ void usage (void) {
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");
-        printf(" -s,  --milliseconds <number> Poll every <number> milliseconds\n");
+        printf(" -i,  --milliseconds <number> Poll Interval <number> in milliseconds\n");
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0\n");
-        printf("      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0\n");
-        printf("      --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-0\n");
+        printf(" -a,  --bme280 <device>       Ambient Temperature Sensor, BME280 Temperature Sensor default /dev/i2c-0\n");
+        printf("      --bmp180 <device>       BMP180 Sensor, default /dev/i2c-0\n");
+        printf("      --mcp9808 <device>      MCP9808 Sensor, default /dev/i2c-0\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
@@ -1129,9 +1129,9 @@ void usage (void) {
         printf(" -h,  --help                  Help screen\n\n");
         printf("Example:\n\n");
         printf("Data capture every 2 seconds:\n");
-        printf("logenv -l logfile.csv -s 2000 -f -t -b /dev/i2c-1 -p /dev/ttyUSB0\n\n");
+        printf("logenv -l logfile.csv -i 2000 -f -t -a /dev/i2c-1 -p /dev/ttyUSB0\n\n");
         printf("Gnuplot script generation for data capture:\n");
-        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -s 2000 -f -t -b -p \n\n");
+        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -i 2000 -f -t -a -p \n\n");
         printf("Gnuplot chart creation:\n");
         printf("gnuplot -c gplotscript.gpl chart.png logfile.csv\n\n");
         exit(0);

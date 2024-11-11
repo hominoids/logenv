@@ -217,7 +217,7 @@ static char gpscript_usage[11][55] = {
     "# power y axis\n",
     "set ylabel \'% Core Use\' font \'Verdana,12\'\n",
     "set yrange [0:101]\n",
-    "set ytics 0,10 border nomirror out\n",
+    "set ytics 0,20 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# usage x axis\n",
     "set noxlabel\n\n"};
