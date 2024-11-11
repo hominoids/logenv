@@ -26,7 +26,7 @@ usage: logenv [options]
 
 Options:
  -l,  --log <file>            Log to <file>
- -s,  --seconds <number>      Poll every <number> seconds
+ -s,  --milliseconds <number> Poll every <number> milliseconds
  -f,  --frequency             CPU core frequency
  -t,  --temperature           Thermal zone temperature
  -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0
@@ -50,10 +50,10 @@ Options:
 ### Examples
 ```
 Data capture every 2 seconds:
-logenv -l logfile.csv -s 2 -f -t -b /dev/i2c-1 -p /dev/ttyUSB0
+logenv -l logfile.csv -s 2000 -f -t -b /dev/i2c-1 -p /dev/ttyUSB0
 
 Gnuplot script generation for data capture:
-logenv -g gplotscript.gpl --title "logenv GNUPlot Chart" --xmtics 60 -s 2 -f -t -b -p 
+logenv -g gplotscript.gpl --title "logenv GNUPlot Chart" --xmtics 60 -s 2000 -f -t -b -p 
 
 Gnuplot chart creation:
 gnuplot -c gplotscript.gpl chart.png logfile.csv

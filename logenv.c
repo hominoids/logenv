@@ -25,8 +25,10 @@
     void usage (void)
     int itoa(int n, char s[])
     int set_interface_attribs(int fd, int speed)
+    void sleep_ms(int milliseconds)
 
 */
+
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
@@ -100,7 +102,7 @@ int main(int argc, char **argv) {
             USAGE_ENABLE = atoi(&line[2])+1;
             OPTIONS_COUNT++;
         }
-        if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--seconds")) {
+        if(!strcmp(argv[i], "-s") || !strcmp(argv[i], "--milliseconds")) {
             INTERACTIVE_ENABLE = atoi(argv[i+1]);
             COUNT_ENABLE = 1;
         }
@@ -285,14 +287,14 @@ int main(int argc, char **argv) {
         /*
          * primary poll loop
          */
-        i = 0;
+        float i = 0;
         int c = OPTIONS_COUNT;
         while(i >= 0) {
             /*
              * count or date and time stamp
              */
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 0 && COUNT_ENABLE == 1) {
-                printf("%d", i);
+                printf("%.3f", i/1000);
             }
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1 && COUNT_ENABLE == 1) {
                 now = time((time_t *)NULL);
@@ -319,7 +321,7 @@ int main(int argc, char **argv) {
                 exit(0);
                 }
                 if(COUNT_ENABLE) {
-                    fprintf(log_file,"%d", i);
+                    fprintf(log_file,"%.3f", i/1000);
                 }
                 else {
                     now = time((time_t *)NULL);
@@ -355,16 +357,16 @@ int main(int argc, char **argv) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%d", freq);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE ==1) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf(" %.2lfGHz ", (double)freq/1000000);
                         if(c == FREQ_ENABLE - 1) {
                             printf("\n");
                         }
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", (double)freq/1000000);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE-1) {
                             printf("%.2lf,", (double)freq/1000000);
                         }
@@ -411,10 +413,10 @@ int main(int argc, char **argv) {
                         fclose(thermal_type);
                         printf("\n %s = %.2fc", thermalname, coretemp/1000);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2f", coretemp/1000);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
                             printf("%.2f,", coretemp/1000);
                         }
@@ -461,10 +463,10 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                     printf("\n\n MCP9808 Sensor = %.2lfc", (double)temp * 0.0625);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                         printf(",%.2lf", (double)temp * 0.0625);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {  
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
                         printf("%.2lf,", (double)temp * 0.0625);
                         OPTIONS_COUNT--;
@@ -492,10 +494,10 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                     printf("\n\n BME280 Sensor = %.2lfc", (double)temperature/100);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                         printf(",%.2lf", (double)temperature/100);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {        
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
                         printf("%.2lf,", (double)temperature/100);
                         OPTIONS_COUNT--;
@@ -523,10 +525,10 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
                     printf("\n\n BMP180 Sensor = %.2lfc", (double)temperature/100);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                     printf(",%.2lf", (double)temperature);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
                         printf("%.2lf,", (double)temperature);
                         OPTIONS_COUNT--;
@@ -567,10 +569,10 @@ int main(int argc, char **argv) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                             printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
                         }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                                 printf(",%.2f,.%.0f,%.2f", volt, amp, watt);
                         }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                             if(OPTIONS_COUNT >= 1) {
                                 printf("%.2f,.%.0f,%.2f,", volt, amp, watt);
                                 OPTIONS_COUNT--;
@@ -588,10 +590,10 @@ int main(int argc, char **argv) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                             printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
                         }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                                 printf(",%.2f,%.2f,%.2f", volt, amp, watt);
                         }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                             if(OPTIONS_COUNT > 1) {
                                 printf("%.2f,%.2f,%.2f,", volt, amp, watt);
                                 OPTIONS_COUNT--;
@@ -637,10 +639,10 @@ int main(int argc, char **argv) {
                     if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt/1000, amp/1000, watt/1000);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                         printf(",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
                             printf("%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
                             OPTIONS_COUNT--;
@@ -718,10 +720,10 @@ int main(int argc, char **argv) {
                             }
                         }
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2f", r);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT >= 1 && c < USAGE_ENABLE-1) {
                             printf("%.2f,", r);
                         }
@@ -769,8 +771,8 @@ int main(int argc, char **argv) {
                 break;
             }
             OPTIONS_COUNT = c;
-            i = i+INTERACTIVE_ENABLE;
-            sleep(INTERACTIVE_ENABLE);
+            i += INTERACTIVE_ENABLE;
+            sleep_ms(INTERACTIVE_ENABLE);
         }
     }
     else {
@@ -1106,7 +1108,7 @@ void usage (void) {
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");
-        printf(" -s,  --seconds <number>      Poll every <number> seconds\n");
+        printf(" -s,  --milliseconds <number> Poll every <number> milliseconds\n");
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
         printf(" -b,  --bme280 <device>       BME280 Temperature Sensor, default /dev/i2c-0\n");
@@ -1127,9 +1129,9 @@ void usage (void) {
         printf(" -h,  --help                  Help screen\n\n");
         printf("Example:\n\n");
         printf("Data capture every 2 seconds:\n");
-        printf("logenv -l logfile.csv -s 2 -f -t -b /dev/i2c-1 -p /dev/ttyUSB0\n\n");
+        printf("logenv -l logfile.csv -s 2000 -f -t -b /dev/i2c-1 -p /dev/ttyUSB0\n\n");
         printf("Gnuplot script generation for data capture:\n");
-        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -s 2 -f -t -b -p \n\n");
+        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -s 2000 -f -t -b -p \n\n");
         printf("Gnuplot chart creation:\n");
         printf("gnuplot -c gplotscript.gpl chart.png logfile.csv\n\n");
         exit(0);
@@ -1186,4 +1188,12 @@ int set_interface_attribs(int fd, int speed) {
         return -1;
     }
     return 0;
+}
+
+
+void sleep_ms(int milliseconds) {
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
 }

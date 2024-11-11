@@ -22,6 +22,7 @@
 void usage(void);
 int itoa(int, char[]);
 int set_interface_attribs(int, int);
+void sleep_ms(int);
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *log_file, *gnuplot_file;
 
