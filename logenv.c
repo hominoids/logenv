@@ -669,7 +669,6 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open %s\n", cpuusage);
                     exit(0);
                 }
-
                 for (int c = 0; c <= USAGE_ENABLE; c++) {
                     char t[20];
                     char us[10][256] = {0};
@@ -693,9 +692,9 @@ int main(int argc, char **argv) {
                     u[8][c] = strtoll(&us[8][c], &endptr, 10);
                     u[9][c] = strtoll(&us[9][c], &endptr, 10);
 
-                    s = u[1][c] + u[2][c] + u[3][c] + u[4][c] \
+                    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
                         + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
-                    sum = use[1][c] + use[2][c] + use[3][c] + use[4][c] \
+                    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
                         + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c];
 
                     r = i == 0 && INTERACTIVE_ENABLE != 0 ? (s-sum) : u[3][c] - use[3][c];
