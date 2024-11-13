@@ -1116,8 +1116,7 @@ void usage (void) {
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
-        printf(" -u,  --usage                 CPU core usage (core 0 to core n-1)\n");
-        printf(" -U,                          Total CPU usage\n");
+        printf(" -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable dashboard output\n"); 
