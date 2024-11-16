@@ -1,0 +1,63 @@
+.-----------------------------------------------------------------------------.
+arm_release_ver: g13p0-01eac0, rk_so_ver: 10
+|----------------.------------------------------------------------------------|
+| Device ID    0 | Mali-G610 r0p0                                             |
+| Device ID    1 | cpu-cortex-a76-cortex-a55                                  |
+|----------------'------------------------------------------------------------|
+|----------------.------------------------------------------------------------|
+| Device ID      | 0                                                          |
+| Device Name    | Mali-G610 r0p0                                             |
+| Device Vendor  | ARM                                                        |
+| Device Driver  | 3.0 (Linux)                                                |
+| OpenCL Version | OpenCL C 3.0 v1.g13p0-01eac0.a8b6f0c7e1f83c654c60d1775112dbe4 |
+| Compute Units  | 4 at 1000 MHz (32 cores, 0.064 TFLOPs/s)                   |
+| Memory, Cache  | 15951 MB, 1024 KB global / 32 KB local                     |
+| Buffer Limits  | 15951 MB global, 16334808 KB constant                      |
+|----------------'------------------------------------------------------------|
+| Info: OpenCL C code successfully compiled.                                  |
+| FP64  compute                                          not supported        |
+| FP32  compute                                         0.255 TFLOPs/s ( 4x ) |
+| FP16  compute                                         0.508 TFLOPs/s ( 8x ) |
+| INT64 compute                                         0.021  TIOPs/s (1/3 ) |
+| INT32 compute                                         0.127  TIOPs/s ( 2x ) |
+| INT16 compute                                         0.252  TIOPs/s ( 4x ) |
+| INT8  compute                                         0.500  TIOPs/s ( 8x ) |
+| Memory Bandwidth ( coalesced read      )                         23.33 GB/s |
+| Memory Bandwidth ( coalesced      write)                         18.72 GB/s |
+| Memory Bandwidth (misaligned read      )                         23.77 GB/s |
+| Memory Bandwidth (misaligned      write)                         24.82 GB/s |
+| PCIe   Bandwidth (send                 )                         10.66 GB/s |
+| PCIe   Bandwidth (   receive           )                         12.18 GB/s |
+| PCIe   Bandwidth (        bidirectional)            (Gen4 x16)   11.24 GB/s |
+|-----------------------------------------------------------------------------|
+|----------------.------------------------------------------------------------|
+| Device ID      | 1                                                          |
+| Device Name    | cpu-cortex-a76-cortex-a55                                  |
+| Device Vendor  | ARM                                                        |
+| Device Driver  | 6.1-pre main-0-ge53206660 (Linux)                          |
+| OpenCL Version | OpenCL C 1.2 PoCL                                          |
+| Compute Units  | 8 at 1800 MHz (8 cores, 0.461 TFLOPs/s)                    |
+| Memory, Cache  | 13908 MB, 3072 KB global / 512 KB local                    |
+| Buffer Limits  | 4096 MB global, 512 KB constant                            |
+|----------------'------------------------------------------------------------|
+| Info: OpenCL C code successfully compiled.                                  |
+| FP64  compute                                         0.008 TFLOPs/s (1/64) |
+| FP32  compute                                         0.008 TFLOPs/s (1/64) |
+| FP16  compute                                          not supported        |
+| INT64 compute                                         0.009  TIOPs/s (1/64) |
+| INT32 compute                                         0.014  TIOPs/s (1/32) |
+| INT16 compute                                         0.016  TIOPs/s (1/32) |
+| INT8  compute                                         0.033  TIOPs/s (1/16) |
+| Memory Bandwidth ( coalesced read      )                          3.15 GB/s |
+| Memory Bandwidth ( coalesced      write)                          2.04 GB/s |
+| Memory Bandwidth (misaligned read      )                         37.86 GB/s |
+| Memory Bandwidth (misaligned      write)                         11.07 GB/s |
+| PCIe   Bandwidth (send                 )                         14.62 GB/s |
+| PCIe   Bandwidth (   receive           )                         14.90 GB/s |
+| PCIe   Bandwidth (        bidirectional)            (Gen4 x16)   14.78 GB/s |
+|-----------------------------------------------------------------------------|
+'-----------------------------------------------------------------------------'
+
+real	48m38.421s
+user	355m33.314s
+sys	0m3.031s

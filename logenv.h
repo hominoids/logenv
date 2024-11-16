@@ -21,7 +21,7 @@
 
 void usage(void);
 int itoa(int, char[]);
-int set_interface_attribs(int, int, bool);
+int set_tty_attributes(int, int, bool);
 void sleep_ms(int);
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *log_file, *gnuplot_file;
@@ -57,7 +57,7 @@ char spline1[5];
 char spline2[5];
 char logfile[255];
 char gplotfile[255];
-char version[] = "0.98 pre release";
+char version[] = "0.98";
 char one2one[] = "1,1";
 char two2one[] = "2,1";
 char three2one[] = "3,1";

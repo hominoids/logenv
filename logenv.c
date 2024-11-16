@@ -20,11 +20,12 @@
             volts, amps and watts (HK SmartPower2 or SmartPower3 output)
             
     20200202 Version .97 beta HK SmartPower2
-    20241026 Version .98 beta added HK SmartPower3
+    20241116 Version .98 Added HK SmartPower3, CPU core usage, MCP9808 sensor, tty configuration, 
+                         fractional polling and GNUPlot script improvements with more charts.
 
     void usage (void)
     int itoa(int n, char s[])
-    int set_interface_attribs(int fd, int speed, int canconical)
+    int set_tty_attributes(int fd, int speed, bool canconical)
     void sleep_ms(int milliseconds)
 
 */
@@ -241,7 +242,7 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-                set_interface_attribs(pwr_in, B115200, true);
+                set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
             }
             SP_ENABLE = 31;
@@ -259,7 +260,7 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-                set_interface_attribs(pwr_in, B115200, true);
+                set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
             }
             SP_ENABLE = 32;
@@ -277,7 +278,7 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(0);
                 }
-                set_interface_attribs(pwr_in, B115200, false);
+                set_tty_attributes(pwr_in, B115200, false);
                 close(pwr_in);
            }
            SP_ENABLE = 2;
@@ -1127,10 +1128,10 @@ void usage (void) {
         printf("      --version               Version\n");
         printf(" -h,  --help                  Help screen\n\n");
         printf("Example:\n\n");
-        printf("Data capture every 2 seconds:\n");
-        printf("logenv -l logfile.csv -i 2000 -f -t -a /dev/i2c-1 -p /dev/ttyUSB0\n\n");
+        printf("Data capture every 2 seconds for frequency, thermal zones, ambient temperature and SmartPower3-ch1:\n");
+        printf("logenv -l logfile.csv -i 2000 -f -t -a /dev/i2c-1 -p\n\n");
         printf("Gnuplot script generation for data capture:\n");
-        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -i 2000 -f -t -a -p \n\n");
+        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -i -f -t -a -p \n\n");
         printf("Gnuplot chart creation:\n");
         printf("gnuplot -c gplotscript.gpl chart.png logfile.csv\n\n");
         exit(0);
@@ -1152,7 +1153,7 @@ int itoa(int n, char s[]) {
 }
 
 
-int set_interface_attribs(int fd, int speed, bool canconical) {
+int set_tty_attributes(int fd, int speed, bool canconical) {
     struct termios tty;
 
     if (tcgetattr(fd, &tty) < 0) {
