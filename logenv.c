@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
      * parse command line options
      */
     i = argc;
-    while (i--) {
+    while (i-- > 1) {
         if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
             usage();
         }
