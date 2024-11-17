@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
      * check if creating gnuplot script
      */
     int i = argc;
-    while (i--) {
+    while (i-- > 1) {
 
         if(!strcmp(argv[i], "-g") || !strcmp(argv[i], "--gnuplot")) {
             strcpy(gplotfile, argv[i+1]);
