@@ -29,6 +29,12 @@ FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *log_file, *
 time_t now;
 struct tm *t;
 
+int udp_socket;
+int sin_size;
+struct sockaddr_in udp_server_addr;
+struct hostent *host;
+static char udp_tx_data[1024];
+
 int  pwr_in;
 int  sensor_in;
 
@@ -76,6 +82,7 @@ static int GNUPLOT_ENABLE = 0;
 static int COUNT_ENABLE = 0;
 static int DT_ENABLE = 0;
 static int USAGE_ENABLE = 0;
+static int UDP_ENABLE = 0;
 static int OPTIONS_COUNT = 0;
 
 static int xmtics = 10;

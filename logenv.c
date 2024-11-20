@@ -29,17 +29,21 @@
     void sleep_ms(int milliseconds)
 
 */
-
+#include <arpa/inet.h>
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <linux/i2c-dev.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
@@ -95,7 +99,7 @@ int main(int argc, char **argv) {
         if(!strcmp(argv[i], "-u") || !strcmp(argv[i], "--usage")) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
                 printf("\nERROR: Cannot open %s\n", cpuonline);
-                exit(0);
+                exit(1);
             }
             size_t size = 0;
             char *line = 0;
@@ -112,6 +116,19 @@ int main(int argc, char **argv) {
             strcpy(logfile, argv[i+1]);
             LOG_ENABLE = 1;
         }
+        if(!strcmp(argv[i], "-n") || !strcmp(argv[i], "--udp")) {
+            host = (struct hostent *) gethostbyname((char *)"127.0.0.1");
+            if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+                perror("ERROR: Cannot open UDP socket");
+                exit(1);
+            }
+            udp_server_addr.sin_family = AF_INET;
+            udp_server_addr.sin_port = htons(5000);
+            udp_server_addr.sin_addr = *((struct in_addr *)host->h_addr);
+            memset(&(udp_server_addr.sin_zero), 0, 8);
+            sin_size = sizeof(struct sockaddr);
+            UDP_ENABLE = 1;
+        }
         if(!strcmp(argv[i], "-r") || !strcmp(argv[i], "--raw")) {
             RAW_ENABLE = 1;
         }
@@ -127,7 +144,7 @@ int main(int argc, char **argv) {
         if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--frequency")) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
                 printf("\nERROR: Cannot open %s\n", cpuonline);
-                exit(0);
+                exit(1);
             }
             size_t size = 0;
             char *line = 0;
@@ -168,11 +185,11 @@ int main(int argc, char **argv) {
                 }
                 if(bme280_begin(sensor) < 0) {
                     printf("\nERROR: Cannot open BME280 at %s\n", sensor);
-                    exit(0);
+                    exit(1);
                 }
                 if(bme280_set_power_mode(BME280_NORMAL_MODE) < 0) {
                     printf("\nERROR: Cannot set power mode for BME280 at %s\n", sensor);
-                    exit(0);
+                    exit(1);
                 }
             }
             SENSOR_ENABLE = 2;
@@ -188,7 +205,7 @@ int main(int argc, char **argv) {
                 }
                 if(bmp180_begin(sensor) < 0) {
                     printf("\nERROR: Cannot open BMP180 at %s\n", sensor);
-                    exit(0);
+                    exit(1);
                 }
             }
             SENSOR_ENABLE = 1;
@@ -204,7 +221,7 @@ int main(int argc, char **argv) {
                 }
                 if((sensor_in = open(sensor, O_RDWR)) < 0) {
                     printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
-                    exit(0);
+                    exit(1);
                 }
                 ioctl(sensor_in, I2C_SLAVE, 0x18);
                 /*
@@ -240,7 +257,7 @@ int main(int argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(0);
+                    exit(1);
                 }
                 set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
@@ -258,7 +275,7 @@ int main(int argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(0);
+                    exit(1);
                 }
                 set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
@@ -276,7 +293,7 @@ int main(int argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(0);
+                    exit(1);
                 }
                 set_tty_attributes(pwr_in, B115200, false);
                 close(pwr_in);
@@ -292,6 +309,7 @@ int main(int argc, char **argv) {
         float i = 0;
         int c = OPTIONS_COUNT;
         while(i >= 0) {
+            int udp_count = 0;
             /*
              * count or date and time stamp
              */
@@ -320,7 +338,7 @@ int main(int argc, char **argv) {
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
                 printf("\nERROR: Cannot open %s\n\n", logfile);
-                exit(0);
+                exit(1);
                 }
                 if(COUNT_ENABLE) {
                     fprintf(log_file,"%.3f", i/1000);
@@ -332,18 +350,28 @@ int main(int argc, char **argv) {
                             t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
                 }
             }
-            if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                printf("\n");
-                for (int c = 0; c < FREQ_ENABLE; c++) {
-                    printf("  Core%d  ", c);
+            if(UDP_ENABLE == 1) {
+                if(COUNT_ENABLE) {
+                    udp_count = sprintf(udp_tx_data,"%.3f", i/1000);
                 }
-                printf("\n");
+                else {
+                    now = time((time_t *)NULL);
+                    t = localtime(&now);
+                    udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
+                            t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                }
             }
             /*
              * open and read each core frequency file
              */
             if(FREQ_ENABLE != 0) {
-
+                if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n");
+                    for (int c = 0; c < FREQ_ENABLE; c++) {
+                        printf("  Core%d  ", c);
+                    }
+                    printf("\n");
+                }
                 for (int c = 0; c < FREQ_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
@@ -352,7 +380,7 @@ int main(int argc, char **argv) {
                     strcat(cpufreq,cpufreq2);
                     if((cpu_freq = fopen(cpufreq, "r")) == NULL) {
                         printf("\nERROR: Cannot open %s\n", cpufreq);
-                        exit(0);
+                        exit(1);
                     } 
                     fscanf(cpu_freq, "%d", &freq);
                     fclose(cpu_freq);
@@ -369,7 +397,7 @@ int main(int argc, char **argv) {
                             printf(",%.2lf", (double)freq/1000000);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE-1) {
+                        if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE) {
                             printf("%.2lf,", (double)freq/1000000);
                         }
                         if(OPTIONS_COUNT == 1 && c == FREQ_ENABLE-1) {
@@ -381,6 +409,12 @@ int main(int argc, char **argv) {
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2lf", (double)freq/1000000);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d", freq);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)freq/1000000);
                     }
                 }
                 OPTIONS_COUNT--;
@@ -419,7 +453,7 @@ int main(int argc, char **argv) {
                             printf(",%.2f", coretemp/1000);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
+                        if(OPTIONS_COUNT >= 1 && c <= THERMAL_ENABLE-1) {
                             printf("%.2f,", coretemp/1000);
                         }
                         if(OPTIONS_COUNT == 1 && c == THERMAL_ENABLE-1) {
@@ -432,6 +466,12 @@ int main(int argc, char **argv) {
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2f", coretemp/1000);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", coretemp);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2f", coretemp/1000);
                     }
                 }
                 OPTIONS_COUNT--;
@@ -449,7 +489,7 @@ int main(int argc, char **argv) {
                 char data[2] = {0};
                 if(read(sensor_in, data, 2) != 2) {
                     printf("ERROR : MCP9808 Read Error \n");
-                    exit(0);
+                    exit(1);
                 }
                 /*
                  * Convert the data to 13-bits
@@ -483,6 +523,12 @@ int main(int argc, char **argv) {
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                     fprintf(log_file,",%.2lf", (double)temp * 0.0625);
                 }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temp * 0.0625);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temp * 0.0625);
+                }
             }
             /*
              * read bme280
@@ -514,6 +560,12 @@ int main(int argc, char **argv) {
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                     fprintf(log_file,",%.2lf", (double)temperature/100);
                 }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
+                }
             }
             /*
              * read bmp180
@@ -539,11 +591,11 @@ int main(int argc, char **argv) {
                         printf("%.2lf,", (double)temperature);
                     }
                 }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%d", temperature);
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
                 }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", (double)temperature);
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature);
                 }
             }
             /*
@@ -553,7 +605,7 @@ int main(int argc, char **argv) {
 
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(0);
+                    exit(1);
                 }
                 /*
                  * read SmartPower2
@@ -585,6 +637,9 @@ int main(int argc, char **argv) {
                         if(LOG_ENABLE == 1) {
                             fprintf(log_file,",%.2f,.%.0f,%.2f", volt, amp, watt);
                         }
+                        if(UDP_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f,.%.0f,%.2f", volt, amp, watt);
+                        }
                     }
                     if(strstr(spline1,"A")) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
@@ -604,6 +659,9 @@ int main(int argc, char **argv) {
                         }
                         if(LOG_ENABLE == 1) {
                             fprintf(log_file,",%.2f,%.2f,%.2f", volt, amp, watt);
+                        }
+                        if(UDP_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt, amp, watt);
                         }
                     }
                 }
@@ -654,6 +712,9 @@ int main(int argc, char **argv) {
                     if(LOG_ENABLE == 1) {
                         fprintf(log_file,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                     }
+                    if(UDP_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                    }
                 }
                 close(pwr_in);
             }
@@ -668,7 +729,7 @@ int main(int argc, char **argv) {
 
                 if((cpu_use = fopen(cpuusage, "r")) == NULL) {
                     printf("\nERROR: Cannot open %s\n", cpuusage);
-                    exit(0);
+                    exit(1);
                 }
                 for (int c = 0; c <= USAGE_ENABLE; c++) {
                     char t[20];
@@ -679,7 +740,7 @@ int main(int argc, char **argv) {
                     if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
                         &us[2][c], &us[3][c], &us[4][c], &us[5][c], &us[6][c], &us[7][c], &us[8][c], &us[9][c])) != 11) {
                         printf("\nERROR: Reading %s\n", cpuusage);
-                        exit(0);
+                        exit(1);
                     }
 
                     u[0][c] = strtoll(&us[0][c], &endptr, 10);
@@ -724,7 +785,7 @@ int main(int argc, char **argv) {
                             printf(",%.2f", r);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c < USAGE_ENABLE-1) {
+                        if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
                             printf("%.2f,", r);
                         }
                         if(OPTIONS_COUNT == 1 && c == USAGE_ENABLE-1) {
@@ -737,6 +798,14 @@ int main(int argc, char **argv) {
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2f", r);
                     }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%Lf", u[3][c]);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2f", r);
+                    }
+
+
                     use[0][c] = u[0][c];
                     use[1][c] = u[1][c];
                     use[2][c] = u[2][c];
@@ -761,6 +830,11 @@ int main(int argc, char **argv) {
             if(LOG_ENABLE == 1) {
                 fprintf(log_file,"\n");
                 fclose(log_file);
+            }
+            if(UDP_ENABLE == 1) {
+                udp_count += sprintf(udp_tx_data + udp_count,"\n");
+                sendto(udp_socket, udp_tx_data, strlen(udp_tx_data), 0,
+                    (struct sockaddr *)&udp_server_addr, sizeof(struct sockaddr));
             }
             /*
              * break if one and done or sleep
@@ -1122,6 +1196,7 @@ void usage (void) {
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable dashboard output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
+        printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");
         printf("      --xmtics <number>       Chart x-axis major second tics <number>\n");

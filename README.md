@@ -43,6 +43,7 @@ Options:
  -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
  -v,  --verbose               Readable dashboard output
  -q,  --quiet                 No output to stdout
+ -n,  --udp <host>:<port>     UDP output to <host>:<port>
  -g,  --gnuplot <file>        Gnuplot script generation
       --title <string>        Chart title <string>
       --xmtics <number>       Chart x-axis major second tics <number>
