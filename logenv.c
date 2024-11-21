@@ -397,11 +397,16 @@ int main(int argc, char **argv) {
                             printf(",%.2lf", (double)freq/1000000);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE) {
+                        if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE-1) {
                             printf("%.2lf,", (double)freq/1000000);
                         }
-                        if(OPTIONS_COUNT == 1 && c == FREQ_ENABLE-1) {
-                            printf("%.2lf", (double)freq/1000000);
+                        if(OPTIONS_COUNT >= 1 && c == FREQ_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                printf("%.2lf,", (double)freq/1000000);
+                            }
+                            else {
+                                printf("%.2lf", (double)freq/1000000);
+                            }
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
@@ -453,11 +458,16 @@ int main(int argc, char **argv) {
                             printf(",%.2f", coretemp/1000);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c <= THERMAL_ENABLE-1) {
+                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
                             printf("%.2f,", coretemp/1000);
                         }
-                        if(OPTIONS_COUNT == 1 && c == THERMAL_ENABLE-1) {
-                            printf("%.2f", coretemp/1000);
+                        if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                printf("%.2f,", coretemp/1000);
+                            }
+                            else {
+                                printf("%.2f", coretemp/1000);
+                            }
                         }
                     }
 
@@ -842,6 +852,7 @@ int main(int argc, char **argv) {
             if(INTERACTIVE_ENABLE == 0) {
                 close(sensor_in);
                 close(pwr_in);
+                close(udp_socket);
                 break;
             }
             OPTIONS_COUNT = c;
