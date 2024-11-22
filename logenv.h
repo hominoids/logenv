@@ -23,6 +23,9 @@ void usage(void);
 int itoa(int, char[]);
 int set_tty_attributes(int, int, bool);
 void sleep_ms(int);
+static void sig_handler(int);
+
+static volatile sig_atomic_t go = 1;
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *log_file, *gnuplot_file;
 

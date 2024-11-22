@@ -24,6 +24,7 @@
     int itoa(int n, char s[])
     int set_tty_attributes(int fd, int speed, bool canconical)
     void sleep_ms(int milliseconds)
+    static void sig_handler(int _)
 
 */
 #include <arpa/inet.h>
@@ -33,6 +34,7 @@
 #include <linux/i2c-dev.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -50,6 +52,8 @@
 #include "logenv.h"
 
 int main(int argc, char **argv) {
+
+    signal(SIGINT, sig_handler);
 
     if(argc == 1) {
         usage();
@@ -308,7 +312,7 @@ int main(int argc, char **argv) {
          */
         float i = 0;
         int c = OPTIONS_COUNT;
-        while(i >= 0) {
+        while(i >= 0 && go != -1) {
             int udp_count = 0;
             /*
              * count or date and time stamp
@@ -985,7 +989,7 @@ int main(int argc, char **argv) {
             }
             if(UDP_ENABLE == 1) {
                 udp_count += sprintf(udp_tx_data + udp_count,"\n");
-                sendto(udp_socket, udp_tx_data, strlen(udp_tx_data), 0,
+                sendto(udp_socket, udp_tx_data, strlen(udp_tx_data), 0, \
                     (struct sockaddr *)&udp_server_addr, sizeof(struct sockaddr));
             }
             /*
@@ -1325,6 +1329,9 @@ int main(int argc, char **argv) {
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
     }
+    close(sensor_in);
+    close(pwr_in);
+    close(udp_socket);
 }
 
 
@@ -1424,4 +1431,11 @@ void sleep_ms(int milliseconds) {
     ts.tv_sec = milliseconds / 1000;
     ts.tv_nsec = (milliseconds % 1000) * 1000000;
     nanosleep(&ts, NULL);
+}
+
+
+static void sig_handler(int _)
+{
+    (void)_;
+    go = -1;
 }
