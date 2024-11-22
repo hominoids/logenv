@@ -18,10 +18,7 @@
    logenv - logs count or time stamp, thermal zone temperature, cpu frequency,
             air temperature(BME280, BMP180, MCP9808),
             volts, amps and watts (HK SmartPower2 or SmartPower3 output)
-            
-    20200202 Version .97 beta HK SmartPower2
-    20241116 Version .98 Added HK SmartPower3, CPU core usage, MCP9808 sensor, tty configuration, 
-                         fractional polling and GNUPlot script improvements with more charts.
+
 
     void usage (void)
     int itoa(int n, char s[])
@@ -117,14 +114,17 @@ int main(int argc, char **argv) {
             LOG_ENABLE = 1;
         }
         if(!strcmp(argv[i], "-n") || !strcmp(argv[i], "--udp")) {
-            host = (struct hostent *) gethostbyname((char *)"127.0.0.1");
+            if((i+1) < argc && !strncmp(":", argv[i+1], 0)) {
+                sscanf(argv[i+1], "%[^':']:%d", udp_name, &udp_port);
+            }
+            udp_host = (struct hostent *) gethostbyname((char *)udp_name);
             if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-                perror("ERROR: Cannot open UDP socket");
+                printf("\nERROR: Cannot open UDP socket for %s on port %d\n", udp_name, udp_port);
                 exit(1);
             }
             udp_server_addr.sin_family = AF_INET;
-            udp_server_addr.sin_port = htons(5000);
-            udp_server_addr.sin_addr = *((struct in_addr *)host->h_addr);
+            udp_server_addr.sin_port = htons(udp_port);
+            udp_server_addr.sin_addr = *((struct in_addr *)udp_host->h_addr);
             memset(&(udp_server_addr.sin_zero), 0, 8);
             sin_size = sizeof(struct sockaddr);
             UDP_ENABLE = 1;
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
          */
         if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temperature")) {
 
-            for (int c = 0; c <= 255; c++) {
+            for (int c = 0; c <= 1024; c++) {
                 char strChar[5] = {0};
                 itoa(c,strChar);
                 strcpy(thermalzone,thermalzone1);
@@ -337,7 +337,7 @@ int main(int argc, char **argv) {
             }
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
-                printf("\nERROR: Cannot open %s\n\n", logfile);
+                    printf("\nERROR: Cannot open %s\n\n", logfile);
                 exit(1);
                 }
                 if(COUNT_ENABLE) {
@@ -354,7 +354,7 @@ int main(int argc, char **argv) {
                 if(COUNT_ENABLE) {
                     udp_count = sprintf(udp_tx_data,"%.3f", i/1000);
                 }
-                else {
+                if(DT_ENABLE) {
                     now = time((time_t *)NULL);
                     t = localtime(&now);
                     udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
@@ -415,11 +415,37 @@ int main(int argc, char **argv) {
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2lf", (double)freq/1000000);
                     }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%d", freq);
                     }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE-1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", freq);
+                        }
+                        if(OPTIONS_COUNT >= 1 && c == FREQ_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%d,", freq);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%d", freq);
+                            }
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)freq/1000000);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c < FREQ_ENABLE-1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)freq/1000000);
+                        }
+                        if(OPTIONS_COUNT >= 1 && c == FREQ_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)freq/1000000);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)freq/1000000);
+                            }
+                        }
                     }
                 }
                 OPTIONS_COUNT--;
@@ -477,11 +503,37 @@ int main(int argc, char **argv) {
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2f", coretemp/1000);
                     }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%f", coretemp);
                     }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", coretemp);
+                        }
+                        if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%f,", coretemp);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%f", coretemp);
+                            }
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%.2f", coretemp/1000);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", coretemp/1000);
+                        }
+                        if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", coretemp/1000);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f", coretemp/1000);
+                            }
+                        }
                     }
                 }
                 OPTIONS_COUNT--;
@@ -521,7 +573,6 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
                         printf("%.2lf,", (double)temp * 0.0625);
-                        OPTIONS_COUNT--;
                     }
                     else {
                         printf("%.2lf", (double)temp * 0.0625);
@@ -533,12 +584,18 @@ int main(int argc, char **argv) {
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                     fprintf(log_file,",%.2lf", (double)temp * 0.0625);
                 }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
                     udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temp * 0.0625);
                 }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temp * 0.0625);
+                if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temp * 0.0625);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temp * 0.0625);
+                    }
                 }
+                OPTIONS_COUNT--;
             }
             /*
              * read bme280
@@ -558,7 +615,6 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
                         printf("%.2lf,", (double)temperature/100);
-                        OPTIONS_COUNT--;
                     }
                     else {
                         printf("%.2lf", (double)temperature/100);
@@ -570,12 +626,29 @@ int main(int argc, char **argv) {
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                     fprintf(log_file,",%.2lf", (double)temperature/100);
                 }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                     udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
                 }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
                     udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
                 }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
+                    }
+                }
+            OPTIONS_COUNT--;
             }
             /*
              * read bmp180
@@ -595,18 +668,34 @@ int main(int argc, char **argv) {
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
                         printf("%.2lf,", (double)temperature);
-                        OPTIONS_COUNT--;
                     }
                     else {
                         printf("%.2lf,", (double)temperature);
                     }
                 }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                     udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
                 }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature);
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
+                    }
                 }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
+                    }
+                }
+            OPTIONS_COUNT--;
             }
             /*
              * SmartPower enabled
@@ -638,7 +727,6 @@ int main(int argc, char **argv) {
                         if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                             if(OPTIONS_COUNT >= 1) {
                                 printf("%.2f,.%.0f,%.2f,", volt, amp, watt);
-                                OPTIONS_COUNT--;
                             }
                             else {
                                 printf("%.2f,.%.0f,%.2f", volt, amp, watt);
@@ -647,9 +735,19 @@ int main(int argc, char **argv) {
                         if(LOG_ENABLE == 1) {
                             fprintf(log_file,",%.2f,.%.0f,%.2f", volt, amp, watt);
                         }
-                        if(UDP_ENABLE == 1) {
+
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
                             udp_count += sprintf(udp_tx_data + udp_count,",%.2f,.%.0f,%.2f", volt, amp, watt);
                         }
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,.%.0f,%.2f,", volt, amp, watt);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,.%.0f,%.2f", volt, amp, watt);
+                            }
+                        }
+                    OPTIONS_COUNT--;
                     }
                     if(strstr(spline1,"A")) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
@@ -661,7 +759,6 @@ int main(int argc, char **argv) {
                         if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                             if(OPTIONS_COUNT > 1) {
                                 printf("%.2f,%.2f,%.2f,", volt, amp, watt);
-                                OPTIONS_COUNT--;
                             }
                             else {
                                 printf("%.2f,%.2f,%.2f", volt, amp, watt);
@@ -670,10 +767,20 @@ int main(int argc, char **argv) {
                         if(LOG_ENABLE == 1) {
                             fprintf(log_file,",%.2f,%.2f,%.2f", volt, amp, watt);
                         }
-                        if(UDP_ENABLE == 1) {
+
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
                             udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt, amp, watt);
                         }
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f,", volt, amp, watt);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f", volt, amp, watt);
+                            }
+                        }
                     }
+                    OPTIONS_COUNT--;
                 }
                 /*
                  * read SmartPower3
@@ -713,7 +820,6 @@ int main(int argc, char **argv) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
                             printf("%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
-                            OPTIONS_COUNT--;
                         }
                         else {
                             printf("%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
@@ -722,9 +828,19 @@ int main(int argc, char **argv) {
                     if(LOG_ENABLE == 1) {
                         fprintf(log_file,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                     }
-                    if(UDP_ENABLE == 1) {
+
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
                     }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
                 close(pwr_in);
             }
@@ -808,13 +924,39 @@ int main(int argc, char **argv) {
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
                         fprintf(log_file,",%.2f", r);
                     }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1) {
+
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%Lf", u[3][c]);
                     }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0) {
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
+                        }
+                        if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%Lf", u[3][c]);
+                            }
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%.2f", r);
                     }
-
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
+                        }
+                        if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f", r);
+                            }
+                        }
+                    }
 
                     use[0][c] = u[0][c];
                     use[1][c] = u[1][c];
