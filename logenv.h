@@ -27,7 +27,7 @@ static void sig_handler(int);
 
 static volatile sig_atomic_t go = 1;
 
-FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *log_file, *gnuplot_file;
+FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, *log_file, *gnuplot_file;
 
 time_t now;
 struct tm *t;
@@ -54,6 +54,14 @@ char cpufreq[255];
 char *cpufreq1 = "/sys/devices/system/cpu/cpu";
 char *cpufreq2 = "/cpufreq/scaling_cur_freq";
 
+char *memload = "/proc/meminfo";
+char *mem_total = "MemTotal:";
+char *mem_free = "MemFree:";
+char *mem_avail = "MemAvailable:";
+char *mem_buffers = "Buffers:";
+char *mem_cached = "Cached:";
+char *mem_srec = "SReclaimable:";
+
 char thermalzone[255];
 char *thermalzone1 = "/sys/devices/virtual/thermal/thermal_zone";
 char *thermalzone2 = "/temp";
@@ -77,6 +85,7 @@ char four2one[] = "4,1";
 static int SP_ENABLE = 0;
 static int SENSOR_ENABLE = 0;
 static int FREQ_ENABLE = 0;
+static int MEM_ENABLE = 0;
 static int THERMAL_ENABLE = 0;
 static int QUIET_ENABLE = 0;
 static int VERBOSE_ENABLE = 0;

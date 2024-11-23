@@ -109,6 +109,9 @@ int main(int argc, char **argv) {
             USAGE_ENABLE = atoi(&line[2])+1;
             OPTIONS_COUNT++;
         }
+        if(!strcmp(argv[i], "-m") || !strcmp(argv[i], "--memory")) {
+            MEM_ENABLE = 1;
+        }
         if(!strcmp(argv[i], "-i") || !strcmp(argv[i], "--milliseconds")) {
             INTERACTIVE_ENABLE = atoi(argv[i+1]);
             COUNT_ENABLE = 1;
@@ -977,6 +980,81 @@ int main(int argc, char **argv) {
                 fclose(cpu_use);
             }
             /*
+	     * Read memory usage
+	     */
+	    if(MEM_ENABLE == 1) {
+
+                float mt;
+		float r = 0;
+		float nd;
+		char field[30];
+
+                if((mem_load = fopen(memload, "r")) == NULL) {
+                    printf("\nERROR: Cannot open %s\n", memload);
+                    exit(1);
+                }
+		while(feof(mem_load) == 0) {
+		    fscanf(mem_load, "%29s %f %*s", field, &nd);
+		    if (strcmp(mem_total  , field) == 0) mt = nd;
+		    if (strcmp(mem_avail  , field) == 0) r -= nd;
+//		    if (strcmp(mem_free   , field) == 0) r -= nd;
+//		    if (strcmp(mem_buffers, field) == 0) r -= nd;
+//		    if (strcmp(mem_cached , field) == 0) r -= nd;
+//		    if (strcmp(mem_srec   , field) == 0) r -= nd;
+		}
+		r /= mt;
+		r += 1;
+		r *= 100;
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                    printf(",%.3g", r);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n RAM load = %.3g%%", r);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.3g%%", r);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.3g%%,", r);
+                    }
+                    else {
+                        printf("%.3g%%", r);
+                    }
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                    fprintf(log_file,",%.3g", r);
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                    fprintf(log_file,",%.3g%%", r);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.3g%%", r);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g%%,", r);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g%%", r);
+                    }
+                }
+            OPTIONS_COUNT--;
+            fclose(mem_load);		
+
+	    }
+            /*
              * eol for stdout and log file
              */
             if(QUIET_ENABLE == 0) {
@@ -1352,6 +1430,7 @@ void usage (void) {
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
         printf(" -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1\n");
+        printf(" -m,  --memory                Physical memory usage (total - available, see man free)\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable dashboard output\n"); 
