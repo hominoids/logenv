@@ -996,10 +996,11 @@ int main(int argc, char **argv) {
 		while(feof(mem_load) == 0) {
 		    fscanf(mem_load, "%29s %f %*s", field, &nd);
 		    if (strcmp(mem_total  , field) == 0) mt = nd;
-		    if (strcmp(mem_free   , field) == 0) r -= nd;
-		    //if (strcmp(mem_buffers, field) == 0) r -= nd;
-		    if (strcmp(mem_cached , field) == 0) r -= nd;
-		    if (strcmp(mem_srec   , field) == 0) r -= nd;
+		    if (strcmp(mem_avail  , field) == 0) r -= nd;
+//		    if (strcmp(mem_free   , field) == 0) r -= nd;
+//		    if (strcmp(mem_buffers, field) == 0) r -= nd;
+//		    if (strcmp(mem_cached , field) == 0) r -= nd;
+//		    if (strcmp(mem_srec   , field) == 0) r -= nd;
 		}
 		r /= mt;
 		r += 1;

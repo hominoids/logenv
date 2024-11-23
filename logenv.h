@@ -57,6 +57,7 @@ char *cpufreq2 = "/cpufreq/scaling_cur_freq";
 char *memload = "/proc/meminfo";
 char *mem_total = "MemTotal:";
 char *mem_free = "MemFree:";
+char *mem_avail = "MemAvailable:";
 char *mem_buffers = "Buffers:";
 char *mem_cached = "Cached:";
 char *mem_srec = "SReclaimable:";
