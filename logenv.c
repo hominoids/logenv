@@ -84,11 +84,10 @@ int main(int argc, char **argv) {
         }
         if(!strcmp(argv[i], "--version")) {
             printf("\nlogenv version %s\n", version);
-            COUNT_ENABLE = 0;
+            exit(0);
         }
         if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "--date")) {
             DT_ENABLE = 1;
-            COUNT_ENABLE = 0;
             OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
@@ -111,6 +110,7 @@ int main(int argc, char **argv) {
         }
         if(!strcmp(argv[i], "-m") || !strcmp(argv[i], "--memory")) {
             MEM_ENABLE = 1;
+            OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "-i") || !strcmp(argv[i], "--milliseconds")) {
             INTERACTIVE_ENABLE = atoi(argv[i+1]);
@@ -335,19 +335,19 @@ int main(int argc, char **argv) {
                 if(OPTIONS_COUNT != 0) {
                     printf("%4d-%02d-%02d %02d:%02d:%02d,", t->tm_year+1900, t->tm_mon+1, \
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
-                    OPTIONS_COUNT--;
                 }
                 else {
                     printf("%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, \
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
                 }
+                OPTIONS_COUNT--;
             }
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
                     printf("\nERROR: Cannot open %s\n\n", logfile);
                 exit(1);
                 }
-                if(COUNT_ENABLE) {
+                if(COUNT_ENABLE && DT_ENABLE == 0) {
                     fprintf(log_file,"%.3f", i/1000);
                 }
                 else {
@@ -358,14 +358,24 @@ int main(int argc, char **argv) {
                 }
             }
             if(UDP_ENABLE == 1) {
-                if(COUNT_ENABLE) {
+                if(COUNT_ENABLE && DT_ENABLE == 0) {
                     udp_count = sprintf(udp_tx_data,"%.3f", i/1000);
                 }
-                if(DT_ENABLE) {
+                if(DT_ENABLE == 1) {
                     now = time((time_t *)NULL);
                     t = localtime(&now);
-                    udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
-                            t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                    if(COUNT_ENABLE >= 1 && OPTIONS_COUNT > 1) {
+                        udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
+                                t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                    }
+                    if(COUNT_ENABLE == 0 && OPTIONS_COUNT == 1) {
+                        udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
+                                t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                    }
+                    if(COUNT_ENABLE == 0 && OPTIONS_COUNT > 1) {
+                        udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d,", t->tm_year+1900, \
+                                t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+                    }
                 }
             }
             /*
@@ -921,8 +931,13 @@ int main(int argc, char **argv) {
                         if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
                             printf("%.2f,", r);
                         }
-                        if(OPTIONS_COUNT == 1 && c == USAGE_ENABLE-1) {
-                            printf("%.2f", r);
+                        if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                            if(OPTIONS_COUNT > 1) {
+                                printf("%.2f,", r);
+                            }
+                            else {
+                                printf("%.2f", r);
+                            }
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
@@ -980,31 +995,27 @@ int main(int argc, char **argv) {
                 fclose(cpu_use);
             }
             /*
-	     * Read memory usage
-	     */
-	    if(MEM_ENABLE == 1) {
+             * Read memory usage
+             */
+            if(MEM_ENABLE == 1) {
 
                 float mt;
-		float r = 0;
-		float nd;
-		char field[30];
+                float r = 0;
+                float nd;
+                char field[30];
 
                 if((mem_load = fopen(memload, "r")) == NULL) {
                     printf("\nERROR: Cannot open %s\n", memload);
                     exit(1);
                 }
-		while(feof(mem_load) == 0) {
-		    fscanf(mem_load, "%29s %f %*s", field, &nd);
-		    if (strcmp(mem_total  , field) == 0) mt = nd;
-		    if (strcmp(mem_avail  , field) == 0) r -= nd;
-//		    if (strcmp(mem_free   , field) == 0) r -= nd;
-//		    if (strcmp(mem_buffers, field) == 0) r -= nd;
-//		    if (strcmp(mem_cached , field) == 0) r -= nd;
-//		    if (strcmp(mem_srec   , field) == 0) r -= nd;
-		}
-		r /= mt;
-		r += 1;
-		r *= 100;
+                while(feof(mem_load) == 0) {
+                    fscanf(mem_load, "%29s %f %*s", field, &nd);
+                    if (strcmp(mem_total , field) == 0) mt = nd;
+                    if (strcmp(mem_avail , field) == 0) r -= nd;
+                }
+                r /= mt;
+                r += 1;
+                r *= 100;
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                     printf(",%.3g", r);
                 }
@@ -1012,21 +1023,22 @@ int main(int argc, char **argv) {
                     printf("\n\n RAM load = %.3g%%", r);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.3g%%", r);
+                        printf(",%.3g", r);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
-                        printf("%.3g%%,", r);
+                        printf("%.3g,", r);
                     }
                     else {
-                        printf("%.3g%%", r);
+                        printf("%.3g", r);
                     }
+
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
                     fprintf(log_file,",%.3g", r);
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.3g%%", r);
+                    fprintf(log_file,",%.3g", r);
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                     udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
@@ -1040,20 +1052,19 @@ int main(int argc, char **argv) {
                     }
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.3g%%", r);
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g%%,", r);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
                     }
                     else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g%%", r);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
                     }
                 }
-            OPTIONS_COUNT--;
-            fclose(mem_load);		
-
-	    }
+                OPTIONS_COUNT--;
+                fclose(mem_load);
+            }
             /*
              * eol for stdout and log file
              */
@@ -1126,31 +1137,31 @@ int main(int argc, char **argv) {
         fprintf(gnuplot_file,"%s",gpscript_layout[0]);
 
         /* frequency only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE == 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_freq1, "set size 1,1\n");
             strcpy(gpscript_freq2, "set origin 0,0\n");
         }
         /* thermal zone only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE > 0 && USAGE_ENABLE == 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file,"%s", one2one);
             strcpy(gpscript_thermal1, "set size 1,1\n");
             strcpy(gpscript_thermal2, "set origin 0,0\n");
         }
         /* usage only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE > 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_usage1, "set size 1,1\n");
             strcpy(gpscript_usage2, "set origin 0,0\n");
         }
         /* power only chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_power1, "set size 1,1\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
         /* frequency and thermal chart*/
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE > 0 && USAGE_ENABLE == 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file,"%s", two2one);
             strcpy(gpscript_freq1, "set size 1,.5\n");
             strcpy(gpscript_freq2, "set origin 0,0\n");
@@ -1158,7 +1169,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_thermal2, "set origin 0,.5\n");
         }
         /* frequency and useage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE > 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_freq1, "set size 1,.5\n");
             strcpy(gpscript_freq2, "set origin 0,.5\n");
@@ -1166,7 +1177,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_usage2, "set origin 0,0\n");
         }
         /* frequency and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_freq1, "set size 1,.5\n");
             strcpy(gpscript_freq2, "set origin 0,.5\n");
@@ -1174,7 +1185,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
         /* thermal and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE > 0 && USAGE_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_thermal1, "set size 1,.5\n");
             strcpy(gpscript_thermal2, "set origin 0,.5\n");
@@ -1182,7 +1193,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
         /* thermal and useage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE > 0 && USAGE_ENABLE > 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_thermal1, "set size 1,.5\n");
             strcpy(gpscript_thermal2, "set origin 0,.5\n");
@@ -1190,7 +1201,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_usage2, "set origin 0,0\n");
         }
         /* usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE > 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_usage1, "set size 1,.5\n");
             strcpy(gpscript_usage2, "set origin 0,.5\n");
@@ -1198,7 +1209,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
         /* frequency, thermal and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE > 0 && USAGE_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file, "%s", three2one);
             strcpy(gpscript_freq1, "set size 1,.2\n");
             strcpy(gpscript_freq2, "set origin 0,.3\n");
@@ -1208,7 +1219,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
         /* frequency, thermal and usage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE > 0 && USAGE_ENABLE > 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file, "%s", three2one);
             strcpy(gpscript_freq1, "set size 1,.2\n");
             strcpy(gpscript_freq2, "set origin 0,.3\n");
@@ -1218,7 +1229,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_usage2, "set origin 0,0\n");
         }
         /* frequency, usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE > 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file, "%s", three2one);
             strcpy(gpscript_freq1, "set size 1,.2\n");
             strcpy(gpscript_freq2, "set origin 0,.3\n");
@@ -1228,7 +1239,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
         /* thermal, usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && USAGE_ENABLE > 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file, "%s", three2one);
             strcpy(gpscript_thermal1, "set size 1,.2\n");
             strcpy(gpscript_thermal2, "set origin 0,.3\n");
@@ -1238,7 +1249,7 @@ int main(int argc, char **argv) {
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
         /* frequency, thermal, usage chart and power chart*/
-         if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE > 0 && USAGE_ENABLE > 0) {
+         if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file, "%s", four2one);
             strcpy(gpscript_thermal1, "set size 1,.35\n");
             strcpy(gpscript_thermal2, "set origin 0,.65\n");
@@ -1265,7 +1276,7 @@ int main(int argc, char **argv) {
         /*
          * build thermal zone chart
          */
-        if(THERMAL_ENABLE != 0) {
+        if(THERMAL_ENABLE != 0 || SENSOR_ENABLE != 0) {
 
             i = 0;
             while (i < 9) {
@@ -1284,19 +1295,23 @@ int main(int argc, char **argv) {
                     }
                 }
             }
-
             i = 0;
             fprintf(gnuplot_file, "plot ");
-            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(FREQ_ENABLE+2), i+1, i+1);
-            i++;
-            while (i < THERMAL_ENABLE) {
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(FREQ_ENABLE+2), i+1, i+1);
+            if(THERMAL_ENABLE != 0) { 
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(FREQ_ENABLE+2), i+1, i+1);
                 i++;
+                while (i < THERMAL_ENABLE) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(FREQ_ENABLE+2), i+1, i+1);
+                    i++;
+                }
+                if(SENSOR_ENABLE != 0) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(FREQ_ENABLE+2));
+                }
+            }
+            if(THERMAL_ENABLE == 0 && SENSOR_ENABLE != 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(FREQ_ENABLE+2));
             }
 
-            if(SENSOR_ENABLE > 0) {
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(FREQ_ENABLE+2));
-            }
             fprintf(gnuplot_file, "\n\n");
         }
         /*
@@ -1336,6 +1351,7 @@ int main(int argc, char **argv) {
          * build power chart
          */
         if(SP_ENABLE != 0) {
+
             i = 0;
             while (i < 11) {
                 if(i != 1 && i != 2) {
@@ -1370,7 +1386,8 @@ int main(int argc, char **argv) {
         /*
          * build usage chart
          */
-        if(USAGE_ENABLE != 0) {
+        if(USAGE_ENABLE != 0 || MEM_ENABLE != 0) {
+
             i = 0;
             while (i < 11) {
                 if(i != 1 && i != 2) {
@@ -1390,20 +1407,24 @@ int main(int argc, char **argv) {
             }
 
             i = 0;
-            int power = 0;
-            if(SP_ENABLE > 0) {
-                power = 3;
-            }
+            int power = SP_ENABLE > 0 ? 3 : 0;
             fprintf(gnuplot_file, "plot ");
-            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
-            i++;
-            while (i < USAGE_ENABLE) {
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3, i+1);
+            if(USAGE_ENABLE != 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
                 i++;
+                while (i < USAGE_ENABLE) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3, i+1);
+                    i++;
+                }
+                if(MEM_ENABLE != 0) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
+                }
+            }
+            if(USAGE_ENABLE == 0 && MEM_ENABLE != 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+2);
             }
             fprintf(gnuplot_file, "\n\n");
         }
-
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
     }

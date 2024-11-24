@@ -39,6 +39,7 @@ Options:
       --smartpower3-ch2 <tty>
       --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
  -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1
+ -m,  --memory                Physical memory usage (total - available, see man free)
  -d,  --date                  Date and Time stamp
  -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
  -v,  --verbose               Readable dashboard output

@@ -8,5 +8,5 @@ logenv: $(OBJGROUP)
 	$(CC) -Wall -o logenv $(OBJGROUP) -lm
 
 clean:
-	rm *o logenv bme280/*o
+	rm *.o logenv bme280/*.o
 
