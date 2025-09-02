@@ -1085,9 +1085,6 @@ int main(int argc, char **argv) {
              * break if one and done or sleep
              */
             if(INTERACTIVE_ENABLE == 0) {
-                close(sensor_in);
-                close(pwr_in);
-                close(udp_socket);
                 break;
             }
             OPTIONS_COUNT = c;
@@ -1428,9 +1425,15 @@ int main(int argc, char **argv) {
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
     }
-    close(sensor_in);
-    close(pwr_in);
-    close(udp_socket);
+    if (SENSOR_ENABLE > 0) {
+        close(sensor_in);
+    }
+    if (SP_ENABLE > 0) {
+        close(pwr_in);
+    }
+    if ( UDP_ENABLE == 1) {
+        close(udp_socket);
+    }
 }
 
 
