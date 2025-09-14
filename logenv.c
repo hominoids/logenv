@@ -46,10 +46,13 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
-#include "bme280/bmp180.h"
-#include "bme280/bme280.h"
-#include "bme280/bme280-i2c.h"
+#include "drivers/bme280/bmp180.h"
+#include "drivers/bme280/bme280.h"
+#include "drivers/bme280/bme280-i2c.h"
+#include "drivers/ssd1681/driver_ssd1681_basic.h"
+#include "drivers/ssd1681/driver_ssd1681_interface.h"
 #include "logenv.h"
+#include "displays.h"
 
 int main(int argc, char **argv) {
 

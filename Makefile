@@ -1,12 +1,14 @@
 CC=gcc
 CFLAG=-g
-OBJGROUP=bme280/bme280-i2c.o bme280/bme280.o bme280/bmp180.o logenv.o
+OBJGROUP=drivers/bme280/bme280-i2c.o drivers/bme280/bme280.o drivers/bme280/bmp180.o \
+drivers/ssd1681/driver_ssd1681.o drivers/ssd1681/driver_ssd1681_interface.o \
+drivers/ssd1681/spi.o drivers/ssd1681/wire.o logenv.o
 
 all: logenv
 
 logenv: $(OBJGROUP)
-	$(CC) -Wall -o logenv $(OBJGROUP) -lm
+	$(CC) -Wall -o logenv $(OBJGROUP) -lm -lpthread -lgpiod
 
 clean:
-	rm *.o logenv bme280/*.o
+	rm *.o logenv drivers/bme280/*.o drivers/ssd1681/*.o
 
