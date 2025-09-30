@@ -1,0 +1,21 @@
+{
+   "name": "ssd1681",
+   "device": "/dev/spidev0:0",
+   "x_size": 200,
+   "y_size": 200,
+   "rotation": 0,
+   "content": [
+      {
+         "name": "time",
+         "x_loc": 30,
+         "y_loc": 5,
+         "font": "SSD1681_MONOSPACE_48"
+      },
+      {
+         "name": "date",
+         "x_loc": 50,
+         "y_loc": 40,
+         "font": "SSD1681_FONT_16"
+      }
+   ]
+}

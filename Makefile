@@ -7,7 +7,7 @@ drivers/ssd1681/spi.o drivers/ssd1681/wire.o logenv.o
 all: logenv
 
 logenv: $(OBJGROUP)
-	$(CC) -Wall -o logenv $(OBJGROUP) -lm -lpthread -lgpiod
+	$(CC) -Wall -o logenv $(OBJGROUP) -lm -lpthread -lgpiod -lcjson
 
 clean:
 	rm *.o logenv drivers/bme280/*.o drivers/ssd1681/*.o

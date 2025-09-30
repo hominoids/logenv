@@ -46,6 +46,7 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+#include <cjson/cJSON.h>
 #include "drivers/bme280/bmp180.h"
 #include "drivers/bme280/bme280.h"
 #include "drivers/bme280/bme280-i2c.h"
@@ -57,6 +58,8 @@
 int main(int argc, char **argv) {
 
     signal(SIGINT, sig_handler);
+
+    struct display dp;
 
     if(argc == 1) {
         usage();
@@ -75,6 +78,74 @@ int main(int argc, char **argv) {
                 usage();
             }
             GNUPLOT_ENABLE = 1;
+        }
+        if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--sdd1681")) {
+            if((json_file = fopen("logenv.json", "r")) == NULL) {
+                printf("\nERROR: Cannot open file logenv.json\n\n");
+                usage();
+            }
+            DISPLAY_ENABLE = 1;
+            char buffer[1024];
+            int len = fread(buffer, 1, sizeof(buffer), json_file);
+            fclose(json_file);
+
+            cJSON *json = cJSON_Parse(buffer);
+            if (json == NULL) {
+                const char *error_ptr = cJSON_GetErrorPtr();
+                if (error_ptr != NULL) {
+                    printf("Error: %s\n", error_ptr);
+                }
+                cJSON_Delete(json);
+                return 1;
+            }
+
+            cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
+            if (cJSON_IsString(name) && (name->valuestring != NULL)) {
+                strcpy(dp.name, name->valuestring);
+                printf("Displays: %s ", &dp.name);
+            }
+            cJSON *device = cJSON_GetObjectItemCaseSensitive(json, "device");
+            if (cJSON_IsString(device) && (device->valuestring)) {
+                strcpy(dp.device, device->valuestring);
+                printf("%s ", &dp.device);
+            }
+            cJSON *x_size = cJSON_GetObjectItemCaseSensitive(json, "x_size");
+            if (cJSON_IsNumber(x_size)) {
+                dp.xsize = x_size->valueint;
+                printf("%d ", x_size->valueint);
+            }
+            cJSON *y_size = cJSON_GetObjectItemCaseSensitive(json, "y_size");
+            if (cJSON_IsNumber(y_size)) {
+                dp.ysize = y_size->valueint;
+                printf("%d ", y_size->valueint);
+            }
+            cJSON *rotation = cJSON_GetObjectItemCaseSensitive(json, "rotation");
+            if (cJSON_IsNumber(rotation)) {
+                dp.rotation = rotation->valueint;
+                printf("%d\n", rotation->valueint);
+            }
+            int i = 0;
+            cJSON *contents = cJSON_GetObjectItemCaseSensitive(json, "content");
+            cJSON_ArrayForEach(json, contents)
+                {
+                    cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
+                    cJSON *x_loc = cJSON_GetObjectItemCaseSensitive(json, "x_loc");
+                    cJSON *y_loc = cJSON_GetObjectItemCaseSensitive(json, "y_loc");
+                    cJSON *font = cJSON_GetObjectItemCaseSensitive(json, "font");
+
+                    strcpy(dp.dc[i].name, name->valuestring);
+                    dp.dc[i].xloc = x_loc->valueint;
+                    dp.dc[i].yloc = y_loc->valueint;
+                    strcpy(dp.dc[i].font, font->valuestring);
+
+                    printf("%s ", &dp.dc[i].name);
+                    printf("%d ", dp.dc[i].xloc);
+                    printf("%d ", dp.dc[i].yloc);
+                    printf("%s\n", &dp.dc[i].font);
+                    ++i;
+                }
+            cJSON_Delete(json);
+            return 0;
         }
     }
     /*
@@ -1462,6 +1533,7 @@ void usage (void) {
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable dashboard output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
+        printf(" -o,  --ssd1681               Display output to ssd1681 controller\n");
         printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");

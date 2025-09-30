@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024 Edward A. Kisiel
+    logenv Copyright 2019,2020,2024,2025 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,8 @@ static void sig_handler(int);
 
 static volatile sig_atomic_t go = 1;
 
-FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, *log_file, *gnuplot_file;
+FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
+     *log_file, *gnuplot_file, *json_file;
 
 time_t now;
 struct tm *t;
@@ -76,6 +77,7 @@ char spline1[5];
 char spline2[5];
 char logfile[255];
 char gplotfile[255];
+char jsonfile[255];
 char version[] = "0.99 Pre-release";
 char one2one[] = "1,1";
 char two2one[] = "2,1";
@@ -98,6 +100,7 @@ static int DT_ENABLE = 0;
 static int USAGE_ENABLE = 0;
 static int UDP_ENABLE = 0;
 static int OPTIONS_COUNT = 0;
+static int DISPLAY_ENABLE = 0;
 
 static int xmtics = 10;
 static int temperature;
