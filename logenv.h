@@ -25,6 +25,8 @@ int set_tty_attributes(int, int, bool);
 void sleep_ms(int);
 static void sig_handler(int);
 
+extern ssd1681_handle_t gs_handle;
+
 static volatile sig_atomic_t go = 1;
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
@@ -100,7 +102,6 @@ static int DT_ENABLE = 0;
 static int USAGE_ENABLE = 0;
 static int UDP_ENABLE = 0;
 static int OPTIONS_COUNT = 0;
-static int DISPLAY_ENABLE = 0;
 
 static int xmtics = 10;
 static int temperature;

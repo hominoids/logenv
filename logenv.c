@@ -79,12 +79,13 @@ int main(int argc, char **argv) {
             }
             GNUPLOT_ENABLE = 1;
         }
-        if(!strcmp(argv[i], "-o") || !strcmp(argv[i], "--sdd1681")) {
+        if(!strcmp(argv[i], "-o")) {
             if((json_file = fopen("logenv.json", "r")) == NULL) {
                 printf("\nERROR: Cannot open file logenv.json\n\n");
                 usage();
             }
             DISPLAY_ENABLE = 1;
+            open_ssd1681();
             char buffer[1024];
             int len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
@@ -102,29 +103,28 @@ int main(int argc, char **argv) {
             cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
             if (cJSON_IsString(name) && (name->valuestring != NULL)) {
                 strcpy(dp.name, name->valuestring);
-                printf("Displays: %s ", &dp.name);
+//                printf("Displays: %s ", &dp.name);
             }
             cJSON *device = cJSON_GetObjectItemCaseSensitive(json, "device");
             if (cJSON_IsString(device) && (device->valuestring)) {
                 strcpy(dp.device, device->valuestring);
-                printf("%s ", &dp.device);
+//                printf("%s ", &dp.device);
             }
             cJSON *x_size = cJSON_GetObjectItemCaseSensitive(json, "x_size");
             if (cJSON_IsNumber(x_size)) {
                 dp.xsize = x_size->valueint;
-                printf("%d ", x_size->valueint);
+//                printf("%d ", x_size->valueint);
             }
             cJSON *y_size = cJSON_GetObjectItemCaseSensitive(json, "y_size");
             if (cJSON_IsNumber(y_size)) {
                 dp.ysize = y_size->valueint;
-                printf("%d ", y_size->valueint);
+//                printf("%d ", y_size->valueint);
             }
             cJSON *rotation = cJSON_GetObjectItemCaseSensitive(json, "rotation");
             if (cJSON_IsNumber(rotation)) {
                 dp.rotation = rotation->valueint;
-                printf("%d\n", rotation->valueint);
+//                printf("%d\n", rotation->valueint);
             }
-            int i = 0;
             cJSON *contents = cJSON_GetObjectItemCaseSensitive(json, "content");
             cJSON_ArrayForEach(json, contents)
                 {
@@ -133,19 +133,23 @@ int main(int argc, char **argv) {
                     cJSON *y_loc = cJSON_GetObjectItemCaseSensitive(json, "y_loc");
                     cJSON *font = cJSON_GetObjectItemCaseSensitive(json, "font");
 
-                    strcpy(dp.dc[i].name, name->valuestring);
-                    dp.dc[i].xloc = x_loc->valueint;
-                    dp.dc[i].yloc = y_loc->valueint;
-                    strcpy(dp.dc[i].font, font->valuestring);
+                    strcpy(dp.dc[display_cc].name, name->valuestring);
+                    dp.dc[display_cc].xloc = x_loc->valueint;
+                    dp.dc[display_cc].yloc = y_loc->valueint;
+                    strcpy(dp.dc[display_cc].font, font->valuestring);
 
-                    printf("%s ", &dp.dc[i].name);
-                    printf("%d ", dp.dc[i].xloc);
-                    printf("%d ", dp.dc[i].yloc);
-                    printf("%s\n", &dp.dc[i].font);
-                    ++i;
+//                    printf("%s ", &dp.dc[i].name);
+//                    printf("%d ", dp.dc[i].xloc);
+//                    printf("%d ", dp.dc[i].yloc);
+//                    printf("%s\n", &dp.dc[i].font);
+                    
+                    if(strcmp(dp.dc[display_cc].name,"date"))
+                        DP_DATE = 1;
+                    if(strcmp(dp.dc[display_cc].name,"time"))
+                        DP_TIME = 1;
+                    display_cc++;
                 }
             cJSON_Delete(json);
-            return 0;
         }
     }
     /*
@@ -415,6 +419,26 @@ int main(int argc, char **argv) {
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
                 }
                 OPTIONS_COUNT--;
+            }
+            for(int i = 0; i < display_cc; i++) {
+                if(DISPLAY_ENABLE == 1 && DP_TIME == 1 && !strcmp(dp.dc[i].name, "time")) {
+                    int count,result = 0;
+                    char display_time[6]; 
+                    now = time((time_t *)NULL);
+                    t = localtime(&now);
+                    count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min); 
+                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp.dc[i].xloc, dp.dc[i].yloc, \
+                        display_time, (uint16_t)strlen(display_time), 1, SSD1681_MONOSPACE_48);
+                }
+                if(DISPLAY_ENABLE == 1 && DP_DATE == 1 && !strcmp(dp.dc[i].name, "date")) {
+                    int count,result = 0;
+                    char display_time[9]; 
+                    now = time((time_t *)NULL);
+                    t = localtime(&now);
+                    count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900); 
+                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp.dc[i].xloc, dp.dc[i].yloc, \
+                        display_date, (uint16_t)strlen(display_date), 1, SSD1681_FONT_16);
+                }
             }
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
@@ -1155,6 +1179,12 @@ int main(int argc, char **argv) {
                 sendto(udp_socket, udp_tx_data, strlen(udp_tx_data), 0, \
                     (struct sockaddr *)&udp_server_addr, sizeof(struct sockaddr));
             }
+            if(DISPLAY_ENABLE == 1) {
+                if(ssd1681_gram_update(&gs_handle, SSD1681_COLOR_BLACK) != 0) {
+                    ssd1681_interface_debug_print("ssd1681: update failed.\n");
+                }
+//            ssd1681_interface_delay_ms(3000);
+            }
             /*
              * break if one and done or sleep
              */
@@ -1505,8 +1535,11 @@ int main(int argc, char **argv) {
     if (SP_ENABLE > 0) {
         close(pwr_in);
     }
-    if ( UDP_ENABLE == 1) {
+    if (UDP_ENABLE == 1) {
         close(udp_socket);
+    }
+    if (DISPLAY_ENABLE == 1) {
+        (void)ssd1681_deinit(&gs_handle);
     }
 }
 
@@ -1533,7 +1566,7 @@ void usage (void) {
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -v,  --verbose               Readable dashboard output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
-        printf(" -o,  --ssd1681               Display output to ssd1681 controller\n");
+        printf(" -o,                          Output to eInk/Oled/LCD display using logenv.json\n");
         printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");
