@@ -32,12 +32,14 @@ struct display_content {
     char name[15];
     int xloc;
     int yloc;
+    int color;
     char font[30];
 };
 
 struct display {
     char name[15];
     char device[30];
+    int address;
     int xsize;
     int ysize;
     int rotation;
@@ -45,12 +47,28 @@ struct display {
     int *dp_write;
     int *dp_update;
     int *dp_close;
-    struct display_content dc[];
+    struct display_content dc[4];
 };
 
 static int DISPLAY_ENABLE = 0;
 static int DP_TIME = 0;
 static int DP_DATE = 0;
+static int DP_FREQ = 0;
+static int DP_THERMAL = 0;
+static int DP_MEMORY = 0;
+static int DP_USAGE = 0;
+static int DP_SP2 = 0;
+static int DP_SP3CH1 = 0;
+static int DP_SP3CH2 = 0;
+static int DP_BMP180 = 0;
+static int DP_BME280 = 0;
+static int DP_MCP9808 = 0;
+static int DP_TEXT = 0;
+static int DP_POINT = 0;
+static int DP_LINE = 0;
+static int DP_CIRCLE = 0;
+static int DP_RECTANGLE = 0;
+static int DP_IMAGE = 0;
 
 int display_cc = 0;
 char display_time[10];

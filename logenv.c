@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024 Edward A. Kisiel
+    logenv Copyright 2019,2020,2024,2025 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -59,7 +59,9 @@ int main(int argc, char **argv) {
 
     signal(SIGINT, sig_handler);
 
-    struct display dp;
+    struct display dp[2];
+    cJSON *iterator = NULL;
+
 
     if(argc == 1) {
         usage();
@@ -84,73 +86,145 @@ int main(int argc, char **argv) {
                 printf("\nERROR: Cannot open file logenv.json\n\n");
                 usage();
             }
-            DISPLAY_ENABLE = 1;
-            open_ssd1681();
-            char buffer[1024];
+open_ssd1681();
+            char buffer[2048];
             int len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
 
-            cJSON *json = cJSON_Parse(buffer);
-            if (json == NULL) {
-                const char *error_ptr = cJSON_GetErrorPtr();
-                if (error_ptr != NULL) {
-                    printf("Error: %s\n", error_ptr);
+            cJSON *root = cJSON_Parse(buffer);
+            if (!cJSON_IsObject(root)) {
+	            return EXIT_FAILURE;
+            }                
+
+            cJSON *display = cJSON_GetObjectItemCaseSensitive(root, "displays");
+            cJSON *item = display ? display->child : 0;
+            while (item)
+            {
+                cJSON *name = cJSON_GetObjectItemCaseSensitive(item, "name");
+                if (cJSON_IsString(name) && (name->valuestring != NULL)) {
+                    strcpy(dp[DISPLAY_ENABLE].name, name->valuestring);
+                    printf("Displays: %s ", &dp[DISPLAY_ENABLE].name);
                 }
-                cJSON_Delete(json);
-                return 1;
-            }
+                cJSON *device = cJSON_GetObjectItemCaseSensitive(item, "device");
+                if (cJSON_IsString(device) && (device->valuestring)) {
+                    strcpy(dp[DISPLAY_ENABLE].device, device->valuestring);
+                    printf("%s ", &dp[DISPLAY_ENABLE].device);
+                }
+                cJSON *address = cJSON_GetObjectItemCaseSensitive(item, "address");
+                if (cJSON_IsNumber(address)) {
+                    dp[DISPLAY_ENABLE].address = address->valueint;
+                    printf("%d ", dp[DISPLAY_ENABLE].address);
+                }
+                cJSON *xsize = cJSON_GetObjectItemCaseSensitive(item, "xsize");
+                if (cJSON_IsNumber(xsize)) {
+                    dp[DISPLAY_ENABLE].xsize = xsize->valueint;
+                    printf("%d ", dp[DISPLAY_ENABLE].xsize);
+                }
+                cJSON *ysize = cJSON_GetObjectItemCaseSensitive(item, "ysize");
+                if (cJSON_IsNumber(ysize)) {
+                    dp[DISPLAY_ENABLE].ysize = ysize->valueint;
+                    printf("%d ", dp[DISPLAY_ENABLE].ysize);
+                }
+                cJSON *rotation = cJSON_GetObjectItemCaseSensitive(item, "rotation");
+                if (cJSON_IsNumber(rotation)) {
+                    dp[DISPLAY_ENABLE].rotation = rotation->valueint;
+                    printf("%d\n", dp[DISPLAY_ENABLE].rotation);
+                }
+                int ac = 0;
+                cJSON *contents = cJSON_GetObjectItemCaseSensitive(item, "content");
+                cJSON_ArrayForEach(iterator, contents)
+                    {
 
-            cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
-            if (cJSON_IsString(name) && (name->valuestring != NULL)) {
-                strcpy(dp.name, name->valuestring);
-//                printf("Displays: %s ", &dp.name);
-            }
-            cJSON *device = cJSON_GetObjectItemCaseSensitive(json, "device");
-            if (cJSON_IsString(device) && (device->valuestring)) {
-                strcpy(dp.device, device->valuestring);
-//                printf("%s ", &dp.device);
-            }
-            cJSON *x_size = cJSON_GetObjectItemCaseSensitive(json, "x_size");
-            if (cJSON_IsNumber(x_size)) {
-                dp.xsize = x_size->valueint;
-//                printf("%d ", x_size->valueint);
-            }
-            cJSON *y_size = cJSON_GetObjectItemCaseSensitive(json, "y_size");
-            if (cJSON_IsNumber(y_size)) {
-                dp.ysize = y_size->valueint;
-//                printf("%d ", y_size->valueint);
-            }
-            cJSON *rotation = cJSON_GetObjectItemCaseSensitive(json, "rotation");
-            if (cJSON_IsNumber(rotation)) {
-                dp.rotation = rotation->valueint;
-//                printf("%d\n", rotation->valueint);
-            }
-            cJSON *contents = cJSON_GetObjectItemCaseSensitive(json, "content");
-            cJSON_ArrayForEach(json, contents)
-                {
-                    cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
-                    cJSON *x_loc = cJSON_GetObjectItemCaseSensitive(json, "x_loc");
-                    cJSON *y_loc = cJSON_GetObjectItemCaseSensitive(json, "y_loc");
-                    cJSON *font = cJSON_GetObjectItemCaseSensitive(json, "font");
+                    cJSON *name = cJSON_GetObjectItemCaseSensitive(iterator, "name");
+                    cJSON *xloc = cJSON_GetObjectItemCaseSensitive(iterator, "xloc");
+                    cJSON *yloc = cJSON_GetObjectItemCaseSensitive(iterator, "yloc");
+                    cJSON *color = cJSON_GetObjectItemCaseSensitive(iterator, "color");
+                    cJSON *font = cJSON_GetObjectItemCaseSensitive(iterator, "font");
 
-                    strcpy(dp.dc[display_cc].name, name->valuestring);
-                    dp.dc[display_cc].xloc = x_loc->valueint;
-                    dp.dc[display_cc].yloc = y_loc->valueint;
-                    strcpy(dp.dc[display_cc].font, font->valuestring);
+                    strcpy(dp[DISPLAY_ENABLE].dc[ac].name, name->valuestring);
+                    dp[DISPLAY_ENABLE].dc[ac].xloc = xloc->valueint;
+                    dp[DISPLAY_ENABLE].dc[ac].yloc = yloc->valueint;
+                    dp[DISPLAY_ENABLE].dc[ac].color = color->valueint;
+                    strcpy(dp[DISPLAY_ENABLE].dc[ac].font, font->valuestring);
 
-//                    printf("%s ", &dp.dc[i].name);
-//                    printf("%d ", dp.dc[i].xloc);
-//                    printf("%d ", dp.dc[i].yloc);
-//                    printf("%s\n", &dp.dc[i].font);
+                    printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].name);
+                    printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
+                    printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
+                    printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
+                    printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].font);
+//printf("array_count = %d\n", ac);
+//printf("DISPLAY_ENABLE = %d\n", DISPLAY_ENABLE);
+//printf("ac = %d\n",ac);
                     
-                    if(strcmp(dp.dc[display_cc].name,"date"))
-                        DP_DATE = 1;
-                    if(strcmp(dp.dc[display_cc].name,"time"))
-                        DP_TIME = 1;
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"date")) {
+                        DP_DATE++;
+//printf("DP_DATE = %d\n", DP_DATE);
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"time")) {
+                        DP_TIME++;
+//printf("DP_TIME = %d\n", DP_TIME);
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"freq")) {
+                        DP_FREQ++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"thermal")) {
+                        DP_THERMAL++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"memory")) {
+                        DP_MEMORY++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"usage")) {
+                        DP_USAGE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp2")) {
+                        DP_SP2++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp3-ch1")) {
+                        DP_SP3CH1++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp3-ch2")) {
+                        DP_SP3CH2++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp180")) {
+                        DP_BMP180++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme280")) {
+                        DP_BME280++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"mcp9808")) {
+                        DP_MCP9808++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"text")) {
+                        DP_TEXT++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"point")) {
+                        DP_POINT++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"line")) {
+                        DP_LINE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"circle")) {
+                        DP_CIRCLE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"rectangle")) {
+                        DP_RECTANGLE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"image")) {
+                        DP_IMAGE++;
+                    }
+
                     display_cc++;
+                    ac++;
+//printf("display_cc = %d\n", display_cc);
                 }
-            cJSON_Delete(json);
+                DISPLAY_ENABLE++;
+//printf("array_count = %d\n", ac);
+//printf("display %d complete...\n", DISPLAY_ENABLE);
+                item=item->next;
+            }
+            cJSON_Delete(root);
         }
+//printf("display configuration done...\n");
     }
     /*
      * parse command line options
@@ -420,24 +494,35 @@ int main(int argc, char **argv) {
                 }
                 OPTIONS_COUNT--;
             }
-            for(int i = 0; i < display_cc; i++) {
-                if(DISPLAY_ENABLE == 1 && DP_TIME == 1 && !strcmp(dp.dc[i].name, "time")) {
-                    int count,result = 0;
-                    char display_time[6]; 
+//printf("display_cc = %d\n",display_cc);
+//printf("DISPLAY_ENABLE = %d\n",DISPLAY_ENABLE);
+//printf("DP_DATE = %d\n", DP_DATE);
+//printf("DP_TIME = %d\n", DP_TIME);
+
+            for(int i = 0; i < display_cc/DISPLAY_ENABLE; i++) {
+                if(DISPLAY_ENABLE >= 1 && DP_TIME >= 1 && !strcmp(dp[0].dc[i].name, "time")) {
+//printf("dp[0].dc[i].name = %s\n", &dp[0].dc[i].name);
+//printf("dp[0].dc[i].xloc = %d\n", dp[0].dc[i].xloc);
+//printf("dp[0].dc[i].yloc = %d\n", dp[0].dc[i].yloc);
+//printf("dp[0].dc[i].color = %d\n", dp[0].dc[i].color);
+//printf("dp[0].dc[i].font = %s\n", &dp[0].dc[i].font);
+                    int count = 0;
+                    int result = 0;
+                    char display_time[9]; 
                     now = time((time_t *)NULL);
                     t = localtime(&now);
                     count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min); 
-                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp.dc[i].xloc, dp.dc[i].yloc, \
-                        display_time, (uint16_t)strlen(display_time), 1, SSD1681_MONOSPACE_48);
+                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp[0].dc[i].xloc, \
+                    dp[0].dc[i].yloc, display_time, (uint16_t)strlen(display_time), 1, SSD1681_MONOSPACE_48);
                 }
-                if(DISPLAY_ENABLE == 1 && DP_DATE == 1 && !strcmp(dp.dc[i].name, "date")) {
+                if(DISPLAY_ENABLE >= 1 && DP_DATE >= 1 && !strcmp(dp[0].dc[i].name, "date")) {
                     int count,result = 0;
                     char display_time[9]; 
                     now = time((time_t *)NULL);
                     t = localtime(&now);
                     count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900); 
-                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp.dc[i].xloc, dp.dc[i].yloc, \
-                        display_date, (uint16_t)strlen(display_date), 1, SSD1681_FONT_16);
+                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp[0].dc[i].xloc, \
+                    dp[0].dc[i].yloc, display_date, (uint16_t)strlen(display_date), 1, SSD1681_FONT_16);
                 }
             }
             if(LOG_ENABLE == 1) {
@@ -1179,7 +1264,7 @@ int main(int argc, char **argv) {
                 sendto(udp_socket, udp_tx_data, strlen(udp_tx_data), 0, \
                     (struct sockaddr *)&udp_server_addr, sizeof(struct sockaddr));
             }
-            if(DISPLAY_ENABLE == 1) {
+            if(DISPLAY_ENABLE >= 1) {
                 if(ssd1681_gram_update(&gs_handle, SSD1681_COLOR_BLACK) != 0) {
                     ssd1681_interface_debug_print("ssd1681: update failed.\n");
                 }

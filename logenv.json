@@ -1,21 +1,52 @@
 {
-   "name": "ssd1681",
-   "device": "/dev/spidev0:0",
-   "x_size": 200,
-   "y_size": 200,
-   "rotation": 0,
-   "content": [
-      {
-         "name": "time",
-         "x_loc": 30,
-         "y_loc": 5,
-         "font": "SSD1681_MONOSPACE_48"
-      },
-      {
-         "name": "date",
-         "x_loc": 50,
-         "y_loc": 40,
-         "font": "SSD1681_FONT_16"
-      }
-   ]
+"displays": [
+    {
+       "name": "ssd1681",
+       "device": "/dev/spidev0:0",
+       "address": 0,
+       "xsize": 200,
+       "ysize": 200,
+       "rotation": 0,
+       "content": [
+          {
+             "name": "time",
+             "xloc": 30,
+             "yloc": 5,
+             "color": 0,
+             "font": "SSD1681_MONOSPACE_48"
+          },
+          {
+             "name": "date",
+             "xloc": 50,
+             "yloc": 40,
+             "color": 0,
+             "font": "SSD1681_FONT_16"
+          }
+       ]
+    },
+    {
+       "name": "ssd1306",
+       "device": "/dev/i2c-0",
+       "address": 60,
+       "xsize": 128,
+       "ysize": 128,
+       "rotation": 0,
+       "content": [
+          {
+             "name": "time",
+             "xloc": 10,
+             "yloc": 5,
+             "color": 0,
+             "font": "SSD1681_MONOSPACE_48"
+          },
+          {
+             "name": "date",
+             "xloc": 30,
+             "yloc": 40,
+             "color": 0,
+             "font": "SSD1681_FONT_16"
+          }
+       ]
+    }
+]
 }
