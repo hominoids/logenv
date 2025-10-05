@@ -26,11 +26,20 @@ void sleep_ms(int);
 static void sig_handler(int);
 
 extern ssd1681_handle_t gs_handle;
+extern int displays(int (*op)(int, int), int, int);
+extern int ssd1681(int, int);
+extern int ssd1306(int, int);
 
 static volatile sig_atomic_t go = 1;
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
      *log_file, *gnuplot_file, *json_file;
+
+int display_count = 0;
+char display_time[10];
+char display_date[12];
+uint8_t count=0;
+uint8_t result=0;
 
 time_t now;
 struct tm *t;

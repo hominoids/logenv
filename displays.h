@@ -25,6 +25,11 @@
 //int display_write(int (*dp_write)(struct), struct display_content *dc);
 //int display_update(int (*dp_update)(struct));
 //int display_close(int (*dp_close)(struct));
+
+int displays(int (*op)(int, int), int, int);
+int ssd1681(int, int);
+int ssd1306(int, int);
+
 int open_ssd1681(void);
 
 
@@ -47,10 +52,16 @@ struct display {
     int *dp_write;
     int *dp_update;
     int *dp_close;
-    struct display_content dc[4];
+    struct display_content dc[256];
 };
 
 static int DISPLAY_ENABLE = 0;
+static int DISPLAY_OPEN = 1;
+static int DISPLAY_WRITE = 2;
+static int DISPLAY_READ = 3;
+static int DISPLAY_UPDATE = 4;
+static int DISPLAY_CLOSE = 5;
+
 static int DP_TIME = 0;
 static int DP_DATE = 0;
 static int DP_FREQ = 0;
@@ -69,10 +80,4 @@ static int DP_LINE = 0;
 static int DP_CIRCLE = 0;
 static int DP_RECTANGLE = 0;
 static int DP_IMAGE = 0;
-
-int display_cc = 0;
-char display_time[10];
-char display_date[12];
-uint8_t count=0;
-uint8_t result=0;
 

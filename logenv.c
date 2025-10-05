@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
     signal(SIGINT, sig_handler);
 
-    struct display dp[2];
+    struct display dp[4];
     cJSON *iterator = NULL;
 
 
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
                 printf("\nERROR: Cannot open file logenv.json\n\n");
                 usage();
             }
-open_ssd1681();
+
             char buffer[2048];
             int len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
@@ -152,17 +152,12 @@ open_ssd1681();
                     printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
                     printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
                     printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].font);
-//printf("array_count = %d\n", ac);
-//printf("DISPLAY_ENABLE = %d\n", DISPLAY_ENABLE);
-//printf("ac = %d\n",ac);
-                    
+
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"date")) {
                         DP_DATE++;
-//printf("DP_DATE = %d\n", DP_DATE);
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"time")) {
                         DP_TIME++;
-//printf("DP_TIME = %d\n", DP_TIME);
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"freq")) {
                         DP_FREQ++;
@@ -212,19 +207,35 @@ open_ssd1681();
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"image")) {
                         DP_IMAGE++;
                     }
-
-                    display_cc++;
                     ac++;
-//printf("display_cc = %d\n", display_cc);
+                }
+//                struct display *p;
+//                p = &dp[DISPLAY_ENABLE];
+
+//struct display *ptr, dp[DISPLAY_ENABLE];
+//ptr = &dp[DISPLAY_ENABLE];
+
+                if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1681")) {
+                    if(displays(ssd1681, DISPLAY_OPEN, DISPLAY_OPEN)) {
+                        printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
+                        exit(0);
+                    }
+                }
+                if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306")) {
+                    if(displays(ssd1306, DISPLAY_OPEN, DISPLAY_OPEN)) {
+                        printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
+                        exit(0);
+                    }
                 }
                 DISPLAY_ENABLE++;
-//printf("array_count = %d\n", ac);
-//printf("display %d complete...\n", DISPLAY_ENABLE);
+                display_count++;
+//&dp[DISPLAY_ENABLE]
+
+printf("display %d complete...\n", DISPLAY_ENABLE);
                 item=item->next;
             }
             cJSON_Delete(root);
         }
-//printf("display configuration done...\n");
     }
     /*
      * parse command line options
@@ -494,12 +505,12 @@ open_ssd1681();
                 }
                 OPTIONS_COUNT--;
             }
-//printf("display_cc = %d\n",display_cc);
+//printf("display_count = %d\n",display_count);
 //printf("DISPLAY_ENABLE = %d\n",DISPLAY_ENABLE);
 //printf("DP_DATE = %d\n", DP_DATE);
 //printf("DP_TIME = %d\n", DP_TIME);
 
-            for(int i = 0; i < display_cc/DISPLAY_ENABLE; i++) {
+            for(int i = 0; i <= display_count/DISPLAY_ENABLE; i++) {
                 if(DISPLAY_ENABLE >= 1 && DP_TIME >= 1 && !strcmp(dp[0].dc[i].name, "time")) {
 //printf("dp[0].dc[i].name = %s\n", &dp[0].dc[i].name);
 //printf("dp[0].dc[i].xloc = %d\n", dp[0].dc[i].xloc);
