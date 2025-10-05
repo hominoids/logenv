@@ -52,8 +52,8 @@
 #include "drivers/bme280/bme280-i2c.h"
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
 #include "drivers/ssd1681/driver_ssd1681_interface.h"
-#include "logenv.h"
 #include "displays.h"
+#include "logenv.h"
 
 int main(int argc, char **argv) {
 
@@ -93,8 +93,8 @@ int main(int argc, char **argv) {
 
             cJSON *root = cJSON_Parse(buffer);
             if (!cJSON_IsObject(root)) {
-	            return EXIT_FAILURE;
-            }                
+                return EXIT_FAILURE;
+            }
 
             cJSON *display = cJSON_GetObjectItemCaseSensitive(root, "displays");
             cJSON *item = display ? display->child : 0;
@@ -103,32 +103,32 @@ int main(int argc, char **argv) {
                 cJSON *name = cJSON_GetObjectItemCaseSensitive(item, "name");
                 if (cJSON_IsString(name) && (name->valuestring != NULL)) {
                     strcpy(dp[DISPLAY_ENABLE].name, name->valuestring);
-                    printf("Displays: %s ", &dp[DISPLAY_ENABLE].name);
+printf("Displays: %s ", &dp[DISPLAY_ENABLE].name);
                 }
                 cJSON *device = cJSON_GetObjectItemCaseSensitive(item, "device");
                 if (cJSON_IsString(device) && (device->valuestring)) {
                     strcpy(dp[DISPLAY_ENABLE].device, device->valuestring);
-                    printf("%s ", &dp[DISPLAY_ENABLE].device);
+printf("%s ", &dp[DISPLAY_ENABLE].device);
                 }
                 cJSON *address = cJSON_GetObjectItemCaseSensitive(item, "address");
                 if (cJSON_IsNumber(address)) {
                     dp[DISPLAY_ENABLE].address = address->valueint;
-                    printf("%d ", dp[DISPLAY_ENABLE].address);
+printf("%d ", dp[DISPLAY_ENABLE].address);
                 }
                 cJSON *xsize = cJSON_GetObjectItemCaseSensitive(item, "xsize");
                 if (cJSON_IsNumber(xsize)) {
                     dp[DISPLAY_ENABLE].xsize = xsize->valueint;
-                    printf("%d ", dp[DISPLAY_ENABLE].xsize);
+printf("%d ", dp[DISPLAY_ENABLE].xsize);
                 }
                 cJSON *ysize = cJSON_GetObjectItemCaseSensitive(item, "ysize");
                 if (cJSON_IsNumber(ysize)) {
                     dp[DISPLAY_ENABLE].ysize = ysize->valueint;
-                    printf("%d ", dp[DISPLAY_ENABLE].ysize);
+printf("%d ", dp[DISPLAY_ENABLE].ysize);
                 }
                 cJSON *rotation = cJSON_GetObjectItemCaseSensitive(item, "rotation");
                 if (cJSON_IsNumber(rotation)) {
                     dp[DISPLAY_ENABLE].rotation = rotation->valueint;
-                    printf("%d\n", dp[DISPLAY_ENABLE].rotation);
+printf("%d\n", dp[DISPLAY_ENABLE].rotation);
                 }
                 int ac = 0;
                 cJSON *contents = cJSON_GetObjectItemCaseSensitive(item, "content");
@@ -147,11 +147,11 @@ int main(int argc, char **argv) {
                     dp[DISPLAY_ENABLE].dc[ac].color = color->valueint;
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].font, font->valuestring);
 
-                    printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].name);
-                    printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
-                    printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
-                    printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
-                    printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].font);
+printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].name);
+printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
+printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
+printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
+printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].font);
 
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"date")) {
                         DP_DATE++;
@@ -209,28 +209,19 @@ int main(int argc, char **argv) {
                     }
                     ac++;
                 }
-//                struct display *p;
-//                p = &dp[DISPLAY_ENABLE];
-
-//struct display *ptr, dp[DISPLAY_ENABLE];
-//ptr = &dp[DISPLAY_ENABLE];
-
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1681")) {
-                    if(displays(ssd1681, DISPLAY_OPEN, DISPLAY_OPEN)) {
+                    if(displays(ssd1681, &dp[DISPLAY_ENABLE], DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306")) {
-                    if(displays(ssd1306, DISPLAY_OPEN, DISPLAY_OPEN)) {
+                    if(displays(ssd1306, &dp[DISPLAY_ENABLE], DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
                 }
                 DISPLAY_ENABLE++;
-                display_count++;
-//&dp[DISPLAY_ENABLE]
-
 printf("display %d complete...\n", DISPLAY_ENABLE);
                 item=item->next;
             }
@@ -381,7 +372,7 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
             SENSOR_ENABLE = 1;
             OPTIONS_COUNT++;
         }
-        if(!strcmp(argv[i], "--mcp9808")) {
+        if(!strcmp(argv[i], "--mcp9808") || DP_MCP9808 >= 1) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     sensor = argv[i+1];
@@ -411,8 +402,10 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                 config[1] = 0x03;
                 write(sensor_in, config, 2);
             }
-            SENSOR_ENABLE = 3;
-            OPTIONS_COUNT++;
+            if(!strcmp(argv[i], "--mcp9808")) {
+                SENSOR_ENABLE = 3;
+                OPTIONS_COUNT++;
+            }
         }
         /*
          * smartpower options command line options
@@ -505,35 +498,60 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                 }
                 OPTIONS_COUNT--;
             }
-//printf("display_count = %d\n",display_count);
-//printf("DISPLAY_ENABLE = %d\n",DISPLAY_ENABLE);
-//printf("DP_DATE = %d\n", DP_DATE);
-//printf("DP_TIME = %d\n", DP_TIME);
+printf("DISPLAY_ENABLE = %d\n",DISPLAY_ENABLE);
+            if(DP_TIME >= 1 || DP_DATE >= 1){
+                for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(int i = 0; i <= DISPLAY_ENABLE-1; i++) {
+                        if(DISPLAY_ENABLE >= 1 && DP_TIME >= 1 && !strcmp(dp[d].dc[i].name, "time")) {
+printf("%s display\n", &dp[d].name);
+printf("dp[%d].dc[%d].name = %s\n",d, i, &dp[d].dc[i].name);
+printf("dp[%d].dc[%d].xloc = %d\n",d, i, dp[d].dc[i].xloc);
+printf("dp[%d].dc[%d].yloc = %d\n",d, i, dp[d].dc[i].yloc);
+printf("dp[%d].dc[%d].color = %d\n",d, i, dp[d].dc[i].color);
+printf("dp[%d].dc[%d].font = %s\n",d, i, &dp[d].dc[i].font);
+                            int count = 0;
+                            int result = 0;
+                            now = time((time_t *)NULL);
+                            t = localtime(&now);
+                            count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min);
+                            if(!strcmp(dp[d].name,"ssd1681")) {
+                                if(displays(ssd1681, &dp[d], DISPLAY_TIME)){
+                                    printf("%s time failed\n", &dp[d].name);
+                                }
+                            }
 
-            for(int i = 0; i <= display_count/DISPLAY_ENABLE; i++) {
-                if(DISPLAY_ENABLE >= 1 && DP_TIME >= 1 && !strcmp(dp[0].dc[i].name, "time")) {
-//printf("dp[0].dc[i].name = %s\n", &dp[0].dc[i].name);
-//printf("dp[0].dc[i].xloc = %d\n", dp[0].dc[i].xloc);
-//printf("dp[0].dc[i].yloc = %d\n", dp[0].dc[i].yloc);
-//printf("dp[0].dc[i].color = %d\n", dp[0].dc[i].color);
-//printf("dp[0].dc[i].font = %s\n", &dp[0].dc[i].font);
-                    int count = 0;
-                    int result = 0;
-                    char display_time[9]; 
-                    now = time((time_t *)NULL);
-                    t = localtime(&now);
-                    count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min); 
-                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp[0].dc[i].xloc, \
-                    dp[0].dc[i].yloc, display_time, (uint16_t)strlen(display_time), 1, SSD1681_MONOSPACE_48);
-                }
-                if(DISPLAY_ENABLE >= 1 && DP_DATE >= 1 && !strcmp(dp[0].dc[i].name, "date")) {
-                    int count,result = 0;
-                    char display_time[9]; 
-                    now = time((time_t *)NULL);
-                    t = localtime(&now);
-                    count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900); 
-                    result = ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, dp[0].dc[i].xloc, \
-                    dp[0].dc[i].yloc, display_date, (uint16_t)strlen(display_date), 1, SSD1681_FONT_16);
+                            if(!strcmp(dp[d].name,"ssd1306")) {
+                                if(displays(ssd1306, &dp[d], DISPLAY_TIME)){
+                                    printf("%s time failed\n", &dp[d].name);
+                                }
+                            }
+                        }
+                        if(DISPLAY_ENABLE >= 1 && DP_DATE >= 1 && !strcmp(dp[d].dc[i].name, "date")) {
+printf("%s display\n", &dp[d].name);
+printf("dp[%d].dc[%d].name = %s\n",d, i, &dp[d].dc[i].name);
+printf("dp[%d].dc[%d].xloc = %d\n",d, i, dp[d].dc[i].xloc);
+printf("dp[%d].dc[%d].yloc = %d\n",d, i, dp[d].dc[i].yloc);
+printf("dp[%d].dc[%d].color = %d\n",d, i, dp[d].dc[i].color);
+printf("dp[%d].dc[%d].font = %s\n",d, i, &dp[d].dc[i].font);
+                            int count,result = 0;
+                            now = time((time_t *)NULL);
+                            t = localtime(&now);
+                            count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
+
+                            if(!strcmp(dp[d].name,"ssd1681")) {
+                                if(displays(ssd1681, &dp[d], DISPLAY_DATE)){
+                                    printf("%s date failed\n", &dp[d].name);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306")) {
+                                if(displays(ssd1306, &dp[d], DISPLAY_DATE)){
+                                    printf("%s date failed\n", &dp[d].name);
+                                }
+                            }
+                        }
+                    }
+printf("\n"); 
                 }
             }
             if(LOG_ENABLE == 1) {
@@ -1276,10 +1294,19 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                     (struct sockaddr *)&udp_server_addr, sizeof(struct sockaddr));
             }
             if(DISPLAY_ENABLE >= 1) {
-                if(ssd1681_gram_update(&gs_handle, SSD1681_COLOR_BLACK) != 0) {
-                    ssd1681_interface_debug_print("ssd1681: update failed.\n");
+                for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    if(!strcmp(dp[d].name,"ssd1681")) {
+                        if(displays(ssd1681, &dp[d], DISPLAY_UPDATE)){
+                            printf("%s update failed\n", &dp[d].name);
+                        }
+                    }
+
+                    if(!strcmp(dp[d].name,"ssd1306")) {
+                        if(displays(ssd1306, &dp[d], DISPLAY_UPDATE)){
+                            printf("%s update failed\n", &dp[d].name);
+                        }
+                    }
                 }
-//            ssd1681_interface_delay_ms(3000);
             }
             /*
              * break if one and done or sleep

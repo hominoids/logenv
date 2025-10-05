@@ -18,20 +18,11 @@
     displays.h
 
 */
-
-//int display_set(struct display *dp);
-//int display_get_content(struct display_content *dc);
-//int display_open(int (*dp_open)(struct));
-//int display_write(int (*dp_write)(struct), struct display_content *dc);
-//int display_update(int (*dp_update)(struct));
-//int display_close(int (*dp_close)(struct));
-
-int displays(int (*op)(int, int), int, int);
-int ssd1681(int, int);
-int ssd1306(int, int);
+extern int display_count;
+extern char display_time[];
+extern char display_date[];
 
 int open_ssd1681(void);
-
 
 struct display_content {
     char name[15];
@@ -52,7 +43,7 @@ struct display {
     int *dp_write;
     int *dp_update;
     int *dp_close;
-    struct display_content dc[256];
+    struct display_content dc[64];
 };
 
 static int DISPLAY_ENABLE = 0;
@@ -61,6 +52,8 @@ static int DISPLAY_WRITE = 2;
 static int DISPLAY_READ = 3;
 static int DISPLAY_UPDATE = 4;
 static int DISPLAY_CLOSE = 5;
+static int DISPLAY_TIME = 10;
+static int DISPLAY_DATE = 11;
 
 static int DP_TIME = 0;
 static int DP_DATE = 0;
