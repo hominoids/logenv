@@ -21,7 +21,9 @@
 extern int display_count;
 extern char display_time[];
 extern char display_date[];
+extern ssd1681_handle_t gs_handle;
 
+int fontoi(char *);
 int open_ssd1681(void);
 
 struct display_content {
@@ -30,6 +32,10 @@ struct display_content {
     int yloc;
     int color;
     char font[30];
+    char data1[20];
+    char data2[20];
+    char data3[20];
+    char data4[20];
 };
 
 struct display {
@@ -39,10 +45,7 @@ struct display {
     int xsize;
     int ysize;
     int rotation;
-    int *dp_open;
-    int *dp_write;
-    int *dp_update;
-    int *dp_close;
+    int dc_count;
     struct display_content dc[64];
 };
 
@@ -54,6 +57,7 @@ static int DISPLAY_UPDATE = 4;
 static int DISPLAY_CLOSE = 5;
 static int DISPLAY_TIME = 10;
 static int DISPLAY_DATE = 11;
+static int DISPLAY_MCP9808 = 12;
 
 static int DP_TIME = 0;
 static int DP_DATE = 0;

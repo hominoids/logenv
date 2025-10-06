@@ -26,9 +26,9 @@ void sleep_ms(int);
 static void sig_handler(int);
 
 extern ssd1681_handle_t gs_handle;
-extern int displays(int (*op)(struct display *, int), struct display *, int);
-extern int ssd1681(struct display *, int);
-extern int ssd1306(struct display *, int);
+extern int displays(int (*op)(struct display *, int, int), struct display *, int, int);
+extern int ssd1681(struct display *, int, int);
+extern int ssd1306(struct display *, int, int);
 
 static volatile sig_atomic_t go = 1;
 

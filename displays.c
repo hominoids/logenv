@@ -24,24 +24,21 @@
 #include "drivers/ssd1681/driver_ssd1681_interface.h"
 #include "displays.h"
 
-extern ssd1681_handle_t gs_handle;
-
-int displays(int (*op)(struct display *, int), struct display *ptr, int cmd) {
-    if(op(ptr, cmd)) {
+int displays(int (*op)(struct display *, int, int), struct display *ptr, int dcidx, int cmd) {
+    if(op(ptr, dcidx, cmd)) {
         return(1);
     }
     return(0);
 
 }
 
-int ssd1681(struct display *ptr, int cmd) {
+int ssd1681(struct display *ptr, int dcidx, int cmd) {
 
     if(cmd == DISPLAY_OPEN) {
         if(open_ssd1681()) {
             printf("\nERROR: Cannot open ssd1681\n");
             return(1);
         }
-printf("%s opened...\n", ptr->name);
     return(0);
     }
     if(cmd == DISPLAY_UPDATE) {
@@ -49,49 +46,77 @@ printf("%s opened...\n", ptr->name);
             ssd1681_interface_debug_print("ssd1681: update failed.\n");
             return(1);
         }
-printf("%s updated...\n", ptr->name);
     return(0);
     }
     if(cmd == DISPLAY_TIME) {
-        if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[0].xloc, \
-            ptr->dc[0].yloc, display_time, (uint16_t)strlen(display_time), 1, SSD1681_MONOSPACE_48) != 0) {
+        if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
+            ptr->dc[dcidx].yloc, display_time, (uint16_t)strlen(display_time), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1681_interface_debug_print("ssd1681: update failed.\n");
             return(1);
         }
-printf("%s time cmd...\n", ptr->name);
     return(0);
     }
     if(cmd == DISPLAY_DATE) {
-        if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[0].xloc, \
-            ptr->dc[0].yloc, display_date, (uint16_t)strlen(display_date), 1, SSD1681_FONT_16) != 0) {
+        if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
+            ptr->dc[dcidx].yloc, display_date, (uint16_t)strlen(display_date), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1681_interface_debug_print("ssd1681: update failed.\n");
             return(1);
         }
-printf("%s date cmd...\n", ptr->name);
+    return(0);
+    }
+    if(cmd == DISPLAY_TEMP) {
+        if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
+            ptr->dc[dcidx].yloc, ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
+            ssd1681_interface_debug_print("ssd1681: update failed.\n");
+            return(1);
+        }
     return(0);
     }
 
 }
 
-int ssd1306(struct display *ptr, int cmd) {
+int ssd1306(struct display *ptr, int dcidx, int cmd) {
 
     if(cmd == DISPLAY_OPEN) {
-printf("%s opened...\n", ptr->name);
         return(0);
     }
     if(cmd == DISPLAY_UPDATE) {
-printf("%s updated...\n", ptr->name);
         return(0);
     }
-
     if(cmd == DISPLAY_TIME) {
-printf("%s time cmd...\n", ptr->name);
         return(0);
     }
 
     if(cmd == DISPLAY_DATE) {
-printf("%s date cmd...\n", ptr->name);
+        return(0);
+    }
+    if(cmd == DISPLAY_TEMP) {
         return(0);
     }
 
+}
+
+int fontoi(char *font_name) {
+    if(!strcmp(font_name, "SSD1681_FONT_12")) {
+        return(SSD1681_FONT_12);
+    }
+    if(!strcmp(font_name, "SSD1681_FONT_16")) {
+        return(SSD1681_FONT_16);
+    }
+    if(!strcmp(font_name, "SSD1681_FONT_24")) {
+        return(SSD1681_FONT_24);
+    }
+    if(!strcmp(font_name, "SSD1681_MONOSPACE_28")) {
+        return(SSD1681_MONOSPACE_28);
+    }
+    if(!strcmp(font_name, "SSD1681_MONOSPACE_36")) {
+        return(SSD1681_MONOSPACE_36);
+    }
+    if(!strcmp(font_name, "SSD1681_MONOSPACE_48")) {
+        return(SSD1681_MONOSPACE_48);
+    }
+    if(!strcmp(font_name, "SSD1681_MONOSPACE_72")) {
+        return(SSD1681_MONOSPACE_72);
+    }
+    return(SSD1681_FONT_12);
 }

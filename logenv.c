@@ -50,6 +50,7 @@
 #include "drivers/bme280/bmp180.h"
 #include "drivers/bme280/bme280.h"
 #include "drivers/bme280/bme280-i2c.h"
+#include "drivers/mcp9808/mcp9808.h"
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
 #include "drivers/ssd1681/driver_ssd1681_interface.h"
 #include "displays.h"
@@ -209,14 +210,15 @@ printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].font);
                     }
                     ac++;
                 }
+                dp[DISPLAY_ENABLE].dc_count = ac;
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1681")) {
-                    if(displays(ssd1681, &dp[DISPLAY_ENABLE], DISPLAY_OPEN)) {
+                    if(displays(ssd1681, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306")) {
-                    if(displays(ssd1306, &dp[DISPLAY_ENABLE], DISPLAY_OPEN)) {
+                    if(displays(ssd1306, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
@@ -384,23 +386,7 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                     printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
                     exit(1);
                 }
-                ioctl(sensor_in, I2C_SLAVE, 0x18);
-                /*
-                 * Select configuration register(0x01)
-                 * Continuous conversion mode, Power-up default(0x00, 0x00)
-                 */
-                char config[3] = {0};
-                config[0] = 0x01;
-                config[1] = 0x00;
-                config[2] = 0x00;
-                write(sensor_in, config, 3);
-                /*
-                 * Select resolution register(0x08)
-                 * Resolution = +0.0625 / C(0x03)
-                 */
-                config[0] = 0x08;
-                config[1] = 0x03;
-                write(sensor_in, config, 2);
+                mcp9808_open();
             }
             if(!strcmp(argv[i], "--mcp9808")) {
                 SENSOR_ENABLE = 3;
@@ -498,60 +484,46 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                 }
                 OPTIONS_COUNT--;
             }
-printf("DISPLAY_ENABLE = %d\n",DISPLAY_ENABLE);
             if(DP_TIME >= 1 || DP_DATE >= 1){
                 for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(int i = 0; i <= DISPLAY_ENABLE-1; i++) {
+                    for(int i = 0; i <= dp[d].dc_count-1; i++) {
                         if(DISPLAY_ENABLE >= 1 && DP_TIME >= 1 && !strcmp(dp[d].dc[i].name, "time")) {
-printf("%s display\n", &dp[d].name);
-printf("dp[%d].dc[%d].name = %s\n",d, i, &dp[d].dc[i].name);
-printf("dp[%d].dc[%d].xloc = %d\n",d, i, dp[d].dc[i].xloc);
-printf("dp[%d].dc[%d].yloc = %d\n",d, i, dp[d].dc[i].yloc);
-printf("dp[%d].dc[%d].color = %d\n",d, i, dp[d].dc[i].color);
-printf("dp[%d].dc[%d].font = %s\n",d, i, &dp[d].dc[i].font);
                             int count = 0;
                             int result = 0;
                             now = time((time_t *)NULL);
                             t = localtime(&now);
                             count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min);
                             if(!strcmp(dp[d].name,"ssd1681")) {
-                                if(displays(ssd1681, &dp[d], DISPLAY_TIME)){
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_TIME)){
                                     printf("%s time failed\n", &dp[d].name);
                                 }
                             }
 
                             if(!strcmp(dp[d].name,"ssd1306")) {
-                                if(displays(ssd1306, &dp[d], DISPLAY_TIME)){
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_TIME)){
                                     printf("%s time failed\n", &dp[d].name);
                                 }
                             }
                         }
                         if(DISPLAY_ENABLE >= 1 && DP_DATE >= 1 && !strcmp(dp[d].dc[i].name, "date")) {
-printf("%s display\n", &dp[d].name);
-printf("dp[%d].dc[%d].name = %s\n",d, i, &dp[d].dc[i].name);
-printf("dp[%d].dc[%d].xloc = %d\n",d, i, dp[d].dc[i].xloc);
-printf("dp[%d].dc[%d].yloc = %d\n",d, i, dp[d].dc[i].yloc);
-printf("dp[%d].dc[%d].color = %d\n",d, i, dp[d].dc[i].color);
-printf("dp[%d].dc[%d].font = %s\n",d, i, &dp[d].dc[i].font);
                             int count,result = 0;
                             now = time((time_t *)NULL);
                             t = localtime(&now);
                             count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
 
                             if(!strcmp(dp[d].name,"ssd1681")) {
-                                if(displays(ssd1681, &dp[d], DISPLAY_DATE)){
-                                    printf("%s date failed\n", &dp[d].name);
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_DATE)){
+                                    printf("%s date failed\n", i, &dp[d].name);
                                 }
                             }
 
                             if(!strcmp(dp[d].name,"ssd1306")) {
-                                if(displays(ssd1306, &dp[d], DISPLAY_DATE)){
-                                    printf("%s date failed\n", &dp[d].name);
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_DATE)){
+                                    printf("%s date failed\n", i, &dp[d].name);
                                 }
                             }
                         }
                     }
-printf("\n"); 
                 }
             }
             if(LOG_ENABLE == 1) {
@@ -770,114 +742,147 @@ printf("\n");
             /*
              * read mcp9808 temperature sensor
              */
-            if(SENSOR_ENABLE == 3) {
-                /*
-                 * Read 2 bytes of data from register(0x05)
-                 * temp msb, temp lsb
-                 */
-                char reg[1] = {0x05};
-                write(sensor_in, reg, 1);
-                char data[2] = {0};
-                if(read(sensor_in, data, 2) != 2) {
-                    printf("ERROR : MCP9808 Read Error \n");
-                    exit(1);
-                }
-                /*
-                 * Convert the data to 13-bits
-                 */
-                int temp = ((data[0] & 0x1F) * 256 + data[1]);
-                if(temp > 4095) {
-                    temp -= 8192;
-                }
-                temperature = temp * 0.0625;
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%d", temperature);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n MCP9808 Sensor = %.2lfc", (double)temp * 0.0625);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", (double)temp * 0.0625);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", (double)temp * 0.0625);
+            if(SENSOR_ENABLE == 3 || DP_MCP9808 >= 1) {
+                float temperature = mcp9808_read();
+                if(SENSOR_ENABLE == 3) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d", temperature);
                     }
-                    else {
-                        printf("%.2lf", (double)temp * 0.0625);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n MCP9808 Sensor = %.2lfc", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature);
+                        }
+                        else {
+                            printf("%.2lf", temperature);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%.2lf",temperature);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_MCP9808 >= 1) {
+                    for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(int i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
+                                char buffer[6];
+                                sprintf(buffer, "%.2lf", temperature);
+                                strcat(buffer, "c");
+                                strcpy(dp[d].dc[i].data1, buffer);
+
+                                if(!strcmp(dp[d].name,"ssd1681")) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_TEMP)){
+                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"ssd1306")) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_TEMP)){
+                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%.2lf", (double)temp * 0.0625);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", (double)temp * 0.0625);
-                }
-                if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temp * 0.0625);
-                }
-                if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temp * 0.0625);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temp * 0.0625);
-                    }
-                }
-                OPTIONS_COUNT--;
             }
             /*
              * read bme280
              */
-            if(SENSOR_ENABLE == 2) {
-
+            if(SENSOR_ENABLE == 2 || DP_BME280 >= 1) {
                 bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%d", temperature);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BME280 Sensor = %.2lfc", (double)temperature/100);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", (double)temperature/100);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", (double)temperature/100);
+                if(SENSOR_ENABLE == 2) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d", temperature);
                     }
-                    else {
-                        printf("%.2lf", (double)temperature/100);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n BME280 Sensor = %.2lfc", (double)temperature/100);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", (double)temperature/100);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", (double)temperature/100);
+                        }
+                        else {
+                            printf("%.2lf", (double)temperature/100);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%d", temperature);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", (double)temperature/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
+                        }
+                    }
+                OPTIONS_COUNT--;
+                }
+                if(DP_BME280 >= 1) {
+                    for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(int i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "bme280")) {
+                                char buffer[6];
+                                sprintf(buffer, "%.2lf", temperature);
+                                strcat(buffer, "c");
+                                strcpy(dp[d].dc[i].data1, buffer);
+
+                                if(!strcmp(dp[d].name,"ssd1681")) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_TEMP)){
+                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"ssd1306")) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_TEMP)){
+                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%d", temperature);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", (double)temperature/100);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
-                    }
-                }
-            OPTIONS_COUNT--;
             }
             /*
              * read bmp180
@@ -1296,13 +1301,13 @@ printf("\n");
             if(DISPLAY_ENABLE >= 1) {
                 for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     if(!strcmp(dp[d].name,"ssd1681")) {
-                        if(displays(ssd1681, &dp[d], DISPLAY_UPDATE)){
+                        if(displays(ssd1681, &dp[d], 0, DISPLAY_UPDATE)){
                             printf("%s update failed\n", &dp[d].name);
                         }
                     }
 
                     if(!strcmp(dp[d].name,"ssd1306")) {
-                        if(displays(ssd1306, &dp[d], DISPLAY_UPDATE)){
+                        if(displays(ssd1306, &dp[d], 0, DISPLAY_UPDATE)){
                             printf("%s update failed\n", &dp[d].name);
                         }
                     }

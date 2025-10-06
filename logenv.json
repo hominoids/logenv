@@ -21,6 +21,13 @@
              "yloc": 40,
              "color": 0,
              "font": "SSD1681_FONT_16"
+          },
+          {
+             "name": "mcp9808",
+             "xloc": 10,
+             "yloc": 65,
+             "color": 0,
+             "font": "SSD1681_MONOSPACE_28"
           }
        ]
     },
