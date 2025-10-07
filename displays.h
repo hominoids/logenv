@@ -32,6 +32,8 @@ struct display_content {
     int yloc;
     int color;
     char font[30];
+    char prelabel[20];
+    char postlabel[20];
     char data1[20];
     char data2[20];
     char data3[20];
@@ -45,6 +47,7 @@ struct display {
     int xsize;
     int ysize;
     int rotation;
+    int color
     int dc_count;
     struct display_content dc[64];
 };

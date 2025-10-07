@@ -863,20 +863,33 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                     for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(int i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "bme280")) {
-                                char buffer[6];
+                                char buffer[25];
+//                                if(dp[d].dc[i].prelabel) {
+//                                    strcat(buffer,dp[d].dc[i].prelabel);
+//                                }
                                 sprintf(buffer, "%.2lf", temperature);
-                                strcat(buffer, "c");
                                 strcpy(dp[d].dc[i].data1, buffer);
 
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", humidity);
+                                strcpy(dp[d].dc[i].data2, buffer);
+
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", pressure);
+                                strcpy(dp[d].dc[i].data3, buffer);
+
+//                                if(dp[d].dc[i].postlabel) {
+//                                    strcat(buffer,dp[d].dc[i].postlabel);
+//                                }
                                 if(!strcmp(dp[d].name,"ssd1681")) {
                                     if(displays(ssd1681, &dp[d], i, DISPLAY_TEMP)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
 
                                 if(!strcmp(dp[d].name,"ssd1306")) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_TEMP)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
                             }
