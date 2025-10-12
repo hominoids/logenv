@@ -1,59 +1,104 @@
 {
 "displays": [
     {
-       "name": "ssd1681",
-       "device": "/dev/spidev0:0",
-       "address": 0,
-       "xsize": 200,
-       "ysize": 200,
-       "rotation": 0,
-       "content": [
-          {
-             "name": "time",
-             "xloc": 30,
-             "yloc": 5,
-             "color": 0,
-             "font": "SSD1681_MONOSPACE_48"
-          },
-          {
-             "name": "date",
-             "xloc": 50,
-             "yloc": 40,
-             "color": 0,
-             "font": "SSD1681_FONT_16"
-          },
-          {
-             "name": "mcp9808",
-             "xloc": 10,
-             "yloc": 65,
-             "color": 0,
-             "font": "SSD1681_MONOSPACE_28"
-          }
-       ]
+        "name": "ssd1681",
+        "device": "/dev/spidev0:0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
+        "rotation": 0,
+        "content": [
+            {
+            "name": "time",
+            "type": "",
+            "xloc": 30,
+            "yloc": 5,
+            "color": 0,
+            "font": "SSD1681_MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "type": "",
+            "xloc": 50,
+            "yloc": 40,
+            "color": 0,
+            "font": "SSD1681_FONT_16",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "type": "T",
+            "xloc": 10,
+            "yloc": 65,
+            "color": 0,
+            "font": "SSD1681_MONOSPACE_28",
+            "label": "",
+            "unit": "c"
+            },
+            {
+            "name": "bme280",
+            "type": "T",
+            "xloc": 10,
+            "yloc": 85,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": " Temp: ",
+            "unit": "c"
+            },
+            {
+            "name": "bme280",
+            "type": "H",
+            "xloc": 10,
+            "yloc": 110,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": "Humid: ",
+            "unit": "%"
+            },
+            {
+            "name": "bme280",
+            "type": "P",
+            "xloc": 10,
+            "yloc": 135,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": " Pres: ",
+            "unit": "hpa"
+            }
+        ]
     },
     {
-       "name": "ssd1306",
-       "device": "/dev/i2c-0",
-       "address": 60,
-       "xsize": 128,
-       "ysize": 128,
-       "rotation": 0,
-       "content": [
-          {
-             "name": "time",
-             "xloc": 10,
-             "yloc": 5,
-             "color": 0,
-             "font": "SSD1681_MONOSPACE_48"
-          },
-          {
-             "name": "date",
-             "xloc": 30,
-             "yloc": 40,
-             "color": 0,
-             "font": "SSD1681_FONT_16"
-          }
-       ]
+        "name": "ssd1306",
+        "device": "/dev/i2c-0",
+        "address": 60,
+        "xsize": 128,
+        "ysize": 128,
+        "rotation": 0,
+        "content": [
+            {
+            "name": "time",
+            "type": "",
+            "xloc": 10,
+            "yloc": 5,
+            "color": 0,
+            "font": "SSD1681_MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "type": "",
+            "xloc": 30,
+            "yloc": 40,
+            "color": 0,
+            "font": "SSD1681_FONT_16",
+            "label": "",
+            "unit": ""
+            }
+        ]
     }
-]
+    ]
 }

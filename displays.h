@@ -28,12 +28,13 @@ int open_ssd1681(void);
 
 struct display_content {
     char name[15];
+    char type[15];
     int xloc;
     int yloc;
     int color;
     char font[30];
-    char prelabel[20];
-    char postlabel[20];
+    char label[20];
+    char unit[5];
     char data1[20];
     char data2[20];
     char data3[20];
@@ -47,7 +48,7 @@ struct display {
     int xsize;
     int ysize;
     int rotation;
-    int color
+    int color;
     int dc_count;
     struct display_content dc[64];
 };
@@ -60,7 +61,9 @@ static int DISPLAY_UPDATE = 4;
 static int DISPLAY_CLOSE = 5;
 static int DISPLAY_TIME = 10;
 static int DISPLAY_DATE = 11;
-static int DISPLAY_MCP9808 = 12;
+static int DISPLAY_THERMAL = 12;
+static int DISPLAY_MCP9808 = 13;
+static int DISPLAY_BME280 = 14;
 
 static int DP_TIME = 0;
 static int DP_DATE = 0;

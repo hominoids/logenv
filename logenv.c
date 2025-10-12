@@ -88,15 +88,15 @@ int main(int argc, char **argv) {
                 usage();
             }
 
-            char buffer[2048];
+            char buffer[4096];
             int len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
-
+printf("File read...\n");
             cJSON *root = cJSON_Parse(buffer);
             if (!cJSON_IsObject(root)) {
                 return EXIT_FAILURE;
             }
-
+printf("root structure parsed...\n");
             cJSON *display = cJSON_GetObjectItemCaseSensitive(root, "displays");
             cJSON *item = display ? display->child : 0;
             while (item)
@@ -137,22 +137,31 @@ printf("%d\n", dp[DISPLAY_ENABLE].rotation);
                     {
 
                     cJSON *name = cJSON_GetObjectItemCaseSensitive(iterator, "name");
+                    cJSON *type = cJSON_GetObjectItemCaseSensitive(iterator, "type");
                     cJSON *xloc = cJSON_GetObjectItemCaseSensitive(iterator, "xloc");
                     cJSON *yloc = cJSON_GetObjectItemCaseSensitive(iterator, "yloc");
                     cJSON *color = cJSON_GetObjectItemCaseSensitive(iterator, "color");
                     cJSON *font = cJSON_GetObjectItemCaseSensitive(iterator, "font");
+                    cJSON *label = cJSON_GetObjectItemCaseSensitive(iterator, "label");
+                    cJSON *unit = cJSON_GetObjectItemCaseSensitive(iterator, "unit");
 
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].name, name->valuestring);
+                    strcpy(dp[DISPLAY_ENABLE].dc[ac].type, type->valuestring);
                     dp[DISPLAY_ENABLE].dc[ac].xloc = xloc->valueint;
                     dp[DISPLAY_ENABLE].dc[ac].yloc = yloc->valueint;
                     dp[DISPLAY_ENABLE].dc[ac].color = color->valueint;
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].font, font->valuestring);
+                    strcpy(dp[DISPLAY_ENABLE].dc[ac].label, label->valuestring);
+                    strcpy(dp[DISPLAY_ENABLE].dc[ac].unit, unit->valuestring);
 
 printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].name);
+printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].type);
 printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
 printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
 printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
-printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].font);
+printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].font);
+printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].label);
+printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
 
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"date")) {
                         DP_DATE++;
@@ -654,8 +663,7 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
             /*
              * open and read each thermal zone file
              */
-            if(THERMAL_ENABLE != 0) {
-
+            if(THERMAL_ENABLE != 0 || DP_THERMAL >= 1) {
                 for (int c = 0; c < THERMAL_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
@@ -667,77 +675,106 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                     }
                     fscanf(cpu_thermal, "%f", &coretemp);
                     fclose(cpu_thermal);
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%.0f", coretemp);
+
+                    strcpy(thermaltype,thermalzone1);
+                    strcat(thermaltype,strChar);
+                    strcat(thermaltype,thermaltype1);
+                    if((thermal_type = fopen(thermaltype, "r")) == NULL) {
+                        break;
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        strcpy(thermaltype,thermalzone1);
-                        strcat(thermaltype,strChar);
-                        strcat(thermaltype,thermaltype1);
-                        if((thermal_type = fopen(thermaltype, "r")) == NULL) {
-                            break;
+                    fscanf(thermal_type, "%s", thermalname);
+                    fclose(thermal_type);
+                    if(THERMAL_ENABLE != 0) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                            printf(",%.0f", coretemp);
                         }
-                        fscanf(thermal_type, "%s", thermalname);
-                        fclose(thermal_type);
-                        printf("\n %s = %.2fc", thermalname, coretemp/1000);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2f", coretemp/1000);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
-                            printf("%.2f,", coretemp/1000);
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                            printf("\n %s = %.2fc", thermalname, coretemp/1000);
                         }
-                        if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
-                            if(OPTIONS_COUNT > 1) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                                printf(",%.2f", coretemp/1000);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
                                 printf("%.2f,", coretemp/1000);
                             }
-                            else {
-                                printf("%.2f", coretemp/1000);
+                            if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    printf("%.2f,", coretemp/1000);
+                                }
+                                else {
+                                    printf("%.2f", coretemp/1000);
+                                }
                             }
                         }
-                    }
 
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", coretemp);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2f", coretemp/1000);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", coretemp);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", coretemp);
+                        if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                            fprintf(log_file,",%f", coretemp);
                         }
-                        if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
-                            if(OPTIONS_COUNT > 1) {
+                        if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                            fprintf(log_file,",%.2f", coretemp/1000);
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%f", coretemp);
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
                                 udp_count += sprintf(udp_tx_data + udp_count,"%f,", coretemp);
                             }
-                            else {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%f", coretemp);
+                            if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%f,", coretemp);
+                                }
+                                else {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%f", coretemp);
+                                }
                             }
                         }
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2f", coretemp/1000);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", coretemp/1000);
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f", coretemp/1000);
                         }
-                        if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
-                            if(OPTIONS_COUNT > 1) {
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c < THERMAL_ENABLE-1) {
                                 udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", coretemp/1000);
                             }
-                            else {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f", coretemp/1000);
+                            if(OPTIONS_COUNT >= 1 && c == THERMAL_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", coretemp/1000);
+                                }
+                                else {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f", coretemp/1000);
+                                }
                             }
                         }
                     }
+                    if(DP_THERMAL >= 1) {
+                        for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                            for(int i = 0; i <= dp[d].dc_count-1; i++) {
+                                if(!strcmp(dp[d].dc[i].name, "thermal")) {
+                                    char buffer[6];
+                                    sprintf(buffer, "%s %.2lf", thermalname, coretemp/1000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+
+                                    if(!strcmp(dp[d].name,"ssd1681")) {
+                                        if(displays(ssd1681, &dp[d], i, DISPLAY_THERMAL)){
+                                            printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                        }
+                                    }
+
+                                    if(!strcmp(dp[d].name,"ssd1306")) {
+                                        if(displays(ssd1306, &dp[d], i, DISPLAY_THERMAL)){
+                                            printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                       
+                    }
                 }
-                OPTIONS_COUNT--;
+                if(THERMAL_ENABLE != 0) {
+                    OPTIONS_COUNT--;
+                }
             }
             /*
              * read mcp9808 temperature sensor
@@ -787,17 +824,16 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                             if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
                                 char buffer[6];
                                 sprintf(buffer, "%.2lf", temperature);
-                                strcat(buffer, "c");
                                 strcpy(dp[d].dc[i].data1, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681")) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_TEMP)){
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_MCP9808)){
                                         printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
 
                                 if(!strcmp(dp[d].name,"ssd1306")) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_TEMP)){
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_MCP9808)){
                                         printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -864,31 +900,23 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                         for(int i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "bme280")) {
                                 char buffer[25];
-//                                if(dp[d].dc[i].prelabel) {
-//                                    strcat(buffer,dp[d].dc[i].prelabel);
-//                                }
                                 sprintf(buffer, "%.2lf", temperature);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
-                                char buffer[25];
                                 sprintf(buffer, "%.2lf", humidity);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                char buffer[25];
                                 sprintf(buffer, "%.2lf", pressure);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-//                                if(dp[d].dc[i].postlabel) {
-//                                    strcat(buffer,dp[d].dc[i].postlabel);
-//                                }
                                 if(!strcmp(dp[d].name,"ssd1681")) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_TEMP)){
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_BME280)){
                                         printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
 
                                 if(!strcmp(dp[d].name,"ssd1306")) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_TEMP)){
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_BME280)){
                                         printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
