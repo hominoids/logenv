@@ -28,6 +28,8 @@ int open_ssd1681(void);
 
 struct display_content {
     char name[15];
+    char device[30];
+    int address;
     char type[15];
     int xloc;
     int yloc;

@@ -10,8 +10,10 @@
         "content": [
             {
             "name": "time",
+            "device": "",
+            "address": 0,
             "type": "",
-            "xloc": 30,
+            "xloc": 35,
             "yloc": 5,
             "color": 0,
             "font": "SSD1681_MONOSPACE_48",
@@ -20,8 +22,10 @@
             },
             {
             "name": "date",
+            "device": "",
+            "address": 0,
             "type": "",
-            "xloc": 50,
+            "xloc": 55,
             "yloc": 40,
             "color": 0,
             "font": "SSD1681_FONT_16",
@@ -30,8 +34,10 @@
             },
             {
             "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
             "type": "T",
-            "xloc": 10,
+            "xloc": 5,
             "yloc": 65,
             "color": 0,
             "font": "SSD1681_MONOSPACE_28",
@@ -39,34 +45,16 @@
             "unit": "c"
             },
             {
-            "name": "bme280",
+            "name": "thermal",
+            "device": "",
+            "address": 0,
             "type": "T",
-            "xloc": 10,
-            "yloc": 85,
+            "xloc": 5,
+            "yloc": 95,
             "color": 0,
-            "font": "SSD1681_FONT_24",
-            "label": " Temp: ",
+            "font": "SSD1681_FONT_12",
+            "label": " ",
             "unit": "c"
-            },
-            {
-            "name": "bme280",
-            "type": "H",
-            "xloc": 10,
-            "yloc": 110,
-            "color": 0,
-            "font": "SSD1681_FONT_24",
-            "label": "Humid: ",
-            "unit": "%"
-            },
-            {
-            "name": "bme280",
-            "type": "P",
-            "xloc": 10,
-            "yloc": 135,
-            "color": 0,
-            "font": "SSD1681_FONT_24",
-            "label": " Pres: ",
-            "unit": "hpa"
             }
         ]
     },
@@ -80,6 +68,8 @@
         "content": [
             {
             "name": "time",
+            "device": "",
+            "address": 0,
             "type": "",
             "xloc": 10,
             "yloc": 5,
@@ -90,6 +80,8 @@
             },
             {
             "name": "date",
+            "device": "",
+            "address": 0,
             "type": "",
             "xloc": 30,
             "yloc": 40,
