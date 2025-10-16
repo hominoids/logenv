@@ -64,34 +64,54 @@ int ssd1681(struct display *ptr, int dcidx, int cmd) {
         }
     return(0);
     }
-    if(cmd == DISPLAY_THERMAL) {
-        char buffer[25];
-        strcpy(buffer, ptr->dc[dcidx].data1);
+    if(cmd == DISPLAY_WRITE) {
+        char buffer[48];
+        strcpy(buffer, "\0");
+        if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        strcat(buffer, ptr->dc[dcidx].data2);
+        if(!strcmp(ptr->dc[dcidx].type,"T") || !strcmp(ptr->dc[dcidx].type,"TN") || !strcmp(ptr->dc[dcidx].type,"NT")) {
+            strcat(buffer, ptr->dc[dcidx].data2);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
+        if(!strcmp(ptr->dc[dcidx].type,"TN")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
         if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
-            ssd1681_interface_debug_print("ssd1681: Thermal string write failed.\n");
+            ssd1681_interface_debug_print("ssd1681: string write failed.\n");
             return(1);
         }
     return(0);
     }
     if(cmd == DISPLAY_MCP9808) {
         char buffer[25];
+        strcpy(buffer,"\0");
         if(ptr->dc[dcidx].label) {
-            strcpy(buffer,ptr->dc[dcidx].label);
+            strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type, "T")) {
+
+        if(!strcmp(ptr->dc[dcidx].type,"C") || !strcmp(ptr->dc[dcidx].type,"CF")) {
             strcat(buffer, ptr->dc[dcidx].data1);
+            if(ptr->dc[dcidx].unit) {
+                strcat(buffer,ptr->dc[dcidx].unit);
+            }
         }
-        if(ptr->dc[dcidx].unit) {
-            strcat(buffer,ptr->dc[dcidx].unit);
+        if(!strcmp(ptr->dc[dcidx].type,"F") || !strcmp(ptr->dc[dcidx].type,"FC") || !strcmp(ptr->dc[dcidx].type,"CF")) {
+            strcat(buffer, ptr->dc[dcidx].data2);
         }
+        if(!strcmp(ptr->dc[dcidx].type,"FC")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+            if(ptr->dc[dcidx].unit) {
+                strcat(buffer,ptr->dc[dcidx].unit);
+            }
+        }
+
         if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1681_interface_debug_print("ssd1681: mcp9808 temperature string write failed.\n");

@@ -91,12 +91,12 @@ int main(int argc, char **argv) {
             char buffer[4096];
             int len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
-printf("File read...\n");
+printf("json file read...\n");
             cJSON *root = cJSON_Parse(buffer);
             if (!cJSON_IsObject(root)) {
                 return EXIT_FAILURE;
             }
-printf("root structure parsed...\n");
+printf("json root structure parsed...\n");
             cJSON *display = cJSON_GetObjectItemCaseSensitive(root, "displays");
             cJSON *item = display ? display->child : 0;
             while (item)
@@ -696,13 +696,13 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                                 dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
                                 if(!strcmp(dp[d].name,"ssd1681")) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_THERMAL)){
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_WRITE)){
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
 
                                 if(!strcmp(dp[d].name,"ssd1306")) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_THERMAL)){
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_WRITE)){
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -834,13 +834,13 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                                 dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
                                 if(!strcmp(dp[d].name,"ssd1681")) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_THERMAL)){
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_WRITE)){
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
 
                                 if(!strcmp(dp[d].name,"ssd1306")) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_THERMAL)){
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_WRITE)){
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -899,6 +899,8 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                                 char buffer[6];
                                 sprintf(buffer, "%.2lf", temperature);
                                 strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", (temperature*1.8)+32);
+                                strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681")) {
                                     if(displays(ssd1681, &dp[d], i, DISPLAY_MCP9808)){

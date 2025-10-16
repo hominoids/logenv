@@ -36,11 +36,23 @@
             "name": "mcp9808",
             "device": "/dev/i2c-0",
             "address": 24,
-            "type": "T",
+            "type": "F",
             "xloc": 5,
             "yloc": 65,
             "color": 0,
             "font": "SSD1681_MONOSPACE_28",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "C",
+            "xloc": 115,
+            "yloc": 62,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
             "label": "",
             "unit": "c"
             },
@@ -48,13 +60,25 @@
             "name": "thermal",
             "device": "",
             "address": 0,
-            "type": "T",
+            "type": "TN",
             "xloc": 5,
             "yloc": 95,
             "color": 0,
             "font": "SSD1681_FONT_12",
-            "label": " ",
-            "unit": "c"
+            "label": "",
+            "unit": "c "
+            },
+            {
+            "name": "-frequency",
+            "device": "",
+            "address": 0,
+            "type": "NT",
+            "xloc": 5,
+            "yloc": 95,
+            "color": 0,
+            "font": "SSD1681_FONT_12",
+            "label": "",
+            "unit": " GHz"
             }
         ]
     },
