@@ -52,8 +52,10 @@ static int udp_port = 5000;
 static char udp_name[256] = "127.0.0.1";
 static char udp_tx_data[1024] = {0};
 
-int  pwr_in;
-int  sensor_in;
+uint16_t pwr_in;
+uint16_t sensor_in;
+uint16_t scd41_in;
+uint16_t sgp30_in;
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";

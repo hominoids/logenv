@@ -53,6 +53,9 @@
 #include "drivers/mcp9808/mcp9808.h"
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
 #include "drivers/ssd1681/driver_ssd1681_interface.h"
+#include "drivers/scd4x/driver_scd4x_basic.h"
+#include "drivers/scd4x/driver_scd4x_shot.h"
+#include "drivers/sgp30/driver_sgp30_advance.h"
 #include "displays.h"
 #include "logenv.h"
 
@@ -62,6 +65,7 @@ int main(int argc, char **argv) {
 
     struct display dp[4];
     cJSON *iterator = NULL;
+    scd4x_t chip_type = SCD41;
 
 
     if(argc == 1) {
@@ -88,12 +92,13 @@ int main(int argc, char **argv) {
                 usage();
             }
 
-            char buffer[4096];
+            char buffer[16384];
             int len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
 printf("json file read...\n");
             cJSON *root = cJSON_Parse(buffer);
             if (!cJSON_IsObject(root)) {
+                printf("\nERROR: Cannot parse JSON root structure.\n");
                 return EXIT_FAILURE;
             }
 printf("json root structure parsed...\n");
@@ -204,6 +209,12 @@ printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"mcp9808")) {
                         DP_MCP9808++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
+                        DP_SCD41++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sgp30")) {
+                        DP_SGP30++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"text")) {
                         DP_TEXT++;
@@ -410,6 +421,54 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
             if(!strcmp(argv[i], "--mcp9808")) {
                 SENSOR_ENABLE = 3;
                 OPTIONS_COUNT++;
+            }
+        }
+        /*
+         * scd41 command line options
+         */
+        if(!strcmp(argv[i], "--scd41")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    sensor = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    sensor = argv[i+2];
+                }
+                if((scd41_in = open(sensor, O_RDWR)) < 0) {
+                    printf("\nERROR: Cannot open SCD41 at %s\n", sensor);
+                    exit(1);
+                }
+            }
+            OPTIONS_COUNT++;
+        }
+        if(DP_SCD41 >= 1) {
+            if (scd4x_shot_init(chip_type)) {
+                printf("\nERROR: SCD41 Init failed.\n");
+                exit(1);
+            }
+        }
+        /*
+         * sgp30 command line options
+         */
+        if(!strcmp(argv[i], "--sgp30")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    sensor = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    sensor = argv[i+2];
+                }
+                if((sgp30_in = open(sensor, O_RDWR)) < 0) {
+                    printf("\nERROR: Cannot open SGP30 at %s\n", sensor);
+                    exit(1);
+                }
+            }
+            OPTIONS_COUNT++;
+        }
+        if(DP_SGP30 >= 1) {
+            if (sgp30_advance_init()) {
+                printf("\nERROR: SGP30 Init failed.\n");
+                exit(1);
             }
         }
         /*
@@ -1047,6 +1106,84 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                     }
                 }
             OPTIONS_COUNT--;
+            }
+            /*
+             * SCD41 enabled
+             */
+            if(DP_SCD41 >= 1) {
+                float temperature_f;
+                float humidity_f;
+                uint16_t co2_ppm;
+                int res = scd4x_shot_read((uint16_t *)&co2_ppm, (float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)scd4x_shot_deinit();
+                    return 1;
+                }
+                for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(int i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "scd41")) {
+                            char buffer[6];
+                            sprintf(buffer, "%.2f", temperature_f);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%.2f", (temperature_f*1.8)+32);
+                            strcpy(dp[d].dc[i].data2, buffer);
+
+                            sprintf(buffer, "%.2f", humidity_f);
+                            strcpy(dp[d].dc[i].data3, buffer);
+
+                            sprintf(buffer, "%.2d", co2_ppm);
+                            strcpy(dp[d].dc[i].data4, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681")) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SCD41)){
+                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306")) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SCD41)){
+                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * SGP30 enabled
+             */
+            if(DP_SGP30 >= 1) {
+                uint16_t co2_eq_ppm = 0;
+                uint16_t tvoc_ppb = 0;
+
+                int res = sgp30_advance_read((uint16_t *)&co2_eq_ppm, (uint16_t *)&tvoc_ppb);
+                if (res != 0) {
+                    (void)sgp30_advance_deinit();
+                    return 1;
+                }
+                for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(int i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "sgp30")) {
+                            char buffer[10];
+                            sprintf(buffer, "%d", tvoc_ppb);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%d", co2_eq_ppm);
+                            strcpy(dp[d].dc[i].data2, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681")) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SGP30)){
+                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306")) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SGP30)){
+                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
             }
             /*
              * SmartPower enabled
@@ -1785,6 +1922,12 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
     }
     if (DISPLAY_ENABLE == 1) {
         (void)ssd1681_deinit(&gs_handle);
+    }
+    if (DP_SCD41 > 0) {
+        (void)scd4x_shot_deinit();
+    }
+    if (DP_SGP30 > 0) {
+        (void)sgp30_advance_deinit();
     }
 }
 

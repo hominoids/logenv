@@ -57,7 +57,7 @@
             "unit": "c"
             },
             {
-            "name": "thermal",
+            "name": "-thermal",
             "device": "",
             "address": 0,
             "type": "TN",
@@ -79,6 +79,66 @@
             "font": "SSD1681_FONT_12",
             "label": "",
             "unit": " GHz"
+            },
+            {
+            "name": "scd41",
+            "device": "/dev/i2c-0",
+            "address": 0,
+            "type": "G",
+            "xloc": 5,
+            "yloc": 90,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": " CO2 : ",
+            "unit": " ppm"
+            },
+            {
+            "name": "-scd41",
+            "device": "/dev/i2c-0",
+            "address": 0,
+            "type": "C",
+            "xloc": 5,
+            "yloc": 115,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": "Temp : ",
+            "unit": "c"
+            },
+            {
+            "name": "scd41",
+            "device": "/dev/i2c-0",
+            "address": 0,
+            "type": "H",
+            "xloc": 5,
+            "yloc": 140,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": "Humd : ",
+            "unit": "%"
+            },
+            {
+            "name": "sgp30",
+            "device": "/dev/i2c-0",
+            "address": 0,
+            "type": "V",
+            "xloc": 5,
+            "yloc": 115,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": " VOC : ",
+            "unit": " ppb"
+            },
+            {
+            "name": "-sgp30",
+            "device": "/dev/i2c-0",
+            "address": 0,
+            "type": "G",
+            "xloc": 5,
+            "yloc": 140,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": "eCO2 : ",
+            "unit": " ppm"
             }
         ]
     },

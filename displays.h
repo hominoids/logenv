@@ -66,6 +66,8 @@ static int DISPLAY_DATE = 11;
 static int DISPLAY_THERMAL = 12;
 static int DISPLAY_MCP9808 = 13;
 static int DISPLAY_BME280 = 14;
+static int DISPLAY_SCD41 = 15;
+static int DISPLAY_SGP30 = 16;
 
 static int DP_TIME = 0;
 static int DP_DATE = 0;
@@ -79,6 +81,8 @@ static int DP_SP3CH2 = 0;
 static int DP_BMP180 = 0;
 static int DP_BME280 = 0;
 static int DP_MCP9808 = 0;
+static int DP_SCD41 = 0;
+static int DP_SGP30 = 0;
 static int DP_TEXT = 0;
 static int DP_POINT = 0;
 static int DP_LINE = 0;

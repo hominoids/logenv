@@ -121,8 +121,9 @@ int ssd1681(struct display *ptr, int dcidx, int cmd) {
     }
     if(cmd == DISPLAY_BME280) {
         char buffer[25];
+        strcpy(buffer,"\0");
         if(ptr->dc[dcidx].label) {
-            strcpy(buffer,ptr->dc[dcidx].label);
+            strcat(buffer,ptr->dc[dcidx].label);
         }
         if(!strcmp(ptr->dc[dcidx].type,"T")) {
             strcat(buffer, ptr->dc[dcidx].data1);
@@ -147,7 +148,62 @@ printf("P");
         }
     return(0);
     }
+    if(cmd == DISPLAY_SCD41) {
+        char buffer[48] = {0};
+        strcpy(buffer,"\0");
+        if(ptr->dc[dcidx].label) {
+            strcat(buffer,ptr->dc[dcidx].label);
+        }
 
+        if(!strcmp(ptr->dc[dcidx].type,"C") || !strcmp(ptr->dc[dcidx].type,"CF")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"F") || !strcmp(ptr->dc[dcidx].type,"FC") || !strcmp(ptr->dc[dcidx].type,"CF")) {
+            strcat(buffer, ptr->dc[dcidx].data2);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"FC")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"H")) {
+            strcat(buffer, ptr->dc[dcidx].data3);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"G")) {
+            strcat(buffer, ptr->dc[dcidx].data4);
+        }
+        if(ptr->dc[dcidx].unit) {
+            strcat(buffer,ptr->dc[dcidx].unit);
+        }
+
+        if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
+            ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
+            ssd1681_interface_debug_print("ssd1681: scd41 string write failed.\n");
+            return(1);
+        }
+    return(0);
+    }
+    if(cmd == DISPLAY_SGP30) {
+        char buffer[48] = {0};
+        strcpy(buffer,"\0");
+        if(ptr->dc[dcidx].label) {
+            strcat(buffer,ptr->dc[dcidx].label);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"V")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"G")) {
+            strcat(buffer, ptr->dc[dcidx].data2);
+        }
+        if(ptr->dc[dcidx].unit) {
+            strcat(buffer,ptr->dc[dcidx].unit);
+        }
+
+        if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
+            ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
+            ssd1681_interface_debug_print("ssd1681: sgp30 string write failed.\n");
+            return(1);
+        }
+    return(0);
+    }
 }
 
 int ssd1306(struct display *ptr, int dcidx, int cmd) {
