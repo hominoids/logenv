@@ -65,10 +65,7 @@ static int DISPLAY_CLOSE = 5;
 static int DISPLAY_TIME = 10;
 static int DISPLAY_DATE = 11;
 static int DISPLAY_THERMAL = 12;
-static int DISPLAY_MCP9808 = 13;
-static int DISPLAY_BME280 = 14;
-static int DISPLAY_SCD41 = 15;
-static int DISPLAY_SGP30 = 16;
+static int DISPLAY_SENSOR = 13;
 
 static int DP_TIME = 0;
 static int DP_DATE = 0;

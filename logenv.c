@@ -954,17 +954,15 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                                 char buffer[6];
                                 sprintf(buffer, "%.2lf", temperature);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.2lf", (temperature*1.8)+32);
-                                strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681")) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_MCP9808)){
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
 
                                 if(!strcmp(dp[d].name,"ssd1306")) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_MCP9808)){
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1057,21 +1055,19 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                             char buffer[25];
                             sprintf(buffer, "%.2lf", temperature_f);
                             strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", temperature_f * 1.8 + 32);
-                            strcpy(dp[d].dc[i].data2, buffer);
                             sprintf(buffer, "%.2lf", humidity_f);
-                            strcpy(dp[d].dc[i].data3, buffer);
+                            strcpy(dp[d].dc[i].data2, buffer);
                             sprintf(buffer, "%.2lf", pressure_f/100);
-                            strcpy(dp[d].dc[i].data4, buffer);
+                            strcpy(dp[d].dc[i].data3, buffer);
 
                             if(!strcmp(dp[d].name,"ssd1681")) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_BME280)){
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
 
                             if(!strcmp(dp[d].name,"ssd1306")) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_BME280)){
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
@@ -1156,19 +1152,17 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                             char buffer[25];
                             sprintf(buffer, "%.2lf", temperature_f);
                             strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", temperature_f * 1.8 + 32);
-                            strcpy(dp[d].dc[i].data2, buffer);
                             sprintf(buffer, "%.2lf", (double) pressure/100);
-                            strcpy(dp[d].dc[i].data4, buffer);
+                            strcpy(dp[d].dc[i].data3, buffer);
 
                             if(!strcmp(dp[d].name,"ssd1681")) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_BMP180)){
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
 
                             if(!strcmp(dp[d].name,"ssd1306")) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_BMP180)){
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
@@ -1194,23 +1188,21 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                             char buffer[6];
                             sprintf(buffer, "%.2f", temperature_f);
                             strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2f", (temperature_f*1.8)+32);
-                            strcpy(dp[d].dc[i].data2, buffer);
 
                             sprintf(buffer, "%.2f", humidity_f);
-                            strcpy(dp[d].dc[i].data3, buffer);
+                            strcpy(dp[d].dc[i].data2, buffer);
 
                             sprintf(buffer, "%.2d", co2_ppm);
                             strcpy(dp[d].dc[i].data4, buffer);
 
                             if(!strcmp(dp[d].name,"ssd1681")) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SCD41)){
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
 
                             if(!strcmp(dp[d].name,"ssd1306")) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SCD41)){
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
@@ -1234,19 +1226,19 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                     for(int i = 0; i <= dp[d].dc_count-1; i++) {
                         if(!strcmp(dp[d].dc[i].name, "sgp30")) {
                             char buffer[10];
-                            sprintf(buffer, "%d", tvoc_ppb);
-                            strcpy(dp[d].dc[i].data1, buffer);
                             sprintf(buffer, "%d", co2_eq_ppm);
-                            strcpy(dp[d].dc[i].data2, buffer);
+                            strcpy(dp[d].dc[i].data4, buffer);
+                            sprintf(buffer, "%d", tvoc_ppb);
+                            strcpy(dp[d].dc[i].data5, buffer);
 
                             if(!strcmp(dp[d].name,"ssd1681")) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SGP30)){
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
 
                             if(!strcmp(dp[d].name,"ssd1306")) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SGP30)){
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
