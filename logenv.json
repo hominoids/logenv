@@ -57,31 +57,43 @@
             "unit": "c"
             },
             {
-            "name": "-thermal",
-            "device": "",
-            "address": 0,
-            "type": "TN",
+            "name": "bme280",
+            "device": "/dev/i2c-0",
+            "address": 119,
+            "type": "F",
             "xloc": 5,
-            "yloc": 95,
+            "yloc": 85,
             "color": 0,
-            "font": "SSD1681_FONT_12",
-            "label": "",
-            "unit": "c "
+            "font": "SSD1681_FONT_24",
+            "label": " Temp: ",
+            "unit": ""
             },
             {
-            "name": "-frequency",
-            "device": "",
-            "address": 0,
-            "type": "NT",
+            "name": "bme280",
+            "device": "/dev/i2c-0",
+            "address": 119,
+            "type": "H",
             "xloc": 5,
-            "yloc": 95,
+            "yloc": 110,
             "color": 0,
-            "font": "SSD1681_FONT_12",
-            "label": "",
-            "unit": " GHz"
+            "font": "SSD1681_FONT_24",
+            "label": "Humid: ",
+            "unit": "%"
             },
             {
-            "name": "scd41",
+            "name": "bme280",
+            "device": "/dev/i2c-0",
+            "address": 119,
+            "type": "P",
+            "xloc": 5,
+            "yloc": 135,
+            "color": 0,
+            "font": "SSD1681_FONT_24",
+            "label": " Pres: ",
+            "unit": "hPa"
+            },
+            {
+            "name": "-scd41",
             "device": "/dev/i2c-0",
             "address": 0,
             "type": "G",
@@ -96,18 +108,6 @@
             "name": "-scd41",
             "device": "/dev/i2c-0",
             "address": 0,
-            "type": "C",
-            "xloc": 5,
-            "yloc": 115,
-            "color": 0,
-            "font": "SSD1681_FONT_24",
-            "label": "Temp : ",
-            "unit": "c"
-            },
-            {
-            "name": "scd41",
-            "device": "/dev/i2c-0",
-            "address": 0,
             "type": "H",
             "xloc": 5,
             "yloc": 140,
@@ -117,7 +117,7 @@
             "unit": "%"
             },
             {
-            "name": "sgp30",
+            "name": "-sgp30",
             "device": "/dev/i2c-0",
             "address": 0,
             "type": "V",

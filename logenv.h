@@ -59,6 +59,7 @@ uint16_t sgp30_in;
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
+char *interface = "/dev/i2c-0";
 char *cpuonline = "/sys/devices/system/cpu/online";
 char *cpuusage = "/proc/stat";
 

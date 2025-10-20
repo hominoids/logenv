@@ -35,7 +35,7 @@
  */
 
 #include "driver_ssd1681_interface.h"
-#include "spi.h"
+#include "../interface/spi.h"
 #include "wire.h"
 #include <stdarg.h>
 

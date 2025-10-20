@@ -47,12 +47,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <cjson/cJSON.h>
-#include "drivers/bme280/bmp180.h"
-#include "drivers/bme280/bme280.h"
-#include "drivers/bme280/bme280-i2c.h"
-#include "drivers/mcp9808/mcp9808.h"
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
 #include "drivers/ssd1681/driver_ssd1681_interface.h"
+#include "drivers/bmp180/driver_bmp180_basic.h"
+#include "drivers/bme280/driver_bme280_basic.h"
+#include "drivers/mcp9808/mcp9808.h"
 #include "drivers/scd4x/driver_scd4x_basic.h"
 #include "drivers/scd4x/driver_scd4x_shot.h"
 #include "drivers/sgp30/driver_sgp30_advance.h"
@@ -367,17 +366,14 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
         if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280") || DP_BME280 >= 1) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
+                    interface = argv[i+1];
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
+                    interface = argv[i+2];
                 }
-                if(bme280_begin(sensor) < 0) {
-                    printf("\nERROR: Cannot open BME280 at %s\n", sensor);
-                    exit(1);
-                }
-                if(bme280_set_power_mode(BME280_NORMAL_MODE) < 0) {
-                    printf("\nERROR: Cannot set power mode for BME280 at %s\n", sensor);
+
+                if(bme280_basic_init(BME280_INTERFACE_IIC, BME280_ADDRESS_ADO_HIGH) != 0) {
+                    printf("\nERROR: Cannot open BME280 at %s\n", interface);
                     exit(1);
                 }
             }
@@ -394,8 +390,8 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     sensor = argv[i+2];
                 }
-                if(bmp180_begin(sensor) < 0) {
-                    printf("\nERROR: Cannot open BMP180 at %s\n", sensor);
+                if(bmp180_basic_init() != 0) {
+                    printf("\nERROR: Cannot open BMP180 at %s\n", interface);
                     exit(1);
                 }
             }
@@ -982,68 +978,91 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
              */
             if(SENSOR_ENABLE == 2) {
 
-                bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
+                float temperature_f;
+                float humidity_f;
+                float pressure_f;
+
+                int res = bme280_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
+                if (res != 0)
+                {
+                    (void)bme280_basic_deinit();
+                    printf("ERROR: bme280 read failed.\n");
+                    return 1;
+                }
+
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%d", temperature);
+                    printf(",%f", temperature_f);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BME280 Sensor = %.2lfc", (double)temperature/100);
+                    printf("\n\n BME280 Sensor = %.2lfc", temperature_f);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", (double)temperature/100);
+                        printf(",%.2lf", temperature_f);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", (double)temperature/100);
+                        printf("%.2lf,", temperature_f);
                     }
                     else {
-                        printf("%.2lf", (double)temperature/100);
+                        printf("%.2lf", temperature_f);
                     }
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%d", temperature);
+                    fprintf(log_file,",%f", temperature_f);
                 }
                 if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", (double)temperature/100);
+                    fprintf(log_file,",%.2lf", temperature_f);
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
+                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
                     }
                     else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
                     }
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
                     }
                     else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
                     }
                 }
             OPTIONS_COUNT--;
             }
             if(DP_BME280 >= 1) {
-                bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
+
+                float temperature_f;
+                float humidity_f;
+                float pressure_f;
+
+                int res = bme280_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
+                if (res != 0)
+                {
+                    (void)bme280_basic_deinit();
+                    printf("ERROR: bme280 read failed.\n");
+                    return 1;
+                }
+
                 for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(int i = 0; i <= dp[d].dc_count-1; i++) {
                         if(!strcmp(dp[d].dc[i].name, "bme280")) {
                             char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature);
+                            sprintf(buffer, "%.2lf", temperature_f);
                             strcpy(dp[d].dc[i].data1, buffer);
-
-                            sprintf(buffer, "%.2lf", humidity);
+                            sprintf(buffer, "%.2lf", temperature_f * 1.8 + 32);
                             strcpy(dp[d].dc[i].data2, buffer);
-
-                            sprintf(buffer, "%.2lf", pressure);
+                            sprintf(buffer, "%.2lf", humidity_f);
                             strcpy(dp[d].dc[i].data3, buffer);
+                            sprintf(buffer, "%.2lf", pressure_f/100);
+                            strcpy(dp[d].dc[i].data4, buffer);
 
                             if(!strcmp(dp[d].name,"ssd1681")) {
                                 if(displays(ssd1681, &dp[d], i, DISPLAY_BME280)){
@@ -1065,49 +1084,99 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
              */
             if(SENSOR_ENABLE == 1) {
 
-                temperature = BMP180_readTemperature();
+                float temperature_f;
+                float humidity_f;
+                uint32_t pressure;
+
+                int res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
+                if (res != 0)
+                {
+                    bmp180_basic_deinit();
+                    printf("ERROR: bmp180 read failed.\n");
+                    return 1;
+                }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%d", temperature);
+                    printf(",%f", temperature_f);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BMP180 Sensor = %.2lfc", (double)temperature/100);
+                    printf("\n\n BMP180 Sensor = %.2lfc", temperature_f);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                    printf(",%.2lf", (double)temperature);
+                    printf(",%.2lf", temperature_f);
                 }
                 if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", (double)temperature);
+                        printf("%.2lf,", temperature_f);
                     }
                     else {
-                        printf("%.2lf,", (double)temperature);
+                        printf("%.2lf,", temperature_f);
                     }
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
+                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                     if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
                     }
                     else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
                     }
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
                 }
                 if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
                     }
                     else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
                     }
                 }
             OPTIONS_COUNT--;
             }
-            /*
+            if(DP_BMP180 >= 1) {
+
+                float temperature_f;
+                float humidity_f;
+                uint32_t pressure;
+
+                int res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
+                if (res != 0)
+                {
+                    bmp180_basic_deinit();
+                    printf("ERROR: bmp180 read failed.\n");
+                    return 1;
+                }
+
+                for(int d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(int i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "bmp180")) {
+                            char buffer[25];
+                            sprintf(buffer, "%.2lf", temperature_f);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%.2lf", temperature_f * 1.8 + 32);
+                            strcpy(dp[d].dc[i].data2, buffer);
+                            sprintf(buffer, "%.2lf", (double) pressure/100);
+                            strcpy(dp[d].dc[i].data4, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681")) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_BMP180)){
+                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306")) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_BMP180)){
+                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+             /*
              * SCD41 enabled
              */
             if(DP_SCD41 >= 1) {
@@ -1928,6 +1997,12 @@ printf("display %d complete...\n", DISPLAY_ENABLE);
     }
     if (DP_SGP30 > 0) {
         (void)sgp30_advance_deinit();
+    }
+    if (DP_BMP180 > 0) {
+        (void)bmp180_basic_deinit();
+    }
+    if (DP_BME280 > 0) {
+        (void)bme280_basic_deinit();
     }
 }
 

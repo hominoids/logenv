@@ -37,10 +37,11 @@ struct display_content {
     char font[30];
     char label[20];
     char unit[5];
-    char data1[20];
-    char data2[20];
-    char data3[20];
-    char data4[20];
+    char data1[20];  // Temperature c
+    char data2[20];  // Humidity %
+    char data3[20];  // Pressure hPa
+    char data4[20];  // CO2 as ppm
+    char data5[20];  // TVOC as ppb
 };
 
 struct display {
