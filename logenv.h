@@ -36,6 +36,8 @@ FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
      *log_file, *gnuplot_file, *json_file;
 
 int display_count = 0;
+int page = 0;
+int pg_count = 2;
 char display_time[10];
 char display_date[12];
 uint8_t count=0;

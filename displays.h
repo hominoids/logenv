@@ -19,6 +19,7 @@
 
 */
 extern int display_count;
+extern int page;
 extern char display_time[];
 extern char display_date[];
 extern ssd1681_handle_t gs_handle;
@@ -52,6 +53,9 @@ struct display {
     int ysize;
     int rotation;
     int color;
+    int page;
+    int seconds;
+    int pg_count;
     int dc_count;
     struct display_content dc[64];
 };

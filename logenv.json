@@ -7,6 +7,8 @@
         "xsize": 200,
         "ysize": 200,
         "rotation": 0,
+        "page": 0,
+        "seconds": 30,
         "content": [
             {
             "name": "time",
@@ -65,7 +67,7 @@
             "yloc": 90,
             "color": 0,
             "font": "SSD1681_FONT_24",
-            "label": "Humd : ",
+            "label": "Humd: ",
             "unit": "%"
             },
             {
@@ -77,7 +79,7 @@
             "yloc": 115,
             "color": 0,
             "font": "SSD1681_FONT_24",
-            "label": "Pres : ",
+            "label": "Pres: ",
             "unit": "hPa"
             },
             {
@@ -89,7 +91,7 @@
             "yloc": 140,
             "color": 0,
             "font": "SSD1681_FONT_24",
-            "label": " CO2 : ",
+            "label": " CO2: ",
             "unit": " ppm"
             },
             {
@@ -101,7 +103,7 @@
             "yloc": 165,
             "color": 0,
             "font": "SSD1681_FONT_24",
-            "label": " VOC : ",
+            "label": " VOC: ",
             "unit": " ppb"
             },
             {
@@ -113,25 +115,27 @@
             "yloc": 140,
             "color": 0,
             "font": "SSD1681_FONT_24",
-            "label": "eCO2 : ",
+            "label": "eCO2: ",
             "unit": " ppm"
             }
         ]
     },
     {
-        "name": "ssd1306",
-        "device": "/dev/i2c-0",
-        "address": 60,
-        "xsize": 128,
-        "ysize": 128,
+        "name": "ssd1681",
+        "device": "/dev/spidev0:0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
         "rotation": 0,
+        "page": 1,
+        "seconds": 10,
         "content": [
             {
             "name": "time",
             "device": "",
             "address": 0,
             "type": "",
-            "xloc": 10,
+            "xloc": 35,
             "yloc": 5,
             "color": 0,
             "font": "SSD1681_MONOSPACE_48",
@@ -143,14 +147,74 @@
             "device": "",
             "address": 0,
             "type": "",
-            "xloc": 30,
+            "xloc": 55,
             "yloc": 40,
             "color": 0,
             "font": "SSD1681_FONT_16",
             "label": "",
             "unit": ""
+            },
+            {
+            "name": "thermal",
+            "device": "",
+            "address": 0,
+            "type": "TN",
+            "xloc": 3,
+            "yloc": 60,
+            "color": 0,
+            "font": "SSD1681_FONT_16",
+            "label": "",
+            "unit": "c "
             }
         ]
-    }
-    ]
+    },
+    {
+        "name": "ssd1681",
+        "device": "/dev/spidev0:0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
+        "rotation": 0,
+        "page": 2,
+        "seconds": 5,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 35,
+            "yloc": 5,
+            "color": 0,
+            "font": "SSD1681_MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 55,
+            "yloc": 40,
+            "color": 0,
+            "font": "SSD1681_FONT_16",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "frequency",
+            "device": "",
+            "address": 0,
+            "type": "NT",
+            "xloc": 5,
+            "yloc": 60,
+            "color": 0,
+            "font": "SSD1681_FONT_16",
+            "label": "",
+            "unit": " GHz"
+            }
+        ]
+      }
+   ]
 }

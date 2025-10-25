@@ -29,7 +29,6 @@ int displays(int (*op)(struct display *, int, int), struct display *ptr, int dci
         return(1);
     }
     return(0);
-
 }
 
 int ssd1681(struct display *ptr, int dcidx, int cmd) {
@@ -39,22 +38,23 @@ int ssd1681(struct display *ptr, int dcidx, int cmd) {
             printf("\nERROR: Cannot open ssd1681\n");
             return(1);
         }
-    return(0);
+        return(0);
     }
     if(cmd == DISPLAY_UPDATE) {
         if(ssd1681_gram_update(&gs_handle, SSD1681_COLOR_BLACK) != 0) {
             ssd1681_interface_debug_print("ssd1681: update failed.\n");
             return(1);
         }
-    return(0);
+        return(0);
     }
+
     if(cmd == DISPLAY_TIME) {
         if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, display_time, (uint16_t)strlen(display_time), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1681_interface_debug_print("ssd1681: time string write failed.\n");
             return(1);
         }
-    return(0);
+        return(0);
     }
     if(cmd == DISPLAY_DATE) {
         if(ssd1681_gram_write_string(&gs_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
@@ -62,10 +62,12 @@ int ssd1681(struct display *ptr, int dcidx, int cmd) {
             ssd1681_interface_debug_print("ssd1681: date string write failed.\n");
             return(1);
         }
-    return(0);
+        return(0);
     }
     if(cmd == DISPLAY_WRITE) {
+
         char buffer[48];
+
         strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
             strcat(buffer, ptr->dc[dcidx].data1);
@@ -87,12 +89,14 @@ int ssd1681(struct display *ptr, int dcidx, int cmd) {
             ssd1681_interface_debug_print("ssd1681: string write failed.\n");
             return(1);
         }
-    return(0);
+        return(0);
     }
     if(cmd == DISPLAY_SENSOR) {
+
         char buffer[25];
         char buffer2[7];
         float temp_f = 0;
+
         strcpy(buffer,"\0");
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
@@ -127,7 +131,7 @@ int ssd1681(struct display *ptr, int dcidx, int cmd) {
             ssd1681_interface_debug_print("ssd1681: bme280 string write failed.\n");
             return(1);
         }
-    return(0);
+        return(0);
     }
 }
 
