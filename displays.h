@@ -18,23 +18,23 @@
     displays.h
 
 */
-extern int display_count;
-extern int page;
+extern uint8_t display_count;
+extern uint8_t page;
 extern char display_time[];
 extern char display_date[];
 extern ssd1681_handle_t gs_handle;
 
-int fontoi(char *);
-int open_ssd1681(void);
+uint8_t fontoi(char *);
+uint8_t open_ssd1681(void);
 
 struct display_content {
     char name[15];
     char device[30];
-    int address;
+    uint8_t address;
     char type[15];
-    int xloc;
-    int yloc;
-    int color;
+    uint16_t xloc;
+    uint16_t yloc;
+    uint16_t color;
     char font[30];
     char label[20];
     char unit[5];
@@ -48,47 +48,47 @@ struct display_content {
 struct display {
     char name[15];
     char device[30];
-    int address;
-    int xsize;
-    int ysize;
-    int rotation;
-    int color;
-    int page;
-    int seconds;
-    int pg_count;
-    int dc_count;
+    uint8_t address;
+    uint16_t xsize;
+    uint16_t ysize;
+    uint16_t rotation;
+    uint16_t color;
+    uint8_t page;
+    uint16_t seconds;
+    uint8_t pg_count;
+    uint8_t dc_count;
     struct display_content dc[64];
 };
 
-static int DISPLAY_ENABLE = 0;
-static int DISPLAY_OPEN = 1;
-static int DISPLAY_WRITE = 2;
-static int DISPLAY_READ = 3;
-static int DISPLAY_UPDATE = 4;
-static int DISPLAY_CLOSE = 5;
-static int DISPLAY_TIME = 10;
-static int DISPLAY_DATE = 11;
-static int DISPLAY_THERMAL = 12;
-static int DISPLAY_SENSOR = 13;
+static uint8_t DISPLAY_ENABLE = 0;
+static uint8_t DISPLAY_OPEN = 1;
+static uint8_t DISPLAY_WRITE = 2;
+static uint8_t DISPLAY_READ = 3;
+static uint8_t DISPLAY_UPDATE = 4;
+static uint8_t DISPLAY_CLOSE = 5;
+static uint8_t DISPLAY_TIME = 6;
+static uint8_t DISPLAY_DATE = 7;
+static uint8_t DISPLAY_THERMAL = 8;
+static uint8_t DISPLAY_SENSOR = 9;
 
-static int DP_TIME = 0;
-static int DP_DATE = 0;
-static int DP_FREQ = 0;
-static int DP_THERMAL = 0;
-static int DP_MEMORY = 0;
-static int DP_USAGE = 0;
-static int DP_SP2 = 0;
-static int DP_SP3CH1 = 0;
-static int DP_SP3CH2 = 0;
-static int DP_BMP180 = 0;
-static int DP_BME280 = 0;
-static int DP_MCP9808 = 0;
-static int DP_SCD41 = 0;
-static int DP_SGP30 = 0;
-static int DP_TEXT = 0;
-static int DP_POINT = 0;
-static int DP_LINE = 0;
-static int DP_CIRCLE = 0;
-static int DP_RECTANGLE = 0;
-static int DP_IMAGE = 0;
+static uint8_t DP_TIME = 0;
+static uint8_t DP_DATE = 0;
+static uint8_t DP_FREQ = 0;
+static uint8_t DP_THERMAL = 0;
+static uint8_t DP_MEMORY = 0;
+static uint8_t DP_USAGE = 0;
+static uint8_t DP_SP2 = 0;
+static uint8_t DP_SP3CH1 = 0;
+static uint8_t DP_SP3CH2 = 0;
+static uint8_t DP_BMP180 = 0;
+static uint8_t DP_BME280 = 0;
+static uint8_t DP_MCP9808 = 0;
+static uint8_t DP_SCD41 = 0;
+static uint8_t DP_SGP30 = 0;
+static uint8_t DP_TEXT = 0;
+static uint8_t DP_POINT = 0;
+static uint8_t DP_LINE = 0;
+static uint8_t DP_CIRCLE = 0;
+static uint8_t DP_RECTANGLE = 0;
+static uint8_t DP_IMAGE = 0;
 

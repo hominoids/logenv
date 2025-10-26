@@ -79,7 +79,7 @@ int open_ssd1681(void)
     }
 
     /* set the data entry mode */
-    res = ssd1681_set_data_entry_mode(&gs_handle, SSD1681_ADDRESS_MODE_Y_DECREMENT_X_INCREMENT, SSD1681_ADDRESS_DIRECTION_UPDATED_X);
+    res = ssd1681_set_data_entry_mode(&gs_handle, SSD1681_BASIC_DEFAULT_ADDRESS_MODE, SSD1681_BASIC_DEFAULT_ADDRESS_DIRECTION);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set data entry mode failed.\n");

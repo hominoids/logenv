@@ -20,24 +20,24 @@
 */
 
 void usage(void);
-int itoa(int, char[]);
-int set_tty_attributes(int, int, bool);
-void sleep_ms(int);
+uint16_t itoa(uint32_t, char[]);
+uint16_t set_tty_attributes(uint16_t, uint16_t, bool);
+void sleep_ms(uint32_t);
 static void sig_handler(int);
 
 extern ssd1681_handle_t gs_handle;
-extern int displays(int (*op)(struct display *, int, int), struct display *, int, int);
-extern int ssd1681(struct display *, int, int);
-extern int ssd1306(struct display *, int, int);
+extern uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *, uint8_t, uint8_t);
+extern uint8_t ssd1681(struct display *, uint8_t, uint8_t);
+extern uint8_t ssd1306(struct display *, uint8_t, uint8_t);
 
 static volatile sig_atomic_t go = 1;
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
      *log_file, *gnuplot_file, *json_file;
 
-int display_count = 0;
-int page = 0;
-int pg_count = 2;
+uint8_t display_count = 0;
+uint8_t page = 0;
+uint8_t pg_count = 0;
 char display_time[10];
 char display_date[12];
 uint8_t count=0;
@@ -46,11 +46,11 @@ uint8_t result=0;
 time_t now;
 struct tm *t;
 
-int udp_socket;
-int sin_size;
+uint16_t udp_socket;
+uint16_t sin_size;
 struct sockaddr_in udp_server_addr;
 struct hostent *udp_host;
-static int udp_port = 5000;
+static uint16_t udp_port = 5000;
 static char udp_name[256] = "127.0.0.1";
 static char udp_tx_data[1024] = {0};
 
@@ -100,50 +100,50 @@ char two2one[] = "2,1";
 char three2one[] = "3,1";
 char four2one[] = "4,1";
 
-static int SP_ENABLE = 0;
-static int SENSOR_ENABLE = 0;
-static int FREQ_ENABLE = 0;
-static int MEM_ENABLE = 0;
-static int THERMAL_ENABLE = 0;
-static int QUIET_ENABLE = 0;
-static int VERBOSE_ENABLE = 0;
-static int INTERACTIVE_ENABLE = 0;
-static int LOG_ENABLE = 0;
-static int RAW_ENABLE = 0;
-static int GNUPLOT_ENABLE = 0;
-static int COUNT_ENABLE = 0;
-static int DT_ENABLE = 0;
-static int USAGE_ENABLE = 0;
-static int UDP_ENABLE = 0;
-static int OPTIONS_COUNT = 0;
+static uint8_t SP_ENABLE = 0;
+static uint8_t SENSOR_ENABLE = 0;
+static uint8_t FREQ_ENABLE = 0;
+static uint8_t MEM_ENABLE = 0;
+static uint8_t THERMAL_ENABLE = 0;
+static uint8_t QUIET_ENABLE = 0;
+static uint8_t VERBOSE_ENABLE = 0;
+static uint8_t INTERACTIVE_ENABLE = 0;
+static uint8_t LOG_ENABLE = 0;
+static uint8_t RAW_ENABLE = 0;
+static uint8_t GNUPLOT_ENABLE = 0;
+static uint8_t COUNT_ENABLE = 0;
+static uint8_t DT_ENABLE = 0;
+static uint8_t USAGE_ENABLE = 0;
+static uint8_t UDP_ENABLE = 0;
+static uint8_t OPTIONS_COUNT = 0;
 
-static int xmtics = 10;
-static int temperature;
-static int humidity;
-static int pressure;
-static int freq;
+static uint16_t xmtics = 10;
+static uint16_t temperature;
+static uint16_t humidity;
+static uint16_t pressure;
+static uint32_t freq;
 static float coretemp;
 static float volt;
 static float amp;
 static float watt;
 
 static double long sp_ms;
-static unsigned int in_mv;
-static unsigned int in_ma;
-static unsigned int in_w;
-static unsigned int in_on;
-static unsigned int ch1_mv;
-static unsigned int ch1_ma;
-static unsigned int ch1_w;
-static unsigned int ch1_on;
-static unsigned int ch1_int;
-static unsigned int ch2_mv;
-static unsigned int ch2_ma;
-static unsigned int ch2_w;
-static unsigned int ch2_on;
-static unsigned int ch2_int;
-static unsigned int chk_comp;
-static unsigned int chk_xor;
+static uint16_t in_mv;
+static uint16_t in_ma;
+static uint16_t in_w;
+static uint16_t in_on;
+static uint16_t ch1_mv;
+static uint16_t ch1_ma;
+static uint16_t ch1_w;
+static uint16_t ch1_on;
+static uint16_t ch1_int;
+static uint16_t ch2_mv;
+static uint16_t ch2_ma;
+static uint16_t ch2_w;
+static uint16_t ch2_on;
+static uint16_t ch2_int;
+static uint16_t chk_comp;
+static uint16_t chk_xor;
 static char gpscript_freq1[30];
 static char gpscript_freq2[30];
 static char gpscript_thermal1[30];

@@ -8,7 +8,7 @@
         "ysize": 200,
         "rotation": 0,
         "page": 0,
-        "seconds": 30,
+        "seconds": 20,
         "content": [
             {
             "name": "time",
@@ -128,7 +128,7 @@
         "ysize": 200,
         "rotation": 0,
         "page": 1,
-        "seconds": 10,
+        "seconds": 5,
         "content": [
             {
             "name": "time",
@@ -176,7 +176,7 @@
         "ysize": 200,
         "rotation": 0,
         "page": 2,
-        "seconds": 5,
+        "seconds": 15,
         "content": [
             {
             "name": "time",
@@ -191,23 +191,35 @@
             "unit": ""
             },
             {
-            "name": "date",
+            "name": "usage",
             "device": "",
             "address": 0,
-            "type": "",
-            "xloc": 55,
-            "yloc": 40,
+            "type": "NT",
+            "xloc": 5,
+            "yloc": 45,
             "color": 0,
             "font": "SSD1681_FONT_16",
             "label": "",
-            "unit": ""
+            "unit": "%"
+            },
+            {
+            "name": "memory",
+            "device": "",
+            "address": 0,
+            "type": "NT",
+            "xloc": 125,
+            "yloc": 45,
+            "color": 0,
+            "font": "SSD1681_FONT_16",
+            "label": "",
+            "unit": "%"
             },
             {
             "name": "frequency",
             "device": "",
             "address": 0,
-            "type": "NT",
-            "xloc": 5,
+            "type": "T",
+            "xloc": 125,
             "yloc": 60,
             "color": 0,
             "font": "SSD1681_FONT_16",

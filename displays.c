@@ -24,14 +24,14 @@
 #include "drivers/ssd1681/driver_ssd1681_interface.h"
 #include "displays.h"
 
-int displays(int (*op)(struct display *, int, int), struct display *ptr, int dcidx, int cmd) {
+uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     if(op(ptr, dcidx, cmd)) {
         return(1);
     }
     return(0);
 }
 
-int ssd1681(struct display *ptr, int dcidx, int cmd) {
+uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
         if(open_ssd1681()) {
@@ -135,7 +135,7 @@ int ssd1681(struct display *ptr, int dcidx, int cmd) {
     }
 }
 
-int ssd1306(struct display *ptr, int dcidx, int cmd) {
+uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
         return(0);
@@ -157,7 +157,7 @@ int ssd1306(struct display *ptr, int dcidx, int cmd) {
     }
 }
 
-int fontoi(char *font_name) {
+uint8_t fontoi(char *font_name) {
     if(!strcmp(font_name, "SSD1681_FONT_12")) {
         return(SSD1681_FONT_12);
     }
