@@ -55,9 +55,9 @@ struct display {
     uint16_t color;
     uint8_t page;
     uint16_t seconds;
-    uint8_t pg_count;
+    uint8_t init;
     uint8_t dc_count;
-    struct display_content dc[64];
+    struct display_content dc[32];
 };
 
 static uint8_t DISPLAY_ENABLE = 0;

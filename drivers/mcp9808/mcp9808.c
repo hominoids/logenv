@@ -27,7 +27,7 @@
 #include "mcp9808.h"
 
 int mcp9808_open(void) {
-        ioctl(sensor_in, I2C_SLAVE, 0x18);
+        ioctl(sensor_in, I2C_SLAVE, mcp9808_iic_addr);
         /*
          * Select configuration register(0x01)
          * Continuous conversion mode, Power-up default(0x00, 0x00)

@@ -42,12 +42,12 @@
 /**
  * @brief iic device name definition
  */
-#define IIC_DEVICE_NAME "/dev/i2c-0"        /**< iic device name */
+extern char bme280_iic_dev;
 
 /**
  * @brief spi device name definition
  */
-#define SPI_DEVICE_NAME "/dev/spidev0.0"    /**< spi device name */
+extern char spi_device_name;
 
 /**
  * @brief iic device handle definition
@@ -68,7 +68,7 @@ static int gs_spi_fd;                       /**< spi handle */
  */
 uint8_t bme280_interface_iic_init(void)
 {
-    return iic_init(IIC_DEVICE_NAME, &gs_iic_fd);
+    return iic_init(&bme280_iic_dev, &gs_iic_fd);
 }
 
 /**
@@ -124,7 +124,7 @@ uint8_t bme280_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uint
  */
 uint8_t bme280_interface_spi_init(void)
 {
-    return spi_init(SPI_DEVICE_NAME, &gs_spi_fd, SPI_MODE_TYPE_3, 1000 * 1000);
+    return spi_init(&spi_device_name, &gs_spi_fd, SPI_MODE_TYPE_3, 1000 * 1000);
 }
 
 /**

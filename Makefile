@@ -10,7 +10,8 @@ drivers/bmp180/driver_bmp180.o drivers/bmp180/driver_bmp180_basic.o \
 drivers/bmp180/driver_bmp180_interface.o \
 drivers/bme280/driver_bme280.o drivers/bme280/driver_bme280_basic.o \
 drivers/bme280/driver_bme280_shot.o drivers/bme280/driver_bme280_interface.o \
-drivers/interface/iic.o drivers/interface/spi.o drivers/mcp9808/mcp9808.o displays.o logenv.o 
+drivers/interface/iic.o drivers/interface/spi.o drivers/mcp9808/mcp9808.o \
+drivers/displays.o logenv.o 
 
 all: logenv
 

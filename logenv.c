@@ -55,16 +55,16 @@
 #include "drivers/scd4x/driver_scd4x_basic.h"
 #include "drivers/scd4x/driver_scd4x_shot.h"
 #include "drivers/sgp30/driver_sgp30_advance.h"
-#include "displays.h"
+#include "drivers/displays.h"
 #include "logenv.h"
 
 uint8_t main(uint8_t argc, char **argv) {
 
     signal(SIGINT, sig_handler);
 
-    struct display dp[4];
+    struct display dp[12];
+    memset(dp, 0, sizeof(struct display));
     cJSON *iterator = NULL;
-    scd4x_t chip_type = SCD41;
 
     if(argc == 1) {
         usage();
@@ -93,13 +93,13 @@ uint8_t main(uint8_t argc, char **argv) {
             char buffer[16384];
             uint16_t len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
-printf("json file read...\n");
+            if(VERBOSE_DEBUG) printf("json file read...\n");
             cJSON *root = cJSON_Parse(buffer);
             if (!cJSON_IsObject(root)) {
                 printf("\nERROR: Cannot parse JSON root structure.\n");
                 return EXIT_FAILURE;
             }
-printf("json root structure parsed...\n");
+            if(VERBOSE_DEBUG) printf("json root structure parsed...\n");
             cJSON *display = cJSON_GetObjectItemCaseSensitive(root, "displays");
             cJSON *item = display ? display->child : 0;
             while (item)
@@ -107,43 +107,52 @@ printf("json root structure parsed...\n");
                 cJSON *name = cJSON_GetObjectItemCaseSensitive(item, "name");
                 if (cJSON_IsString(name) && (name->valuestring != NULL)) {
                     strcpy(dp[DISPLAY_ENABLE].name, name->valuestring);
-printf("Displays: %s ", &dp[DISPLAY_ENABLE].name);
+                    if(VERBOSE_DEBUG) printf("Displays: %s ", &dp[DISPLAY_ENABLE].name);
                 }
                 cJSON *device = cJSON_GetObjectItemCaseSensitive(item, "device");
                 if (cJSON_IsString(device) && (device->valuestring)) {
                     strcpy(dp[DISPLAY_ENABLE].device, device->valuestring);
-printf("%s ", &dp[DISPLAY_ENABLE].device);
+                    if(strchr(dp[DISPLAY_ENABLE].device, 's')) {
+                        strcpy(spi_device_name, dp[DISPLAY_ENABLE].device);
+                    }
+                    if(strchr(dp[DISPLAY_ENABLE].device, 'c')) {
+                        strcpy(iic_device_name, dp[DISPLAY_ENABLE].device);
+                    }
+                    if(VERBOSE_DEBUG) printf("%s ", &dp[DISPLAY_ENABLE].device);
                 }
                 cJSON *address = cJSON_GetObjectItemCaseSensitive(item, "address");
                 if (cJSON_IsNumber(address)) {
                     dp[DISPLAY_ENABLE].address = address->valueint;
-printf("%d ", dp[DISPLAY_ENABLE].address);
+                    if(strchr(dp[DISPLAY_ENABLE].name, 'c')) {
+                        iic_device_address = dp[DISPLAY_ENABLE].address << 1;
+                    }
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].address);
                 }
                 cJSON *xsize = cJSON_GetObjectItemCaseSensitive(item, "xsize");
                 if (cJSON_IsNumber(xsize)) {
                     dp[DISPLAY_ENABLE].xsize = xsize->valueint;
-printf("%d ", dp[DISPLAY_ENABLE].xsize);
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].xsize);
                 }
                 cJSON *ysize = cJSON_GetObjectItemCaseSensitive(item, "ysize");
                 if (cJSON_IsNumber(ysize)) {
                     dp[DISPLAY_ENABLE].ysize = ysize->valueint;
-printf("%d ", dp[DISPLAY_ENABLE].ysize);
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].ysize);
                 }
                 cJSON *rotation = cJSON_GetObjectItemCaseSensitive(item, "rotation");
                 if (cJSON_IsNumber(rotation)) {
                     dp[DISPLAY_ENABLE].rotation = rotation->valueint;
-printf("%d ", dp[DISPLAY_ENABLE].rotation);
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].rotation);
                 }
                 cJSON *page = cJSON_GetObjectItemCaseSensitive(item, "page");
                 if (cJSON_IsNumber(page)) {
                     dp[DISPLAY_ENABLE].page = page->valueint;
                     pg_count++;
-printf("%d ", dp[DISPLAY_ENABLE].page);
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].page);
                 }
                 cJSON *seconds = cJSON_GetObjectItemCaseSensitive(item, "seconds");
                 if (cJSON_IsNumber(seconds)) {
                     dp[DISPLAY_ENABLE].seconds = seconds->valueint;
-printf("%d\n", dp[DISPLAY_ENABLE].seconds);
+                    if(VERBOSE_DEBUG) printf("%d\n", dp[DISPLAY_ENABLE].seconds);
                 }
                 uint8_t ac = 0;
                 cJSON *content = cJSON_GetObjectItemCaseSensitive(item, "content");
@@ -172,16 +181,18 @@ printf("%d\n", dp[DISPLAY_ENABLE].seconds);
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].label, label->valuestring);
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].unit, unit->valuestring);
 
-printf("  %s ", &dp[DISPLAY_ENABLE].dc[ac].name);
-printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].device);
-printf("%d ", dp[DISPLAY_ENABLE].dc[ac].address);
-printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].type);
-printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
-printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
-printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
-printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].font);
-printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].label);
-printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
+                    if(VERBOSE_DEBUG) {
+                        printf("  %s ", &dp[DISPLAY_ENABLE].dc[ac].name);
+                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].device);
+                        printf("%d ", dp[DISPLAY_ENABLE].dc[ac].address);
+                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].type);
+                        printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
+                        printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
+                        printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
+                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].font);
+                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].label);
+                        printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
+                    }
 
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"date")) {
                         DP_DATE++;
@@ -211,18 +222,28 @@ printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
                         DP_SP3CH2++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp180")) {
+                        strcpy(bmp180_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        bmp180_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         DP_BMP180++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme280")) {
+                        strcpy(bme280_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        bme280_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         DP_BME280++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"mcp9808")) {
+                        strcpy(mcp9808_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        mcp9808_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address;
                         DP_MCP9808++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
+                        strcpy(scd41_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        scd41_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         DP_SCD41++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sgp30")) {
+                        strcpy(sgp30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        sgp30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         DP_SGP30++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"text")) {
@@ -259,7 +280,7 @@ printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
                     }
                 }
                 DISPLAY_ENABLE++;
-printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
+                if(VERBOSE_DEBUG) printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
                 item=item->next;
             }
             cJSON_Delete(root);
@@ -281,7 +302,7 @@ printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
             DT_ENABLE = 1;
             OPTIONS_COUNT++;
         }
-        if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
+        if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--VERBOSE_DEBUG")) {
             VERBOSE_ENABLE = 1;
         }
         if(!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quiet")) {
@@ -387,7 +408,7 @@ printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
                     interface = argv[i+2];
                 }
 
-                if(bme280_basic_init(BME280_INTERFACE_IIC, BME280_ADDRESS_ADO_HIGH) != 0) {
+                if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
                     printf("\nERROR: Cannot open BME280 at %s\n", interface);
                     exit(1);
                 }
@@ -437,50 +458,25 @@ printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
         /*
          * scd41 command line options
          */
-        if(!strcmp(argv[i], "--scd41")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
-                }
-                if((scd41_in = open(sensor, O_RDWR)) < 0) {
-                    printf("\nERROR: Cannot open SCD41 at %s\n", sensor);
-                    exit(1);
-                }
-            }
-            OPTIONS_COUNT++;
-        }
-        if(DP_SCD41 >= 1) {
+        if(!strcmp(argv[i], "--scd41") || DP_SCD41 != 0) {
+            scd4x_t chip_type = SCD41;
             if (scd4x_shot_init(chip_type)) {
                 printf("\nERROR: SCD41 Init failed.\n");
                 exit(1);
             }
+            OPTIONS_COUNT++;
         }
         /*
          * sgp30 command line options
          */
-        if(!strcmp(argv[i], "--sgp30")) {
+        if(!strcmp(argv[i], "--sgp30") || DP_SGP30 != 0) {
             if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
-                }
-                if((sgp30_in = open(sensor, O_RDWR)) < 0) {
-                    printf("\nERROR: Cannot open SGP30 at %s\n", sensor);
+                if (sgp30_advance_init()) {
+                    printf("\nERROR: SGP30 Init failed.\n");
                     exit(1);
                 }
             }
             OPTIONS_COUNT++;
-        }
-        if(DP_SGP30 >= 1) {
-            if (sgp30_advance_init()) {
-                printf("\nERROR: SGP30 Init failed.\n");
-                exit(1);
-            }
         }
         /*
          * smartpower options command line options
@@ -1552,7 +1548,7 @@ printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
                                         strcpy(dp[d].dc[i].data1, buffer);
                                     }
                                     else {
-                                        sprintf(buffer, "core%d ", c);
+                                        sprintf(buffer, "core%d ", c-1);
                                         strcpy(dp[d].dc[i].data1, buffer);
                                     }
                                     sprintf(buffer, "%.2f", r);
@@ -2131,7 +2127,7 @@ void usage (void) {
         printf(" -m,  --memory                Physical memory usage (total - available, see man free)\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
-        printf(" -v,  --verbose               Readable dashboard output\n"); 
+        printf(" -v,  --VERBOSE_DEBUG               Readable dashboard output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
         printf(" -o,                          Output to eInk/Oled/LCD display using logenv.json\n");
         printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");

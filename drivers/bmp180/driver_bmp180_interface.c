@@ -42,7 +42,7 @@
 /**
  * @brief iic device name definition
  */
-#define IIC_DEVICE_NAME "/dev/i2c-0"        /**< iic device name */
+extern char bmp180_iic_dev;
 
 /**
  * @brief iic device handle definition
@@ -58,7 +58,7 @@ static int gs_fd;                           /**< iic handle */
  */
 uint8_t bmp180_interface_iic_init(void)
 {
-    return iic_init(IIC_DEVICE_NAME, &gs_fd);
+    return iic_init(&bmp180_iic_dev, &gs_fd);
 }
 
 /**

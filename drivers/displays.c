@@ -20,8 +20,8 @@
 */
 #include <stdint.h>
 #include <stdio.h>
-#include "drivers/ssd1681/driver_ssd1681_basic.h"
-#include "drivers/ssd1681/driver_ssd1681_interface.h"
+#include "ssd1681/driver_ssd1681_basic.h"
+#include "ssd1681/driver_ssd1681_interface.h"
 #include "displays.h"
 
 uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *ptr, uint8_t dcidx, uint8_t cmd) {

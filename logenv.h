@@ -35,16 +35,16 @@ static volatile sig_atomic_t go = 1;
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
      *log_file, *gnuplot_file, *json_file;
 
+bool VERBOSE_DEBUG = 1;
+
 uint8_t display_count = 0;
 uint8_t page = 0;
 uint8_t pg_count = 0;
-char display_time[10];
-char display_date[12];
-uint8_t count=0;
-uint8_t result=0;
 
 time_t now;
 struct tm *t;
+char display_time[10];
+char display_date[12];
 
 uint16_t udp_socket;
 uint16_t sin_size;
@@ -56,8 +56,19 @@ static char udp_tx_data[1024] = {0};
 
 uint16_t pwr_in;
 uint16_t sensor_in;
-uint16_t scd41_in;
-uint16_t sgp30_in;
+uint16_t iic_device_address = 0;
+uint16_t mcp9808_iic_addr = 0x18;
+uint16_t bme280_iic_addr = 0x76;
+uint16_t sgp30_iic_addr = 0x58;
+uint16_t scd41_iic_addr = 0x62;
+
+char iic_device_name[18] = "/dev/i2c-0";
+char spi_device_name[18] = "/dev/spidev0.0";
+char bmp180_iic_dev[14] = "/dev/i2c-0";
+char bme280_iic_dev[14] = "/dev/i2c-0";
+char mcp9808_iic_dev[14] = "/dev/i2c-0";
+char sgp30_iic_dev[14] = "/dev/i2c-0";
+char scd41_iic_dev[14] = "/dev/i2c-0";
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";

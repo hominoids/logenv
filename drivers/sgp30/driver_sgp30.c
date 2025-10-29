@@ -52,7 +52,7 @@
 /**
  * @brief chip address definition
  */
-#define SGP30_ADDRESS             (0x58 << 1)              /**< chip iic address */
+extern uint16_t sgp30_iic_addr;
 
 /**
  * @brief chip command definition
@@ -211,7 +211,7 @@ uint8_t sgp30_set_tvoc_baseline(sgp30_handle_t *handle, uint16_t tvoc_baseline)
     buf[0] = (tvoc_baseline >> 8) & 0xFF;                                                                        /* get high part */
     buf[1] = (tvoc_baseline >> 0) & 0xFF;                                                                        /* get low part */
     buf[2] = a_sgp30_generate_crc((uint8_t *)buf, 2);                                                            /* generate crc */
-    res = a_sgp30_iic_write(handle, SGP30_ADDRESS, SGP30_COMMAND_SET_TVOC_BASELINE, (uint8_t *)buf, 3);          /* write set tvoc baseline command */
+    res = a_sgp30_iic_write(handle, sgp30_iic_addr, SGP30_COMMAND_SET_TVOC_BASELINE, (uint8_t *)buf, 3);          /* write set tvoc baseline command */
     if (res != 0)                                                                                                /* check result */
     {
         handle->debug_print("sgp30: write tvoc baseline failed.\n");                                             /* write tvoc baseline failed */
@@ -249,7 +249,7 @@ uint8_t sgp30_get_tvoc_inceptive_baseline(sgp30_handle_t *handle, uint16_t *tvoc
     }
 
     memset(buf, 0, sizeof(uint8_t) * 3);                                                                                  /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_GET_TVOC_INCEPTIVE_BASELINE, (uint8_t *)buf, 3, 10);      /* read tvoc inceptive baseline */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_GET_TVOC_INCEPTIVE_BASELINE, (uint8_t *)buf, 3, 10);      /* read tvoc inceptive baseline */
     if (res != 0)                                                                                                         /* check result */
     {
         handle->debug_print("sgp30: read tvoc baseline failed.\n");                                                       /* read tvoc baseline failed */
@@ -290,7 +290,7 @@ uint8_t sgp30_iaq_init(sgp30_handle_t *handle)
         return 3;                                                                             /* return error */
     }
 
-    res = a_sgp30_iic_write(handle, SGP30_ADDRESS, SGP30_COMMAND_IAQ_INIT, NULL, 0);          /* write iaq init command */
+    res = a_sgp30_iic_write(handle, sgp30_iic_addr, SGP30_COMMAND_IAQ_INIT, NULL, 0);          /* write iaq init command */
     if (res != 0)                                                                             /* check result */
     {
         handle->debug_print("sgp30: write iaq init failed.\n");                               /* write iaq init failed */
@@ -364,7 +364,7 @@ uint8_t sgp30_get_serial_id(sgp30_handle_t *handle, uint16_t id[3])
     }
 
     memset(buf, 0, sizeof(uint8_t) * 9);                                                                    /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_GET_SERIAL_ID, (uint8_t *)buf, 9, 10);      /* read config */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_GET_SERIAL_ID, (uint8_t *)buf, 9, 10);      /* read config */
     if (res != 0)                                                                                           /* check result */
     {
         handle->debug_print("sgp30: read serial id failed.\n");                                             /* read serial id failed */
@@ -423,7 +423,7 @@ uint8_t sgp30_measure_iaq(sgp30_handle_t *handle, uint16_t *co2_eq_ppm, uint16_t
     }
 
     memset(buf, 0, sizeof(uint8_t) * 6);                                                                  /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_MEASURE_IAQ, (uint8_t *)buf, 6, 12);      /* read measure iaq */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_MEASURE_IAQ, (uint8_t *)buf, 6, 12);      /* read measure iaq */
     if (res != 0)                                                                                         /* check result */
     {
         handle->debug_print("sgp30: read measure iaq failed.\n");                                         /* read measure iaq failed */
@@ -475,7 +475,7 @@ uint8_t sgp30_get_iaq_baseline(sgp30_handle_t *handle, uint16_t *tvoc, uint16_t 
     }
 
     memset(buf, 0, sizeof(uint8_t) * 6);                                                                       /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_GET_IAQ_BASELINE, (uint8_t *)buf, 6, 10);      /* read iaq baseline */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_GET_IAQ_BASELINE, (uint8_t *)buf, 6, 10);      /* read iaq baseline */
     if (res != 0)                                                                                              /* check result */
     {
         handle->debug_print("sgp30: read measure iaq failed.\n");                                              /* read measure iaq failed */
@@ -533,7 +533,7 @@ uint8_t sgp30_set_iaq_baseline(sgp30_handle_t *handle, uint16_t tvoc, uint16_t c
     buf[3] = (co2_eq >> 8) & 0xFF;                                                                              /* set co2 eq high part */
     buf[4] = co2_eq & 0xFF;                                                                                     /* set co2 eq low part */
     buf[5] = a_sgp30_generate_crc((uint8_t *)&buf[3], 2);                                                       /* generate co2_eq crc */
-    res = a_sgp30_iic_write(handle, SGP30_ADDRESS, SGP30_COMMAND_SET_IAQ_BASELINE, (uint8_t *)buf, 6);          /* write iaq baseline command */
+    res = a_sgp30_iic_write(handle, sgp30_iic_addr, SGP30_COMMAND_SET_IAQ_BASELINE, (uint8_t *)buf, 6);          /* write iaq baseline command */
     if (res != 0)                                                                                               /* check result */
     {
         handle->debug_print("sgp30: write iaq baseline failed.\n");                                             /* write iaq baseline failed */
@@ -574,7 +574,7 @@ uint8_t sgp30_set_absolute_humidity(sgp30_handle_t *handle, uint16_t humidity)
     buf[0] = (humidity >> 8) & 0xFF;                                                                                 /* set humidity high part */
     buf[1] = (humidity >> 0) & 0xFF;                                                                                 /* set humidity low part */
     buf[2] = a_sgp30_generate_crc((uint8_t *)buf, 2);                                                                /* generate crc */
-    res = a_sgp30_iic_write(handle, SGP30_ADDRESS, SGP30_COMMAND_SET_ABSOLUTE_HUMIDITY, (uint8_t *)buf, 3);          /* write set absolute humidity command */
+    res = a_sgp30_iic_write(handle, sgp30_iic_addr, SGP30_COMMAND_SET_ABSOLUTE_HUMIDITY, (uint8_t *)buf, 3);          /* write set absolute humidity command */
     if (res != 0)                                                                                                    /* check result */
     {
         handle->debug_print("sgp30: write absolute humidity failed.\n");                                             /* write absolute humidity failed */
@@ -646,7 +646,7 @@ uint8_t sgp30_measure_test(sgp30_handle_t *handle, uint16_t *result)
     }
 
     memset(buf, 0, sizeof(uint8_t) * 3);                                                                   /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_MEASURE_TEST, (uint8_t *)buf, 3, 220);     /* read measure test */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_MEASURE_TEST, (uint8_t *)buf, 3, 220);     /* read measure test */
     if (res != 0)                                                                                          /* check result */
     {
         handle->debug_print("sgp30: read measure test failed.\n");                                         /* read measure test failed */
@@ -691,7 +691,7 @@ uint8_t sgp30_get_feature_set(sgp30_handle_t *handle, uint8_t *product_type, uin
     }
 
     memset(buf, 0, sizeof(uint8_t) * 3);                                                                      /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_GET_FEATURE_SET, (uint8_t *)buf, 3, 10);      /* read get feature set */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_GET_FEATURE_SET, (uint8_t *)buf, 3, 10);      /* read get feature set */
     if (res != 0)                                                                                             /* check result */
     {
         handle->debug_print("sgp30: get feature set failed.\n");                                              /* get feature set failed */
@@ -737,7 +737,7 @@ uint8_t sgp30_get_measure_raw(sgp30_handle_t *handle, uint16_t *tvoc, uint16_t *
     }
 
     memset(buf, 0, sizeof(uint8_t) * 6);                                                                    /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_MEASURE_RAW, (uint8_t *)buf, 6, 25);        /* read measure raw */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_MEASURE_RAW, (uint8_t *)buf, 6, 25);        /* read measure raw */
     if (res != 0)                                                                                           /* check result */
     {
         handle->debug_print("sgp30: read measure raw failed.\n");                                           /* read measure failed */
@@ -890,7 +890,7 @@ uint8_t sgp30_read(sgp30_handle_t *handle, uint16_t *co2_eq_ppm, uint16_t *tvoc_
     }
 
     memset(buf, 0, sizeof(uint8_t) * 6);                                                                  /* clear the buffer */
-    res = a_sgp30_iic_read(handle, SGP30_ADDRESS, SGP30_COMMAND_MEASURE_IAQ, (uint8_t *)buf, 6, 12);      /* read measure iaq */
+    res = a_sgp30_iic_read(handle, sgp30_iic_addr, SGP30_COMMAND_MEASURE_IAQ, (uint8_t *)buf, 6, 12);      /* read measure iaq */
     if (res != 0)                                                                                         /* check result */
     {
         handle->debug_print("sgp30: read measure iaq failed.\n");                                         /* read measure iaq failed */
@@ -939,7 +939,7 @@ uint8_t sgp30_set_reg(sgp30_handle_t *handle, uint16_t reg, uint8_t *buf, uint16
         return 3;                                                            /* return error */
     }
   
-    return a_sgp30_iic_write(handle, SGP30_ADDRESS, reg, buf, len);          /* write data */
+    return a_sgp30_iic_write(handle, sgp30_iic_addr, reg, buf, len);          /* write data */
 }
 
 /**
@@ -966,7 +966,7 @@ uint8_t sgp30_get_reg(sgp30_handle_t *handle, uint16_t reg, uint8_t *buf, uint16
         return 3;                                                           /* return error */
     }
   
-    return a_sgp30_iic_read(handle, SGP30_ADDRESS, reg, buf, len, 20);      /* read data */
+    return a_sgp30_iic_read(handle, sgp30_iic_addr, reg, buf, len, 20);      /* read data */
 }
 
 /**

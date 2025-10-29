@@ -43,6 +43,8 @@
  * @brief spi device name definition
  */
 #define SPI_DEVICE_NAME "/dev/spidev0.0"    /**< spi device name */
+//char spi_device_name[18] = SPI_DEVICE_NAME;
+extern char spi_device_name;
 
 /**
  * @brief spi device handle definition
@@ -58,7 +60,7 @@ static int gs_fd;                           /**< spi handle */
  */
 uint8_t ssd1681_interface_spi_init(void)
 {
-    return spi_init(SPI_DEVICE_NAME, &gs_fd, SPI_MODE_TYPE_3, 1000 * 1000);
+    return spi_init(&spi_device_name, &gs_fd, SPI_MODE_TYPE_3, 1000 * 1000);
 }
 
 /**
