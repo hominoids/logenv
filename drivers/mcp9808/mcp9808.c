@@ -27,7 +27,7 @@
 #include "mcp9808.h"
 
 int mcp9808_open(void) {
-        ioctl(sensor_in, I2C_SLAVE, mcp9808_iic_addr);
+        ioctl(mcp9808_in, I2C_SLAVE, mcp9808_iic_addr);
         /*
          * Select configuration register(0x01)
          * Continuous conversion mode, Power-up default(0x00, 0x00)
@@ -36,14 +36,14 @@ int mcp9808_open(void) {
         config[0] = 0x01;
         config[1] = 0x00;
         config[2] = 0x00;
-        write(sensor_in, config, 3);
+        write(mcp9808_in, config, 3);
         /*
          * Select resolution register(0x08)
          * Resolution = +0.0625 / C(0x03)
          */
         config[0] = 0x08;
         config[1] = 0x03;
-        write(sensor_in, config, 2);
+        write(mcp9808_in, config, 2);
 }
 
 float mcp9808_read(void) {
@@ -52,9 +52,9 @@ float mcp9808_read(void) {
          * temp msb, temp lsb
          */
         char reg[1] = {0x05};
-        write(sensor_in, reg, 1);
+        write(mcp9808_in, reg, 1);
         char data[2] = {0};
-        if(read(sensor_in, data, 2) != 2) {
+        if(read(mcp9808_in, data, 2) != 2) {
             printf("ERROR : MCP9808 Read Error \n");
             exit(1);
         }

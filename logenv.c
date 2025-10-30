@@ -84,6 +84,9 @@ uint8_t main(uint8_t argc, char **argv) {
             }
             GNUPLOT_ENABLE = 1;
         }
+        /*
+         * Load json display configuration
+         */
         if(!strcmp(argv[i], "-o")) {
             if((json_file = fopen("logenv.json", "r")) == NULL) {
                 printf("\nERROR: Cannot open file logenv.json\n\n");
@@ -94,12 +97,14 @@ uint8_t main(uint8_t argc, char **argv) {
             uint16_t len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
             if(VERBOSE_DEBUG) printf("json file read...\n");
+
             cJSON *root = cJSON_Parse(buffer);
             if (!cJSON_IsObject(root)) {
                 printf("\nERROR: Cannot parse JSON root structure.\n");
                 return EXIT_FAILURE;
             }
             if(VERBOSE_DEBUG) printf("json root structure parsed...\n");
+
             cJSON *display = cJSON_GetObjectItemCaseSensitive(root, "displays");
             cJSON *item = display ? display->child : 0;
             while (item)
@@ -154,6 +159,9 @@ uint8_t main(uint8_t argc, char **argv) {
                     dp[DISPLAY_ENABLE].seconds = seconds->valueint;
                     if(VERBOSE_DEBUG) printf("%d\n", dp[DISPLAY_ENABLE].seconds);
                 }
+                /*
+                 * Read display content array entries
+                 */
                 uint8_t ac = 0;
                 cJSON *content = cJSON_GetObjectItemCaseSensitive(item, "content");
                 cJSON_ArrayForEach(iterator, content)
@@ -224,26 +232,53 @@ uint8_t main(uint8_t argc, char **argv) {
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp180")) {
                         strcpy(bmp180_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bmp180_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(bmp180_basic_init() != 0) {
+                            printf("\nERROR: Cannot open BMP180 at %s\n", interface);
+                            exit(1);
+                        }
+                        bmp180_iic_init = 1;
                         DP_BMP180++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme280")) {
                         strcpy(bme280_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bme280_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
+                            printf("\nERROR: Cannot open BME280 at %s\n", interface);
+                            exit(1);
+                        }
+                        bme280_iic_init = 1;
                         DP_BME280++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"mcp9808")) {
                         strcpy(mcp9808_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         mcp9808_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address;
+                        if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
+                            printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
+                            exit(1);
+                        }
+                        mcp9808_open();
+                        mcp9808_iic_init = 1;
                         DP_MCP9808++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
                         strcpy(scd41_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         scd41_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        scd4x_t chip_type = SCD41;
+                        if (scd4x_shot_init(chip_type)) {
+                            printf("\nERROR: SCD41 Init failed.\n");
+                            exit(1);
+                        }
+                        scd41_iic_init = 1;
                         DP_SCD41++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sgp30")) {
                         strcpy(sgp30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         sgp30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if (sgp30_advance_init()) {
+                            printf("\nERROR: SGP30 Init failed.\n");
+                            exit(1);
+                        }
+                        sgp30_iic_init = 1;
                         DP_SGP30++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"text")) {
@@ -302,7 +337,7 @@ uint8_t main(uint8_t argc, char **argv) {
             DT_ENABLE = 1;
             OPTIONS_COUNT++;
         }
-        if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--VERBOSE_DEBUG")) {
+        if(!strcmp(argv[i], "-v") || !strcmp(argv[i], "--verbose")) {
             VERBOSE_ENABLE = 1;
         }
         if(!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quiet")) {
@@ -399,7 +434,7 @@ uint8_t main(uint8_t argc, char **argv) {
         /*
          * ambient temperature command line options
          */
-        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280") || DP_BME280 >= 1) {
+        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
@@ -407,74 +442,100 @@ uint8_t main(uint8_t argc, char **argv) {
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
                 }
-
-                if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
-                    printf("\nERROR: Cannot open BME280 at %s\n", interface);
-                    exit(1);
+                if(bme280_iic_init == 0) {
+                    strcpy(bme280_iic_dev, interface);
+                    if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BME280 at %s\n", interface);
+                        exit(1);
+                    }
+                    bme280_iic_init == 1;
                 }
             }
-            if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280")) {
-                SENSOR_ENABLE = 2;
-                OPTIONS_COUNT++;
-            }
+            SENSOR_ENABLE = 2;
+            OPTIONS_COUNT++;
         }
-        if(!strcmp(argv[i], "--bmp180") || DP_BMP180 >= 1) {
+        if(!strcmp(argv[i], "--bmp180")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
+                    interface = argv[i+1];
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
+                    interface = argv[i+2];
                 }
-                if(bmp180_basic_init() != 0) {
-                    printf("\nERROR: Cannot open BMP180 at %s\n", interface);
-                    exit(1);
+                if(bmp180_iic_init == 0) {
+                    strcpy(bmp180_iic_dev, interface);
+                    if(bmp180_basic_init() != 0) {
+                        printf("\nERROR: Cannot open BMP180 at %s\n", interface);
+                        exit(1);
+                    }
+                    bmp180_iic_init == 1;
                 }
             }
-            if(!strcmp(argv[i], "--bmp180")) {
-                SENSOR_ENABLE = 1;
-                OPTIONS_COUNT++;
-            }
+            SENSOR_ENABLE = 1;
+            OPTIONS_COUNT++;
         }
-        if(!strcmp(argv[i], "--mcp9808") || DP_MCP9808 >= 1) {
+        if(!strcmp(argv[i], "--mcp9808")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
+                    interface = argv[i+1];
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
+                    interface = argv[i+2];
                 }
-                if((sensor_in = open(sensor, O_RDWR)) < 0) {
-                    printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
-                    exit(1);
+                if(mcp9808_iic_init == 0) {
+                    strcpy(mcp9808_iic_dev, interface);
+                    if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
+                        printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
+                        exit(1);
+                    }
+                    mcp9808_open();
+                    mcp9808_iic_init == 1;
                 }
-                mcp9808_open();
             }
-            if(!strcmp(argv[i], "--mcp9808")) {
-                SENSOR_ENABLE = 3;
-                OPTIONS_COUNT++;
-            }
+            SENSOR_ENABLE = 3;
+            OPTIONS_COUNT++;
         }
         /*
          * scd41 command line options
          */
-        if(!strcmp(argv[i], "--scd41") || DP_SCD41 != 0) {
+        if(!strcmp(argv[i], "--scd41")) {
             scd4x_t chip_type = SCD41;
-            if (scd4x_shot_init(chip_type)) {
-                printf("\nERROR: SCD41 Init failed.\n");
-                exit(1);
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(scd41_iic_init == 0) {
+                    strcpy(scd41_iic_dev, interface);
+                    if (scd4x_shot_init(chip_type)) {
+                        printf("\nERROR: SCD41 Init failed.\n");
+                        exit(1);
+                    }
+                    scd41_iic_init == 1;
+                }
             }
             OPTIONS_COUNT++;
         }
         /*
          * sgp30 command line options
          */
-        if(!strcmp(argv[i], "--sgp30") || DP_SGP30 != 0) {
+        if(!strcmp(argv[i], "--sgp30")) {
             if(GNUPLOT_ENABLE != 1) {
-                if (sgp30_advance_init()) {
-                    printf("\nERROR: SGP30 Init failed.\n");
-                    exit(1);
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
                 }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(sgp30_iic_init == 0) {
+                    if (sgp30_advance_init()) {
+                        printf("\nERROR: SGP30 Init failed.\n");
+                        exit(1);
+                    }
+                    sgp30_iic_init == 1;
+                 }
             }
             OPTIONS_COUNT++;
         }
@@ -569,10 +630,10 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
                 OPTIONS_COUNT--;
             }
-            if(DP_TIME >= 1 || DP_DATE >= 1){
+            if(DP_TIME  != 0 || DP_DATE  != 0){
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(DISPLAY_ENABLE >= 1 && DP_TIME >= 1 && !strcmp(dp[d].dc[i].name, "time")) {
+                        if(DISPLAY_ENABLE != 0 && DP_TIME != 0 && !strcmp(dp[d].dc[i].name, "time")) {
                             uint16_t count = 0;
                             uint16_t result = 0;
                             now = time((time_t *)NULL);
@@ -591,7 +652,7 @@ uint8_t main(uint8_t argc, char **argv) {
                                 }
                             }
                         }
-                        if(DISPLAY_ENABLE >= 1 && DP_DATE >= 1 && !strcmp(dp[d].dc[i].name, "date")) {
+                        if(DISPLAY_ENABLE  != 0 && DP_DATE  != 0 && !strcmp(dp[d].dc[i].name, "date")) {
                             uint16_t count = 0;
                             uint16_t result = 0;
                             now = time((time_t *)NULL);
@@ -738,7 +799,7 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
                 OPTIONS_COUNT--;
             }
-            if(DP_FREQ >= 1) {
+            if(DP_FREQ != 0) {
                 for (uint16_t c = 0; c < FREQ_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
@@ -868,7 +929,7 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
                 OPTIONS_COUNT--;
             }
-            if(DP_THERMAL >= 1) {
+            if(DP_THERMAL != 0) {
                 for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
@@ -961,7 +1022,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     }
                     OPTIONS_COUNT--;
                 }
-                if(DP_MCP9808 >= 1) {
+                if(DP_MCP9808 != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
@@ -995,8 +1056,7 @@ uint8_t main(uint8_t argc, char **argv) {
                 float pressure_f;
 
                 uint8_t res = bme280_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
-                if (res != 0)
-                {
+                if (res != 0) {
                     (void)bme280_basic_deinit();
                     printf("ERROR: bme280 read failed.\n");
                     return 1;
@@ -1049,15 +1109,14 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             OPTIONS_COUNT--;
             }
-            if(DP_BME280 >= 1) {
+            if(DP_BME280 != 0) {
 
                 float temperature_f;
                 float humidity_f;
                 float pressure_f;
 
                 uint8_t res = bme280_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
-                if (res != 0)
-                {
+                if (res != 0) {
                     (void)bme280_basic_deinit();
                     printf("ERROR: bme280 read failed.\n");
                     return 1;
@@ -1099,8 +1158,7 @@ uint8_t main(uint8_t argc, char **argv) {
                 uint32_t pressure;
 
                 uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
-                if (res != 0)
-                {
+                if (res != 0) {
                     bmp180_basic_deinit();
                     printf("ERROR: bmp180 read failed.\n");
                     return 1;
@@ -1146,15 +1204,14 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             OPTIONS_COUNT--;
             }
-            if(DP_BMP180 >= 1) {
+            if(DP_BMP180 != 0) {
 
                 float temperature_f;
                 float humidity_f;
                 uint32_t pressure;
 
                 uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
-                if (res != 0)
-                {
+                if (res != 0) {
                     bmp180_basic_deinit();
                     printf("ERROR: bmp180 read failed.\n");
                     return 1;
@@ -1187,7 +1244,7 @@ uint8_t main(uint8_t argc, char **argv) {
              /*
              * SCD41 enabled
              */
-            if(DP_SCD41 >= 1) {
+            if(DP_SCD41 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1229,7 +1286,7 @@ uint8_t main(uint8_t argc, char **argv) {
             /*
              * SGP30 enabled
              */
-            if(DP_SGP30 >= 1) {
+            if(DP_SGP30 != 0) {
 
                 uint16_t co2_eq_ppm = 0;
                 uint16_t tvoc_ppb = 0;
@@ -1266,7 +1323,7 @@ uint8_t main(uint8_t argc, char **argv) {
             /*
              * SmartPower enabled
              */
-            if(SP_ENABLE > 0) {
+            if(SP_ENABLE != 0) {
 
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
@@ -2080,10 +2137,7 @@ uint8_t main(uint8_t argc, char **argv) {
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
     }
-    if (SENSOR_ENABLE > 0) {
-        close(sensor_in);
-    }
-    if (SP_ENABLE > 0) {
+    if (SP_ENABLE != 0) {
         close(pwr_in);
     }
     if (UDP_ENABLE == 1) {
@@ -2092,17 +2146,20 @@ uint8_t main(uint8_t argc, char **argv) {
     if (DISPLAY_ENABLE == 1) {
         (void)ssd1681_deinit(&gs_handle);
     }
-    if (DP_SCD41 > 0) {
+    if (DP_SCD41 != 0) {
         (void)scd4x_shot_deinit();
     }
-    if (DP_SGP30 > 0) {
+    if (DP_SGP30 != 0) {
         (void)sgp30_advance_deinit();
     }
-    if (DP_BMP180 > 0) {
+    if (DP_BMP180 != 0) {
         (void)bmp180_basic_deinit();
     }
-    if (DP_BME280 > 0) {
+    if (DP_BME280 != 0) {
         (void)bme280_basic_deinit();
+    }
+    if (SENSOR_ENABLE != 0 || DP_MCP9808 != 0) {
+        close(mcp9808_in);
     }
 }
 
@@ -2117,9 +2174,9 @@ void usage (void) {
         printf(" -i,  --milliseconds <number> Poll Interval <number> in milliseconds\n");
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -a,  --bme280 <device>       Ambient Temperature Sensor, BME280 Temperature Sensor default /dev/i2c-0\n");
-        printf("      --bmp180 <device>       BMP180 Sensor, default /dev/i2c-0\n");
-        printf("      --mcp9808 <device>      MCP9808 Sensor, default /dev/i2c-0\n");
+        printf(" -a,  --bme280 <device>       Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
+        printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
@@ -2127,10 +2184,12 @@ void usage (void) {
         printf(" -m,  --memory                Physical memory usage (total - available, see man free)\n");
         printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
-        printf(" -v,  --VERBOSE_DEBUG               Readable dashboard output\n"); 
+        printf(" -v,  --verbose               Readable dashboard output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
         printf(" -o,                          Output to eInk/Oled/LCD display using logenv.json\n");
         printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
+        printf(" -s,  --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0\n");
+        printf("      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");
         printf("      --xmtics <number>       Chart x-axis major second tics <number>\n");

@@ -55,20 +55,30 @@ static char udp_name[256] = "127.0.0.1";
 static char udp_tx_data[1024] = {0};
 
 uint16_t pwr_in;
-uint16_t sensor_in;
+uint16_t mcp9808_in;
 uint16_t iic_device_address = 0;
-uint16_t mcp9808_iic_addr = 0x18;
-uint16_t bme280_iic_addr = 0x76;
-uint16_t sgp30_iic_addr = 0x58;
-uint16_t scd41_iic_addr = 0x62;
-
 char iic_device_name[18] = "/dev/i2c-0";
 char spi_device_name[18] = "/dev/spidev0.0";
-char bmp180_iic_dev[14] = "/dev/i2c-0";
-char bme280_iic_dev[14] = "/dev/i2c-0";
+
+uint16_t mcp9808_iic_addr = 0x18;
 char mcp9808_iic_dev[14] = "/dev/i2c-0";
+uint8_t mcp9808_iic_init = 0;
+
+uint16_t bmp180_iic_addr = 0xEE;
+char bmp180_iic_dev[14] = "/dev/i2c-0";
+uint8_t bmp180_iic_init = 0;
+
+uint16_t bme280_iic_addr = 0x76;
+char bme280_iic_dev[14] = "/dev/i2c-0";
+uint8_t bme280_iic_init = 0;
+
+uint16_t sgp30_iic_addr = 0x58;
 char sgp30_iic_dev[14] = "/dev/i2c-0";
+uint8_t sgp30_iic_init = 0;
+
+uint16_t scd41_iic_addr = 0x62;
 char scd41_iic_dev[14] = "/dev/i2c-0";
+uint8_t scd41_iic_init = 0;
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
@@ -155,6 +165,7 @@ static uint16_t ch2_on;
 static uint16_t ch2_int;
 static uint16_t chk_comp;
 static uint16_t chk_xor;
+
 static char gpscript_freq1[30];
 static char gpscript_freq2[30];
 static char gpscript_thermal1[30];
