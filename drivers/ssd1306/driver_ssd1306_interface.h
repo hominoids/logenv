@@ -21,33 +21,66 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. 
  *
- * @file      raspberrypi4b_driver_ssd1681_interface.c
- * @brief     raspberrypi4b driver ssd1681 interface source file
- * @version   1.0.0
+ * @file      driver_ssd1306_interface.h
+ * @brief     driver ssd1306 interface header file
+ * @version   2.0.0
  * @author    Shifeng Li
- * @date      2022-08-30
+ * @date      2021-03-30
  *
  * <h3>history</h3>
  * <table>
  * <tr><th>Date        <th>Version  <th>Author      <th>Description
- * <tr><td>2022/08/30  <td>1.0      <td>Shifeng Li  <td>first upload
+ * <tr><td>2021/03/30  <td>2.0      <td>Shifeng Li  <td>format the code
+ * <tr><td>2020/12/10  <td>1.0      <td>Shifeng Li  <td>first upload
  * </table>
  */
 
-#include "driver_ssd1681_interface.h"
-#include "../interface/spi.h"
-#include "../interface/wire.h"
-#include <stdarg.h>
+#ifndef DRIVER_SSD1306_INTERFACE_H
+#define DRIVER_SSD1306_INTERFACE_H
+
+#include "driver_ssd1306.h"
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 /**
- * @brief spi device name definition
+ * @defgroup ssd1306_interface_driver ssd1306 interface driver function
+ * @brief    ssd1306 interface driver modules
+ * @ingroup  ssd1306_driver
+ * @{
  */
-extern char ssd1681_spi_dev;
 
 /**
- * @brief spi device handle definition
+ * @brief  interface iic bus init
+ * @return status code
+ *         - 0 success
+ *         - 1 iic init failed
+ * @note   none
  */
-static int gs_fd;                           /**< spi handle */
+uint8_t ssd1306_interface_iic_init(void);
+
+/**
+ * @brief  interface iic bus deinit
+ * @return status code
+ *         - 0 success
+ *         - 1 iic deinit failed
+ * @note   none
+ */
+uint8_t ssd1306_interface_iic_deinit(void);
+
+/**
+ * @brief     interface iic bus write
+ * @param[in] addr iic device write address
+ * @param[in] reg iic register address
+ * @param[in] *buf pointer to a data buffer
+ * @param[in] len length of the data buffer
+ * @return    status code
+ *            - 0 success
+ *            - 1 write failed
+ * @note      none
+ */
+uint8_t ssd1306_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uint16_t len);
 
 /**
  * @brief  interface spi bus init
@@ -56,10 +89,7 @@ static int gs_fd;                           /**< spi handle */
  *         - 1 spi init failed
  * @note   none
  */
-uint8_t ssd1681_interface_spi_init(void)
-{
-    return spi_init(&ssd1681_spi_dev, &gs_fd, SPI_MODE_TYPE_3, 1000 * 1000);
-}
+uint8_t ssd1306_interface_spi_init(void);
 
 /**
  * @brief  interface spi bus deinit
@@ -68,10 +98,7 @@ uint8_t ssd1681_interface_spi_init(void)
  *         - 1 spi deinit failed
  * @note   none
  */
-uint8_t ssd1681_interface_spi_deinit(void)
-{
-    return spi_deinit(gs_fd);
-}
+uint8_t ssd1306_interface_spi_deinit(void);
 
 /**
  * @brief     interface spi bus write
@@ -82,54 +109,21 @@ uint8_t ssd1681_interface_spi_deinit(void)
  *            - 1 write failed
  * @note      none
  */
-uint8_t ssd1681_interface_spi_write_cmd(uint8_t *buf, uint16_t len)
-{
-    return spi_write_cmd(gs_fd, buf, len);
-}
-
-/**
- * @brief      interface spi bus read
- * @param[out] *buf pointer to a data buffer
- * @param[in]  len length of data buffer
- * @return     status code
- *             - 0 success
- *             - 1 read failed
- * @note       none
- */
-uint8_t ssd1681_interface_spi_read_cmd(uint8_t *buf, uint16_t len)
-{
-    return spi_read_cmd(gs_fd, buf, len);
-}
+uint8_t ssd1306_interface_spi_write_cmd(uint8_t *buf, uint16_t len);
 
 /**
  * @brief     interface delay ms
  * @param[in] ms time
  * @note      none
  */
-void ssd1681_interface_delay_ms(uint32_t ms)
-{
-    usleep(1000 * ms);
-}
+void ssd1306_interface_delay_ms(uint32_t ms);
 
 /**
  * @brief     interface print format data
  * @param[in] fmt format data
  * @note      none
  */
-void ssd1681_interface_debug_print(const char *const fmt, ...)
-{
-    char str[256];
-    uint16_t len;
-    va_list args;
-    
-    memset((char *)str, 0, sizeof(char) * 256); 
-    va_start(args, fmt);
-    vsnprintf((char *)str, 255, (char const *)fmt, args);
-    va_end(args);
-    
-    len = strlen((char *)str);
-    (void)printf((uint8_t *)str, len);
-}
+void ssd1306_interface_debug_print(const char *const fmt, ...);
 
 /**
  * @brief  interface command && data gpio init
@@ -138,10 +132,7 @@ void ssd1681_interface_debug_print(const char *const fmt, ...)
  *         - 1 gpio init failed
  * @note   none
  */
-uint8_t ssd1681_interface_spi_cmd_data_gpio_init(void)
-{
-    return wire_cs_init();
-}
+uint8_t ssd1306_interface_spi_cmd_data_gpio_init(void);
 
 /**
  * @brief  interface command && data gpio deinit
@@ -150,10 +141,7 @@ uint8_t ssd1681_interface_spi_cmd_data_gpio_init(void)
  *         - 1 gpio deinit failed
  * @note   none
  */
-uint8_t ssd1681_interface_spi_cmd_data_gpio_deinit(void)
-{
-    return wire_cs_deinit();
-}
+uint8_t ssd1306_interface_spi_cmd_data_gpio_deinit(void);
 
 /**
  * @brief     interface command && data gpio write
@@ -163,10 +151,7 @@ uint8_t ssd1681_interface_spi_cmd_data_gpio_deinit(void)
  *            - 1 gpio write failed
  * @note      none
  */
-uint8_t ssd1681_interface_spi_cmd_data_gpio_write(uint8_t value)
-{
-    return wire_cs_write(value);
-}
+uint8_t ssd1306_interface_spi_cmd_data_gpio_write(uint8_t value);
 
 /**
  * @brief  interface reset gpio init
@@ -175,10 +160,7 @@ uint8_t ssd1681_interface_spi_cmd_data_gpio_write(uint8_t value)
  *         - 1 gpio init failed
  * @note   none
  */
-uint8_t ssd1681_interface_reset_gpio_init(void)
-{
-    return wire_clock_init();
-}
+uint8_t ssd1306_interface_reset_gpio_init(void);
 
 /**
  * @brief  interface reset gpio deinit
@@ -187,10 +169,7 @@ uint8_t ssd1681_interface_reset_gpio_init(void)
  *         - 1 gpio deinit failed
  * @note   none
  */
-uint8_t ssd1681_interface_reset_gpio_deinit(void)
-{
-    return wire_clock_deinit();
-}
+uint8_t ssd1306_interface_reset_gpio_deinit(void);
 
 /**
  * @brief     interface reset gpio write
@@ -200,44 +179,14 @@ uint8_t ssd1681_interface_reset_gpio_deinit(void)
  *            - 1 gpio write failed
  * @note      none
  */
-uint8_t ssd1681_interface_reset_gpio_write(uint8_t value)
-{
-    return wire_clock_write(value);
-}
+uint8_t ssd1306_interface_reset_gpio_write(uint8_t value);
 
 /**
- * @brief  interface busy gpio init
- * @return status code
- *         - 0 success
- *         - 1 gpio init failed
- * @note   none
+ * @}
  */
-uint8_t ssd1681_interface_busy_gpio_init(void)
-{
-    return wire_init();
-}
 
-/**
- * @brief  interface busy gpio deinit
- * @return status code
- *         - 0 success
- *         - 1 gpio deinit failed
- * @note   none
- */
-uint8_t ssd1681_interface_busy_gpio_deinit(void)
-{
-    return wire_deinit();
+#ifdef __cplusplus
 }
+#endif
 
-/**
- * @brief      interface busy gpio read
- * @param[out] *value pointer to a value buffer
- * @return     status code
- *             - 0 success
- *             - 1 gpio read failed
- * @note       none
- */
-uint8_t ssd1681_interface_busy_gpio_read(uint8_t *value)
-{
-    return wire_read(value);
-}
+#endif

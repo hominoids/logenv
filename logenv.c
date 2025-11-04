@@ -48,7 +48,9 @@
 #include <unistd.h>
 #include <cjson/cJSON.h>
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
-#include "drivers/ssd1681/driver_ssd1681_interface.h"
+//#include "drivers/ssd1681/driver_ssd1681_interface.h"
+#include "drivers/ssd1306/driver_ssd1306_advance.h"
+//#include "drivers/ssd1306/driver_ssd1306_interface.h"
 #include "drivers/bmp180/driver_bmp180_basic.h"
 #include "drivers/bme280/driver_bme280_basic.h"
 #include "drivers/mcp9808/mcp9808.h"
@@ -117,12 +119,6 @@ uint8_t main(uint8_t argc, char **argv) {
                 cJSON *device = cJSON_GetObjectItemCaseSensitive(item, "device");
                 if (cJSON_IsString(device) && (device->valuestring)) {
                     strcpy(dp[DISPLAY_ENABLE].device, device->valuestring);
-                    if(strchr(dp[DISPLAY_ENABLE].device, 's')) {
-                        strcpy(spi_device_name, dp[DISPLAY_ENABLE].device);
-                    }
-                    if(strchr(dp[DISPLAY_ENABLE].device, 'c')) {
-                        strcpy(iic_device_name, dp[DISPLAY_ENABLE].device);
-                    }
                     if(VERBOSE_DEBUG) printf("%s ", &dp[DISPLAY_ENABLE].device);
                 }
                 cJSON *address = cJSON_GetObjectItemCaseSensitive(item, "address");
@@ -303,12 +299,20 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
                 dp[DISPLAY_ENABLE].dc_count = ac;
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1681") && dp[DISPLAY_ENABLE].page == 0) {
+                    strcpy(ssd1681_spi_dev, dp[DISPLAY_ENABLE].device);
                     if(displays(ssd1681, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") && dp[DISPLAY_ENABLE].page == 0) {
+                    ssd1306_iic_addr = dp[DISPLAY_ENABLE].address;
+                    if(strchr(dp[DISPLAY_ENABLE].device, 's')) {
+                        strcpy(ssd1306_spi_dev, dp[DISPLAY_ENABLE].device);
+                    }
+                    if(strchr(dp[DISPLAY_ENABLE].device, 'c')) {
+                        strcpy(ssd1306_iic_dev, dp[DISPLAY_ENABLE].device);
+                    }
                     if(displays(ssd1306, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
@@ -1761,13 +1765,13 @@ uint8_t main(uint8_t argc, char **argv) {
             }
             if(DISPLAY_ENABLE != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == 0) {
+                    if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
                         if(displays(ssd1681, &dp[d], 0, DISPLAY_UPDATE)){
                             printf("%s update failed\n", &dp[d].name);
                         }
                     }
 
-                    if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == 0) {
+                    if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                         if(displays(ssd1306, &dp[d], 0, DISPLAY_UPDATE)){
                             printf("%s update failed\n", &dp[d].name);
                         }
@@ -1789,12 +1793,11 @@ uint8_t main(uint8_t argc, char **argv) {
                     else {
                         page = 0;
                     }
-                    if (ssd1681_gram_clear(&gs_handle, SSD1681_COLOR_BLACK)) {
+                    if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
                         ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
-                        (void)ssd1681_deinit(&gs_handle);
+                        (void)ssd1681_deinit(&ssd1681_handle);
                         return 1;
                     }
-
                 }
             }
             else {
@@ -2144,7 +2147,7 @@ uint8_t main(uint8_t argc, char **argv) {
         close(udp_socket);
     }
     if (DISPLAY_ENABLE == 1) {
-        (void)ssd1681_deinit(&gs_handle);
+        (void)ssd1681_deinit(&ssd1681_handle);
     }
     if (DP_SCD41 != 0) {
         (void)scd4x_shot_deinit();

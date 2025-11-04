@@ -25,7 +25,8 @@ uint16_t set_tty_attributes(uint16_t, uint16_t, bool);
 void sleep_ms(uint32_t);
 static void sig_handler(int);
 
-extern ssd1681_handle_t gs_handle;
+extern ssd1681_handle_t ssd1681_handle;
+extern ssd1306_handle_t ssd1306_handle;
 extern uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *, uint8_t, uint8_t);
 extern uint8_t ssd1681(struct display *, uint8_t, uint8_t);
 extern uint8_t ssd1306(struct display *, uint8_t, uint8_t);
@@ -53,6 +54,13 @@ struct hostent *udp_host;
 static uint16_t udp_port = 5000;
 static char udp_name[256] = "127.0.0.1";
 static char udp_tx_data[1024] = {0};
+
+char ssd1681_spi_dev[18] = "/dev/spidev0.0";
+
+uint16_t ssd1306_iic_addr = 0x62;
+char ssd1306_iic_dev[14] = "/dev/i2c-0";
+char ssd1306_spi_dev[14] = "/dev/spidev0.0";
+uint8_t ssd1306_iic_init = 0;
 
 uint16_t pwr_in;
 uint16_t mcp9808_in;
@@ -137,6 +145,28 @@ static uint8_t DT_ENABLE = 0;
 static uint8_t USAGE_ENABLE = 0;
 static uint8_t UDP_ENABLE = 0;
 static uint8_t OPTIONS_COUNT = 0;
+
+static uint8_t DISPLAY_ENABLE = 0;
+static uint8_t DP_TIME = 0;
+static uint8_t DP_DATE = 0;
+static uint8_t DP_FREQ = 0;
+static uint8_t DP_THERMAL = 0;
+static uint8_t DP_MEMORY = 0;
+static uint8_t DP_USAGE = 0;
+static uint8_t DP_SP2 = 0;
+static uint8_t DP_SP3CH1 = 0;
+static uint8_t DP_SP3CH2 = 0;
+static uint8_t DP_BMP180 = 0;
+static uint8_t DP_BME280 = 0;
+static uint8_t DP_MCP9808 = 0;
+static uint8_t DP_SCD41 = 0;
+static uint8_t DP_SGP30 = 0;
+static uint8_t DP_TEXT = 0;
+static uint8_t DP_POINT = 0;
+static uint8_t DP_LINE = 0;
+static uint8_t DP_CIRCLE = 0;
+static uint8_t DP_RECTANGLE = 0;
+static uint8_t DP_IMAGE = 0;
 
 static uint16_t xmtics = 10;
 static uint16_t temperature;

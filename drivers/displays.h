@@ -18,11 +18,16 @@
     displays.h
 
 */
-extern uint8_t display_count;
-extern uint8_t page;
-extern char display_time[];
-extern char display_date[];
-extern ssd1681_handle_t gs_handle;
+
+#define DISPLAY_OPEN 1
+#define DISPLAY_WRITE 2
+#define DISPLAY_READ 3
+#define DISPLAY_UPDATE 4
+#define DISPLAY_CLOSE 5
+#define DISPLAY_TIME 6
+#define DISPLAY_DATE 7
+#define DISPLAY_THERMAL 8
+#define DISPLAY_SENSOR 9
 
 uint8_t fontoi(char *);
 uint8_t open_ssd1681(void);
@@ -59,36 +64,4 @@ struct display {
     uint8_t dc_count;
     struct display_content dc[32];
 };
-
-static uint8_t DISPLAY_ENABLE = 0;
-static uint8_t DISPLAY_OPEN = 1;
-static uint8_t DISPLAY_WRITE = 2;
-static uint8_t DISPLAY_READ = 3;
-static uint8_t DISPLAY_UPDATE = 4;
-static uint8_t DISPLAY_CLOSE = 5;
-static uint8_t DISPLAY_TIME = 6;
-static uint8_t DISPLAY_DATE = 7;
-static uint8_t DISPLAY_THERMAL = 8;
-static uint8_t DISPLAY_SENSOR = 9;
-
-static uint8_t DP_TIME = 0;
-static uint8_t DP_DATE = 0;
-static uint8_t DP_FREQ = 0;
-static uint8_t DP_THERMAL = 0;
-static uint8_t DP_MEMORY = 0;
-static uint8_t DP_USAGE = 0;
-static uint8_t DP_SP2 = 0;
-static uint8_t DP_SP3CH1 = 0;
-static uint8_t DP_SP3CH2 = 0;
-static uint8_t DP_BMP180 = 0;
-static uint8_t DP_BME280 = 0;
-static uint8_t DP_MCP9808 = 0;
-static uint8_t DP_SCD41 = 0;
-static uint8_t DP_SGP30 = 0;
-static uint8_t DP_TEXT = 0;
-static uint8_t DP_POINT = 0;
-static uint8_t DP_LINE = 0;
-static uint8_t DP_CIRCLE = 0;
-static uint8_t DP_RECTANGLE = 0;
-static uint8_t DP_IMAGE = 0;
 

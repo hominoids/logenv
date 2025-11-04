@@ -109,13 +109,13 @@
         ]
     },
     {
-        "name": "ssd1681",
-        "device": "/dev/spidev0.0",
-        "address": 0,
-        "xsize": 200,
-        "ysize": 200,
+        "name": "ssd1306",
+        "device": "/dev/i2c-0",
+        "address": 122,
+        "xsize": 128,
+        "ysize": 64,
         "rotation": 0,
-        "page": 1,
+        "page": 0,
         "seconds": 5,
         "content": [
             {
@@ -123,10 +123,10 @@
             "device": "",
             "address": 0,
             "type": "",
-            "xloc": 35,
+            "xloc": 30,
             "yloc": 5,
             "color": 0,
-            "font": "SSD1681_MONOSPACE_48",
+            "font": "SSD1306_FONT_24",
             "label": "",
             "unit": ""
             },
@@ -135,218 +135,38 @@
             "device": "",
             "address": 0,
             "type": "",
-            "xloc": 55,
-            "yloc": 40,
+            "xloc": 30,
+            "yloc": 30,
             "color": 0,
-            "font": "SSD1681_FONT_16",
+            "font": "SSD1306_FONT_12",
             "label": "",
             "unit": ""
             },
             {
-            "name": "thermal",
-            "device": "",
-            "address": 0,
-            "type": "TN",
-            "xloc": 3,
-            "yloc": 60,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "",
-            "unit": "c "
-            }
-        ]
-    },
-    {
-        "name": "ssd1681",
-        "device": "/dev/spidev0.0",
-        "address": 0,
-        "xsize": 200,
-        "ysize": 200,
-        "rotation": 0,
-        "page": 2,
-        "seconds": 5,
-        "content": [
-            {
-            "name": "time",
-            "device": "",
-            "address": 0,
-            "type": "",
-            "xloc": 35,
-            "yloc": 5,
-            "color": 0,
-            "font": "SSD1681_MONOSPACE_48",
-            "label": "",
-            "unit": ""
-            },
-            {
-            "name": "usage",
-            "device": "",
-            "address": 0,
-            "type": "NT",
-            "xloc": 5,
-            "yloc": 45,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "",
-            "unit": "%"
-            },
-            {
-            "name": "memory",
-            "device": "",
-            "address": 0,
-            "type": "NT",
-            "xloc": 125,
-            "yloc": 45,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "",
-            "unit": "%"
-            },
-            {
-            "name": "frequency",
-            "device": "",
-            "address": 0,
-            "type": "T",
-            "xloc": 125,
-            "yloc": 60,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "",
-            "unit": " GHz"
-            }
-        ]
-      },
-      {
-        "name": "ssd1681",
-        "device": "/dev/spidev0.0",
-        "address": 0,
-        "xsize": 200,
-        "ysize": 200,
-        "rotation": 0,
-        "page": 3,
-        "seconds": 5,
-        "content": [
-            {
-            "name": "bme280",
+            "name": "mcp9808",
             "device": "/dev/i2c-0",
-            "address": 119,
+            "address": 24,
+            "type": "F",
+            "xloc": 5,
+            "yloc": 50,
+            "color": 0,
+            "font": "SSD1306_FONT_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
             "type": "C",
-            "xloc": 5,
-            "yloc": 25,
+            "xloc": 75,
+            "yloc": 50,
             "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "BME280  Temp: ",
-            "unit": ""
-            },
-            {
-            "name": "bme280",
-            "device": "/dev/i2c-0",
-            "address": 119,
-            "type": "H",
-            "xloc": 5,
-            "yloc": 40,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "BME280 Humid: ",
-            "unit": "%"
-            },
-            {
-            "name": "bme280",
-            "device": "/dev/i2c-0",
-            "address": 119,
-            "type": "P",
-            "xloc": 5,
-            "yloc": 55,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "BME280  Pres: ",
-            "unit": "hPa"
-            }
-          ]
-      },
-      {
-        "name": "ssd1681",
-        "device": "/dev/spidev0.0",
-        "address": 0,
-        "xsize": 200,
-        "ysize": 200,
-        "rotation": 0,
-        "page": 4,
-        "seconds": 5,
-        "content": [
-            {
-            "name": "sgp30",
-            "device": "/dev/i2c-0",
-            "address": 88,
-            "type": "V",
-            "xloc": 5,
-            "yloc": 25,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "SGP30  VOC : ",
-            "unit": " ppb"
-            },
-            {
-            "name": "sgp30",
-            "device": "/dev/i2c-0",
-            "address": 88,
-            "type": "G",
-            "xloc": 5,
-            "yloc": 40,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "SGP30 eCO2 : ",
-            "unit": " ppm"
-            }
-          ]
-      },
-      {
-        "name": "ssd1681",
-        "device": "/dev/spidev0.0",
-        "address": 0,
-        "xsize": 200,
-        "ysize": 200,
-        "rotation": 0,
-        "page": 5,
-        "seconds": 5,
-        "content": [
-            {
-            "name": "scd41",
-            "device": "/dev/i2c-0",
-            "address": 98,
-            "type": "C",
-            "xloc": 5,
-            "yloc": 25,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "SCD41 Temp : ",
+            "font": "SSD1306_FONT_12",
+            "label": "",
             "unit": "c"
-            },
-            {
-            "name": "scd41",
-            "device": "/dev/i2c-0",
-            "address": 98,
-            "type": "H",
-            "xloc": 5,
-            "yloc": 40,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "SCD41 Humd : ",
-            "unit": "%"
-            },
-            {
-            "name": "scd41",
-            "device": "/dev/i2c-0",
-            "address": 98,
-            "type": "G",
-            "xloc": 5,
-            "yloc": 55,
-            "color": 0,
-            "font": "SSD1681_FONT_16",
-            "label": "SCD41  CO2 : ",
-            "unit": " ppm"
             }
-          ]
-      }
+        ]
+    }
    ]
 }
