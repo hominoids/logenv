@@ -40,6 +40,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "../fonts/monospace_font.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -518,20 +519,6 @@ typedef enum
 } ssd1681_color_t;
 
 /**
- * @brief ssd1681 font enumeration definition
- */
-typedef enum  
-{
-    SSD1681_FONT_12 = 0x0C,             /**< font 12 */
-    SSD1681_FONT_16 = 0x10,             /**< font 16 */
-    SSD1681_FONT_24 = 0x18,             /**< font 24 */    
-    SSD1681_MONOSPACE_28 = 0x20,        /**< font 28 */
-    SSD1681_MONOSPACE_36 = 0x28,        /**< font 36 */
-    SSD1681_MONOSPACE_48 = 0x32,        /**< font 48 */
-    SSD1681_MONOSPACE_72 = 0x4A,        /**< font 72 */
-} ssd1681_font_t;
-
-/**
  * @brief ssd1681 handle structure definition
  */
 typedef struct ssd1681_handle_s
@@ -853,7 +840,7 @@ uint8_t ssd1681_gram_read_point(ssd1681_handle_t *handle, ssd1681_color_t color,
  *            - 4 x or y is invalid
  * @note      none
  */
-uint8_t ssd1681_gram_write_string(ssd1681_handle_t *handle, ssd1681_color_t color, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t data, ssd1681_font_t font);
+uint8_t ssd1681_gram_write_string(ssd1681_handle_t *handle, ssd1681_color_t color, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t data, font_t font);
 
 /**
  * @brief     fill a rectangle in the gram

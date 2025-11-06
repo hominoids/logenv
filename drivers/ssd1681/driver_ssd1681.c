@@ -34,8 +34,8 @@
  * </table>
  */
 
+#include "../fonts/monospace_font.h"
 #include "driver_ssd1681.h"
-#include "driver_ssd1681_font.h"
 
 /**
  * @brief chip information definition
@@ -2183,31 +2183,31 @@ static uint8_t a_ssd1681_gram_show_char(ssd1681_handle_t *handle, ssd1681_color_
     {   
         if (size == 12)                                                             /* if size 12 */
         {
-            temp = gsc_ssd1681_ascii_1206[chr][t];                                  /* get ascii 1206 */
+            temp = monospace_12[chr][t];                                  /* get ascii 1206 */
         }
         else if (size == 16)                                                        /* if size 16 */
         {
-            temp = gsc_ssd1681_ascii_1608[chr][t];                                  /* get ascii 1608 */
+            temp = monospace_16[chr][t];                                  /* get ascii 1608 */
         }
         else if(size == 24)                                                         /* if size 24 */
         {
-            temp = gsc_ssd1681_ascii_2412[chr][t];                                  /* get ascii 2412 */
+            temp = monospace_24[chr][t];                                  /* get ascii 2412 */
         }
         else if(size == 32)                                                         /* if size 28 */
         {
-            temp = gsc_ssd1681_monospace_28[chr][t];
+            temp = monospace_28[chr][t];
         }
         else if(size == 40)                                                         /* if size 36 */
         {
-            temp = gsc_ssd1681_monospace_36[chr][t];
+            temp = monospace_36[chr][t];
         }
         else if(size == 50)                                                         /* if size 48 */
         {
-            temp = gsc_ssd1681_monospace_48[chr][t];
+            temp = monospace_48[chr][t];
         }
         else if(size == 74)                                                         /* if size 72 */
         {
-            temp = gsc_ssd1681_monospace_72[chr][t];
+            temp = monospace_72[chr][t];
         }
         else
         {
@@ -2691,7 +2691,7 @@ uint8_t ssd1681_gram_read_point(ssd1681_handle_t *handle, ssd1681_color_t color,
  *            - 4 x or y is invalid
  * @note      none
  */
-uint8_t ssd1681_gram_write_string(ssd1681_handle_t *handle, ssd1681_color_t color, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t data, ssd1681_font_t font)
+uint8_t ssd1681_gram_write_string(ssd1681_handle_t *handle, ssd1681_color_t color, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t data, font_t font)
 {    
     if (handle == NULL)                                                                  /* check handle */
     {

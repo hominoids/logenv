@@ -18,7 +18,7 @@
             "xloc": 35,
             "yloc": 5,
             "color": 0,
-            "font": "SSD1681_MONOSPACE_48",
+            "font": "MONOSPACE_48",
             "label": "",
             "unit": ""
             },
@@ -30,7 +30,7 @@
             "xloc": 55,
             "yloc": 40,
             "color": 0,
-            "font": "SSD1681_FONT_16",
+            "font": "MONOSPACE_16",
             "label": "",
             "unit": ""
             },
@@ -42,7 +42,7 @@
             "xloc": 5,
             "yloc": 65,
             "color": 0,
-            "font": "SSD1681_MONOSPACE_28",
+            "font": "MONOSPACE_28",
             "label": "",
             "unit": ""
             },
@@ -54,7 +54,7 @@
             "xloc": 115,
             "yloc": 62,
             "color": 0,
-            "font": "SSD1681_FONT_24",
+            "font": "MONOSPACE_24",
             "label": "",
             "unit": "c"
             },
@@ -66,7 +66,7 @@
             "xloc": 5,
             "yloc": 90,
             "color": 0,
-            "font": "SSD1681_FONT_24",
+            "font": "MONOSPACE_24",
             "label": "Humd: ",
             "unit": "%"
             },
@@ -78,7 +78,7 @@
             "xloc": 5,
             "yloc": 115,
             "color": 0,
-            "font": "SSD1681_FONT_24",
+            "font": "MONOSPACE_24",
             "label": "Pres: ",
             "unit": "hPa"
             },
@@ -90,7 +90,7 @@
             "xloc": 5,
             "yloc": 140,
             "color": 0,
-            "font": "SSD1681_FONT_24",
+            "font": "MONOSPACE_24",
             "label": " CO2: ",
             "unit": " ppm"
             },
@@ -102,7 +102,7 @@
             "xloc": 5,
             "yloc": 165,
             "color": 0,
-            "font": "SSD1681_FONT_24",
+            "font": "MONOSPACE_24",
             "label": " VOC: ",
             "unit": " ppb"
             }
@@ -126,7 +126,7 @@
             "xloc": 30,
             "yloc": 5,
             "color": 0,
-            "font": "SSD1306_FONT_24",
+            "font": "MONOSPACE_24",
             "label": "",
             "unit": ""
             },
@@ -138,7 +138,7 @@
             "xloc": 30,
             "yloc": 30,
             "color": 0,
-            "font": "SSD1306_FONT_12",
+            "font": "MONOSPACE_12",
             "label": "",
             "unit": ""
             },
@@ -150,7 +150,7 @@
             "xloc": 5,
             "yloc": 50,
             "color": 0,
-            "font": "SSD1306_FONT_12",
+            "font": "MONOSPACE_12",
             "label": "",
             "unit": ""
             },
@@ -159,10 +159,10 @@
             "device": "/dev/i2c-0",
             "address": 24,
             "type": "C",
-            "xloc": 75,
+            "xloc": 90,
             "yloc": 50,
             "color": 0,
-            "font": "SSD1306_FONT_12",
+            "font": "MONOSPACE_12",
             "label": "",
             "unit": "c"
             }

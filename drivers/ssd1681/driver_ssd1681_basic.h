@@ -163,7 +163,7 @@ uint8_t ssd1681_basic_read_point(ssd1681_color_t color, uint8_t x, uint8_t y, ui
  *            - 1 write string failed
  * @note      none
  */
-uint8_t ssd1681_basic_string(ssd1681_color_t color, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t data, ssd1681_font_t font);
+uint8_t ssd1681_basic_string(ssd1681_color_t color, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t data, font_t font);
 
 /**
  * @brief     basic example fill a rectangle

@@ -486,7 +486,7 @@ uint8_t ssd1306_advance_read_point(uint8_t x, uint8_t y, uint8_t *data)
  *            - 1 write string failed
  * @note      none
  */
-uint8_t ssd1306_advance_string(uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t color, ssd1306_font_t font)
+uint8_t ssd1306_advance_string(uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t color, font_t font)
 {
     uint8_t res;
     

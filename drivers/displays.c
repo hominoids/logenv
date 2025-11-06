@@ -254,35 +254,26 @@ ssd1306_interface_debug_print("ssd1306: time string write failed.\n");
 }
 
 uint8_t fontoi(char *font_name) {
-    if(!strcmp(font_name, "SSD1681_FONT_12")) {
-        return(SSD1681_FONT_12);
+    if(!strcmp(font_name, "MONOSPACE_12")) {
+        return(MONOSPACE_12);
     }
-    if(!strcmp(font_name, "SSD1681_FONT_16")) {
-        return(SSD1681_FONT_16);
+    if(!strcmp(font_name, "MONOSPACE_16")) {
+        return(MONOSPACE_16);
     }
-    if(!strcmp(font_name, "SSD1681_FONT_24")) {
-        return(SSD1681_FONT_24);
+    if(!strcmp(font_name, "MONOSPACE_24")) {
+        return(MONOSPACE_24);
     }
-    if(!strcmp(font_name, "SSD1681_MONOSPACE_28")) {
-        return(SSD1681_MONOSPACE_28);
+    if(!strcmp(font_name, "MONOSPACE_28")) {
+        return(MONOSPACE_28);
     }
-    if(!strcmp(font_name, "SSD1681_MONOSPACE_36")) {
-        return(SSD1681_MONOSPACE_36);
+    if(!strcmp(font_name, "MONOSPACE_36")) {
+        return(MONOSPACE_36);
     }
-    if(!strcmp(font_name, "SSD1681_MONOSPACE_48")) {
-        return(SSD1681_MONOSPACE_48);
+    if(!strcmp(font_name, "MONOSPACE_48")) {
+        return(MONOSPACE_48);
     }
-    if(!strcmp(font_name, "SSD1681_MONOSPACE_72")) {
-        return(SSD1681_MONOSPACE_72);
+    if(!strcmp(font_name, "MONOSPACE_72")) {
+        return(MONOSPACE_72);
     }
-    if(!strcmp(font_name, "SSD1306_FONT_12")) {
-        return(SSD1306_FONT_12);
-    }
-    if(!strcmp(font_name, "SSD1306_FONT_16")) {
-        return(SSD1306_FONT_16);
-    }
-    if(!strcmp(font_name, "SSD1306_FONT_24")) {
-        return(SSD1306_FONT_24);
-    }
-    return(SSD1681_FONT_12);
+    return(MONOSPACE_12);
 }

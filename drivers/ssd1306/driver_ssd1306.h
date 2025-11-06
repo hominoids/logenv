@@ -41,6 +41,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "../fonts/monospace_font.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -200,16 +201,6 @@ typedef enum
     SSD1306_DESELECT_LEVEL_0P77 = 0x02,        /**< deselect level 0.77 */
     SSD1306_DESELECT_LEVEL_0P83 = 0x03,        /**< deselect level 0.83 */
 } ssd1306_deselect_level_t;
-
-/**
- * @brief ssd1306 font enumeration definition
- */
-typedef enum  
-{
-    SSD1306_FONT_12 = 0x0C,        /**< font 12 */
-    SSD1306_FONT_16 = 0x10,        /**< font 16 */
-    SSD1306_FONT_24 = 0x18,        /**< font 24 */
-} ssd1306_font_t;
 
 /**
  * @brief ssd1306 handle structure definition
@@ -584,7 +575,7 @@ uint8_t ssd1306_gram_read_point(ssd1306_handle_t *handle, uint8_t x, uint8_t y, 
  *            - 4 x or y is invalid
  * @note      none
  */
-uint8_t ssd1306_gram_write_string(ssd1306_handle_t *handle, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t color, ssd1306_font_t font);
+uint8_t ssd1306_gram_write_string(ssd1306_handle_t *handle, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t color, font_t font);
 
 /**
  * @brief     fill a rectangle in the gram
