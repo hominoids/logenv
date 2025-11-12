@@ -143,9 +143,9 @@
             "unit": ""
             },
             {
-            "name": "sht4x",
+            "name": "shtc3",
             "device": "/dev/i2c-1",
-            "address": 68,
+            "address": 112,
             "type": "F",
             "xloc": 5,
             "yloc": 50,
@@ -155,9 +155,9 @@
             "unit": ""
             },
             {
-            "name": "sht4x",
+            "name": "shtc3",
             "device": "/dev/i2c-1",
-            "address": 68,
+            "address": 112,
             "type": "C",
             "xloc": 45,
             "yloc": 50,
@@ -167,9 +167,9 @@
             "unit": "c"
             },
             {
-            "name": "sht4x",
+            "name": "shtc3",
             "device": "/dev/i2c-1",
-            "address": 68,
+            "address": 112,
             "type": "H",
             "xloc": 90,
             "yloc": 50,

@@ -92,6 +92,10 @@ uint16_t sht4x_iic_addr = 0x44;
 char sht4x_iic_dev[14] = "/dev/i2c-0";
 uint8_t sht4x_iic_init = 0;
 
+uint16_t shtc3_iic_addr = 0x70;
+char shtc3_iic_dev[14] = "/dev/i2c-0";
+uint8_t shtc3_iic_init = 0;
+
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
 char *interface = "/dev/i2c-0";
@@ -164,6 +168,7 @@ static uint8_t DP_BMP180 = 0;
 static uint8_t DP_BME280 = 0;
 static uint8_t DP_MCP9808 = 0;
 static uint8_t DP_SHT4X = 0;
+static uint8_t DP_SHTC3 = 0;
 static uint8_t DP_SCD41 = 0;
 static uint8_t DP_SGP30 = 0;
 static uint8_t DP_TEXT = 0;

@@ -48,9 +48,7 @@
 #include <unistd.h>
 #include <cjson/cJSON.h>
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
-//#include "drivers/ssd1681/driver_ssd1681_interface.h"
 #include "drivers/ssd1306/driver_ssd1306_advance.h"
-//#include "drivers/ssd1306/driver_ssd1306_interface.h"
 #include "drivers/bmp180/driver_bmp180_basic.h"
 #include "drivers/bme280/driver_bme280_basic.h"
 #include "drivers/mcp9808/mcp9808.h"
@@ -58,6 +56,7 @@
 #include "drivers/scd4x/driver_scd4x_shot.h"
 #include "drivers/sgp30/driver_sgp30_advance.h"
 #include "drivers/sht4x/driver_sht4x_basic.h"
+#include "drivers/shtc3/driver_shtc3_basic.h"
 #include "drivers/displays.h"
 #include "logenv.h"
 
@@ -267,6 +266,16 @@ uint8_t main(uint8_t argc, char **argv) {
                         sht4x_iic_init = 1;
                         DP_SHT4X++;
                     }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"shtc3")) {
+                        strcpy(shtc3_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        shtc3_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(shtc3_basic_init() != 0) {
+                            printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
+                            exit(1);
+                        }
+                        shtc3_iic_init = 1;
+                        DP_SHTC3++;
+                    }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
                         strcpy(scd41_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         scd41_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
@@ -447,7 +456,7 @@ uint8_t main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * ambient temperature command line options
+         * ambient temperature bmp280 command line options
          */
         if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -469,6 +478,9 @@ uint8_t main(uint8_t argc, char **argv) {
             SENSOR_ENABLE = 2;
             OPTIONS_COUNT++;
         }
+        /*
+         * bmp180 command line options
+         */
         if(!strcmp(argv[i], "--bmp180")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
@@ -489,6 +501,9 @@ uint8_t main(uint8_t argc, char **argv) {
             SENSOR_ENABLE = 1;
             OPTIONS_COUNT++;
         }
+        /*
+         * mcp9808 command line options
+         */
         if(!strcmp(argv[i], "--mcp9808")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
@@ -510,6 +525,9 @@ uint8_t main(uint8_t argc, char **argv) {
             SENSOR_ENABLE = 3;
             OPTIONS_COUNT++;
         }
+        /*
+         * sht4x command line options
+         */
         if(!strcmp(argv[i], "--sht4x")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
@@ -528,6 +546,29 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             SENSOR_ENABLE = 4;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * shtc3 command line options
+         */
+        if(!strcmp(argv[i], "--shtc3")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(shtc3_iic_init == 0) {
+                    strcpy(sht4x_iic_dev, interface);
+                    if(shtc3_basic_init() != 0) {
+                        printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
+                        exit(1);
+                    }
+                    shtc3_iic_init == 1;
+                }
+            }
+            SENSOR_ENABLE = 5;
             OPTIONS_COUNT++;
         }
         /*
@@ -1280,7 +1321,6 @@ uint8_t main(uint8_t argc, char **argv) {
 
                 float temperature_f;
                 float humidity_f;
-                float pressure_f;
 
                 uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
                 if (res != 0) {
@@ -1340,7 +1380,6 @@ uint8_t main(uint8_t argc, char **argv) {
 
                 float temperature_f;
                 float humidity_f;
-                float pressure_f;
 
                 uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
                 if (res != 0) {
@@ -1357,8 +1396,6 @@ uint8_t main(uint8_t argc, char **argv) {
                             strcpy(dp[d].dc[i].data1, buffer);
                             sprintf(buffer, "%.2lf", humidity_f);
                             strcpy(dp[d].dc[i].data2, buffer);
-                            sprintf(buffer, "%.2lf", pressure_f/100);
-                            strcpy(dp[d].dc[i].data3, buffer);
 
                             if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
                                 if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
@@ -1369,6 +1406,101 @@ uint8_t main(uint8_t argc, char **argv) {
                             if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                 if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if(SENSOR_ENABLE == 5) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = shtc3_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)shtc3_basic_deinit();
+                    printf("ERROR: shtc3 read failed.\n");
+                    return 1;
+                }
+
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                    printf(",%f", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n shtc3 Sensor = %.2lfc", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", temperature_f);
+                    }
+                    else {
+                        printf("%.2lf", temperature_f);
+                    }
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                    fprintf(log_file,",%f", temperature_f);
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                    fprintf(log_file,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    }
+                }
+            OPTIONS_COUNT--;
+            }
+            if(DP_SHTC3 != 0) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = shtc3_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)shtc3_basic_deinit();
+                    printf("ERROR: shtc3 read failed.\n");
+                    return 1;
+                }
+
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "shtc3")) {
+                            char buffer[25];
+                            sprintf(buffer, "%.2lf", temperature_f);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%.2lf", humidity_f);
+                            strcpy(dp[d].dc[i].data2, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2297,6 +2429,9 @@ uint8_t main(uint8_t argc, char **argv) {
     if (DP_SHT4X != 0) {
         (void)sht4x_basic_deinit();
     }
+    if (DP_SHTC3 != 0) {
+        (void)shtc3_basic_deinit();
+    }
 }
 
 
@@ -2313,6 +2448,8 @@ void usage (void) {
         printf(" -a,  --bme280 <device>       Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
         printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
         printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
+        printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
+        printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
