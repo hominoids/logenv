@@ -57,6 +57,7 @@
 #include "drivers/scd4x/driver_scd4x_basic.h"
 #include "drivers/scd4x/driver_scd4x_shot.h"
 #include "drivers/sgp30/driver_sgp30_advance.h"
+#include "drivers/sht4x/driver_sht4x_basic.h"
 #include "drivers/displays.h"
 #include "logenv.h"
 
@@ -255,6 +256,16 @@ uint8_t main(uint8_t argc, char **argv) {
                         mcp9808_open();
                         mcp9808_iic_init = 1;
                         DP_MCP9808++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sht4x")) {
+                        strcpy(sht4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        sht4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(sht4x_basic_init(sht4x_iic_addr) != 0) {
+                            printf("\nERROR: Cannot open SHT4x at %s\n", interface);
+                            exit(1);
+                        }
+                        sht4x_iic_init = 1;
+                        DP_SHT4X++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
                         strcpy(scd41_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
@@ -497,6 +508,26 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             SENSOR_ENABLE = 3;
+            OPTIONS_COUNT++;
+        }
+        if(!strcmp(argv[i], "--sht4x")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(sht4x_iic_init == 0) {
+                    strcpy(sht4x_iic_dev, interface);
+                    if(sht4x_basic_init(sht4x_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open SHT4x at %s\n", interface);
+                        exit(1);
+                    }
+                    sht4x_iic_init == 1;
+                }
+            }
+            SENSOR_ENABLE = 4;
             OPTIONS_COUNT++;
         }
         /*
@@ -1239,6 +1270,105 @@ uint8_t main(uint8_t argc, char **argv) {
                             if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                 if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if(SENSOR_ENABLE == 4) {
+
+                float temperature_f;
+                float humidity_f;
+                float pressure_f;
+
+                uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)sht4x_basic_deinit();
+                    printf("ERROR: sht4x read failed.\n");
+                    return 1;
+                }
+
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                    printf(",%f", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n sht4x Sensor = %.2lfc", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", temperature_f);
+                    }
+                    else {
+                        printf("%.2lf", temperature_f);
+                    }
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                    fprintf(log_file,",%f", temperature_f);
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                    fprintf(log_file,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    }
+                }
+            OPTIONS_COUNT--;
+            }
+            if(DP_SHT4X != 0) {
+
+                float temperature_f;
+                float humidity_f;
+                float pressure_f;
+
+                uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)sht4x_basic_deinit();
+                    printf("ERROR: sht4x read failed.\n");
+                    return 1;
+                }
+
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "sht4x")) {
+                            char buffer[25];
+                            sprintf(buffer, "%.2lf", temperature_f);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%.2lf", humidity_f);
+                            strcpy(dp[d].dc[i].data2, buffer);
+                            sprintf(buffer, "%.2lf", pressure_f/100);
+                            strcpy(dp[d].dc[i].data3, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2164,6 +2294,9 @@ uint8_t main(uint8_t argc, char **argv) {
     if (SENSOR_ENABLE != 0 || DP_MCP9808 != 0) {
         close(mcp9808_in);
     }
+    if (DP_SHT4X != 0) {
+        (void)sht4x_basic_deinit();
+    }
 }
 
 
@@ -2224,7 +2357,7 @@ uint16_t itoa(uint32_t n, char s[]) {
 }
 
 
-uint16_t set_tty_attributes(uint16_t fd, uint16_t speed, bool canconical) {
+uint16_t set_tty_attributes(uint16_t fd, uint32_t speed, bool canconical) {
     struct termios tty;
 
     if (tcgetattr(fd, &tty) < 0) {

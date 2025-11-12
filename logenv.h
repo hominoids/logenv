@@ -21,7 +21,7 @@
 
 void usage(void);
 uint16_t itoa(uint32_t, char[]);
-uint16_t set_tty_attributes(uint16_t, uint16_t, bool);
+uint16_t set_tty_attributes(uint16_t, uint32_t, bool);
 void sleep_ms(uint32_t);
 static void sig_handler(int);
 
@@ -68,25 +68,29 @@ uint16_t iic_device_address = 0;
 char iic_device_name[18] = "/dev/i2c-0";
 char spi_device_name[18] = "/dev/spidev0.0";
 
-uint16_t mcp9808_iic_addr = 0x18;
-char mcp9808_iic_dev[14] = "/dev/i2c-0";
-uint8_t mcp9808_iic_init = 0;
+uint16_t bme280_iic_addr = 0x76;
+char bme280_iic_dev[14] = "/dev/i2c-0";
+uint8_t bme280_iic_init = 0;
 
 uint16_t bmp180_iic_addr = 0xEE;
 char bmp180_iic_dev[14] = "/dev/i2c-0";
 uint8_t bmp180_iic_init = 0;
 
-uint16_t bme280_iic_addr = 0x76;
-char bme280_iic_dev[14] = "/dev/i2c-0";
-uint8_t bme280_iic_init = 0;
+uint16_t mcp9808_iic_addr = 0x18;
+char mcp9808_iic_dev[14] = "/dev/i2c-0";
+uint8_t mcp9808_iic_init = 0;
+
+uint16_t scd41_iic_addr = 0x62;
+char scd41_iic_dev[14] = "/dev/i2c-0";
+uint8_t scd41_iic_init = 0;
 
 uint16_t sgp30_iic_addr = 0x58;
 char sgp30_iic_dev[14] = "/dev/i2c-0";
 uint8_t sgp30_iic_init = 0;
 
-uint16_t scd41_iic_addr = 0x62;
-char scd41_iic_dev[14] = "/dev/i2c-0";
-uint8_t scd41_iic_init = 0;
+uint16_t sht4x_iic_addr = 0x44;
+char sht4x_iic_dev[14] = "/dev/i2c-0";
+uint8_t sht4x_iic_init = 0;
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
@@ -159,6 +163,7 @@ static uint8_t DP_SP3CH2 = 0;
 static uint8_t DP_BMP180 = 0;
 static uint8_t DP_BME280 = 0;
 static uint8_t DP_MCP9808 = 0;
+static uint8_t DP_SHT4X = 0;
 static uint8_t DP_SCD41 = 0;
 static uint8_t DP_SGP30 = 0;
 static uint8_t DP_TEXT = 0;

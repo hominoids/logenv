@@ -110,7 +110,7 @@
     },
     {
         "name": "ssd1306",
-        "device": "/dev/i2c-0",
+        "device": "/dev/i2c-1",
         "address": 122,
         "xsize": 128,
         "ysize": 64,
@@ -143,9 +143,9 @@
             "unit": ""
             },
             {
-            "name": "mcp9808",
-            "device": "/dev/i2c-0",
-            "address": 24,
+            "name": "sht4x",
+            "device": "/dev/i2c-1",
+            "address": 68,
             "type": "F",
             "xloc": 5,
             "yloc": 50,
@@ -155,16 +155,28 @@
             "unit": ""
             },
             {
-            "name": "mcp9808",
-            "device": "/dev/i2c-0",
-            "address": 24,
+            "name": "sht4x",
+            "device": "/dev/i2c-1",
+            "address": 68,
             "type": "C",
-            "xloc": 90,
+            "xloc": 45,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
             "unit": "c"
+            },
+            {
+            "name": "sht4x",
+            "device": "/dev/i2c-1",
+            "address": 68,
+            "type": "H",
+            "xloc": 90,
+            "yloc": 50,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "",
+            "unit": "%"
             }
         ]
     }

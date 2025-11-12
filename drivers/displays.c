@@ -42,6 +42,7 @@ uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct displ
     return(0);
 }
 
+
 uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
@@ -146,11 +147,11 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
 }
 
+
 uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
         if(ssd1306_advance_init(SSD1306_INTERFACE_IIC, ptr->address)) {
-//        if(ssd1306_interface_iic_init()) {
             printf("\nERROR: Cannot open ssd1306 %d %d\n", SSD1306_INTERFACE_IIC, ptr->address);
             return(1);
         }
@@ -252,6 +253,7 @@ ssd1306_interface_debug_print("ssd1306: time string write failed.\n");
         return(0);
     }
 }
+
 
 uint8_t fontoi(char *font_name) {
     if(!strcmp(font_name, "MONOSPACE_12")) {
