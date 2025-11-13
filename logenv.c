@@ -1126,60 +1126,7 @@ uint8_t main(uint8_t argc, char **argv) {
             /*
              * read bmp180
              */
-            if(SENSOR_ENABLE == 1) {
-
-                float temperature_f;
-                float humidity_f;
-                uint32_t pressure;
-
-                uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
-                if (res != 0) {
-                    bmp180_basic_deinit();
-                    printf("ERROR: bmp180 read failed.\n");
-                    return 1;
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%f", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BMP180 Sensor = %.2lfc", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                    printf(",%.2lf", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", temperature_f);
-                    }
-                    else {
-                        printf("%.2lf,", temperature_f);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
-                    }
-                }
-            OPTIONS_COUNT--;
-            }
-            if(DP_BMP180 != 0) {
+            if(SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1192,24 +1139,70 @@ uint8_t main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "bmp180")) {
-                            char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", (double) pressure/100);
-                            strcpy(dp[d].dc[i].data3, buffer);
+                if(SENSOR_ENABLE == 1) {
 
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n BMP180 Sensor = %.2lfc", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf,", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_BMP180 != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "bmp180")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", (double) pressure/100);
+                                strcpy(dp[d].dc[i].data3, buffer);
+
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
@@ -1219,7 +1212,7 @@ uint8_t main(uint8_t argc, char **argv) {
             /*
              * read bme280
              */
-            if(SENSOR_ENABLE == 2) {
+            if(SENSOR_ENABLE == 2 || DP_BME280 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1232,86 +1225,78 @@ uint8_t main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%f", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BME280 Sensor = %.2lfc", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", temperature_f);
-                    }
-                    else {
-                        printf("%.2lf", temperature_f);
-                    }
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%f", temperature_f);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
-                    }
-                }
-            OPTIONS_COUNT--;
-            }
-            if(DP_BME280 != 0) {
+                if(SENSOR_ENABLE == 2) {
 
-                float temperature_f;
-                float humidity_f;
-                float pressure_f;
-
-                uint8_t res = bme280_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
-                if (res != 0) {
-                    (void)bme280_basic_deinit();
-                    printf("ERROR: bme280 read failed.\n");
-                    return 1;
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n BME280 Sensor = %.2lfc", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf", temperature_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f", temperature_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
+                if(DP_BME280 != 0) {
 
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "bme280")) {
-                            char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", humidity_f);
-                            strcpy(dp[d].dc[i].data2, buffer);
-                            sprintf(buffer, "%.2lf", pressure_f/100);
-                            strcpy(dp[d].dc[i].data3, buffer);
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "bme280")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
+                                sprintf(buffer, "%.2lf", pressure_f/100);
+                                strcpy(dp[d].dc[i].data3, buffer);
 
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
@@ -1321,10 +1306,12 @@ uint8_t main(uint8_t argc, char **argv) {
             /*
              * read mcp9808 temperature sensor
              */
-            if(SENSOR_ENABLE == 3 || DP_MCP9808 >= 1) {
+            if(SENSOR_ENABLE == 3 || DP_MCP9808 != 0) {
 
                 float temperature = mcp9808_read();
+
                 if(SENSOR_ENABLE == 3) {
+
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%d", temperature);
                     }
@@ -1362,6 +1349,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     OPTIONS_COUNT--;
                 }
                 if(DP_MCP9808 != 0) {
+
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
@@ -1385,7 +1373,10 @@ uint8_t main(uint8_t argc, char **argv) {
                     }
                 }
             }
-            if(SENSOR_ENABLE == 4) {
+            /*
+            * SHT4x enabled
+            */
+            if(SENSOR_ENABLE == 4 || DP_SHT4X != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1397,90 +1388,86 @@ uint8_t main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%f", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n sht4x Sensor = %.2lfc", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", temperature_f);
-                    }
-                    else {
-                        printf("%.2lf", temperature_f);
-                    }
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%f", temperature_f);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
-                    }
-                }
-            OPTIONS_COUNT--;
-            }
-            if(DP_SHT4X != 0) {
+                if(SENSOR_ENABLE == 4) {
 
-                float temperature_f;
-                float humidity_f;
-
-                uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
-                if (res != 0) {
-                    (void)sht4x_basic_deinit();
-                    printf("ERROR: sht4x read failed.\n");
-                    return 1;
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n sht4x Sensor = %.2lfc", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf", temperature_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f", temperature_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
+                if(DP_SHT4X != 0) {
 
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "sht4x")) {
-                            char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", humidity_f);
-                            strcpy(dp[d].dc[i].data2, buffer);
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "sht4x")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
 
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            if(SENSOR_ENABLE == 5) {
+            /*
+            * SHTC3 enabled
+            */
+            if(SENSOR_ENABLE == 5 || DP_SHTC3 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1492,90 +1479,85 @@ uint8_t main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%f", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n shtc3 Sensor = %.2lfc", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", temperature_f);
+                if(SENSOR_ENABLE == 5) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
                     }
-                    else {
-                        printf("%.2lf", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n shtc3 Sensor = %.2lfc", temperature_f);
                     }
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%f", temperature_f);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature_f);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf", temperature_f);
+                        }
                     }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f", temperature_f);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature_f);
                     }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
-            OPTIONS_COUNT--;
-            }
-            if(DP_SHTC3 != 0) {
+                if(DP_SHTC3 != 0) {
 
-                float temperature_f;
-                float humidity_f;
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "shtc3")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
 
-                uint8_t res = shtc3_basic_read((float *)&temperature_f, (float *)&humidity_f);
-                if (res != 0) {
-                    (void)shtc3_basic_deinit();
-                    printf("ERROR: shtc3 read failed.\n");
-                    return 1;
-                }
-
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "shtc3")) {
-                            char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", humidity_f);
-                            strcpy(dp[d].dc[i].data2, buffer);
-
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            if(SENSOR_ENABLE == 6) {
+            /*
+            * aht20 enabled
+            */
+            if(SENSOR_ENABLE == 6 || DP_AHT20 != 0) {
 
                 float temperature_f;
                 uint8_t humidity_f;
@@ -1587,90 +1569,85 @@ uint8_t main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%f", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n aht20 Sensor = %.2lfc", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", temperature_f);
+                if(SENSOR_ENABLE == 6) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
                     }
-                    else {
-                        printf("%.2lf", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n aht20 Sensor = %.2lfc", temperature_f);
                     }
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%f", temperature_f);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature_f);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf", temperature_f);
+                        }
                     }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f", temperature_f);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature_f);
                     }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
-            OPTIONS_COUNT--;
-            }
-            if(DP_AHT20 != 0) {
+                if(DP_AHT20 != 0) {
 
-                float temperature_f;
-                uint8_t humidity_f;
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "aht20")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%d", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
 
-                uint8_t res = aht20_basic_read((float *)&temperature_f, (uint8_t *)&humidity_f);
-                if (res != 0) {
-                    (void)aht20_basic_deinit();
-                    printf("ERROR: aht20 read failed.\n");
-                    return 1;
-                }
-
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "aht20")) {
-                            char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%d", humidity_f);
-                            strcpy(dp[d].dc[i].data2, buffer);
-
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            if(SENSOR_ENABLE == 7) {
+            /*
+            * htu31d enabled
+            */
+            if(SENSOR_ENABLE == 7 || DP_HTU31D != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1682,93 +1659,85 @@ uint8_t main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%f", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n htu31d Sensor = %.2lfc", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", temperature_f);
+                if(SENSOR_ENABLE == 7) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
                     }
-                    else {
-                        printf("%.2lf", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n htu31d Sensor = %.2lfc", temperature_f);
                     }
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%f", temperature_f);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature_f);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf", temperature_f);
+                        }
                     }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f", temperature_f);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature_f);
                     }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
-            OPTIONS_COUNT--;
-            }
-            if(DP_HTU31D != 0) {
+                if(DP_HTU31D != 0) {
 
-                float temperature_f;
-                float humidity_f;
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "htu31d")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
 
-                uint8_t res = htu31d_basic_read((float *)&temperature_f, (float *)&humidity_f);
-                if (res != 0) {
-                    (void)htu31d_basic_deinit();
-                    printf("ERROR: htu31d read failed.\n");
-                    return 1;
-                }
-
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "htu31d")) {
-                            char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", humidity_f);
-                            strcpy(dp[d].dc[i].data2, buffer);
-
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-             /*
-             * SCD41 enabled
-             */
-            if(DP_SCD41 != 0) {
+            /*
+            * SCD4x enabled
+            */
+            if(SCD4X_ENABLE != 0 || DP_SCD41 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1779,28 +1748,78 @@ uint8_t main(uint8_t argc, char **argv) {
                     (void)scd4x_shot_deinit();
                     return 1;
                 }
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "scd41")) {
-                            char buffer[6];
-                            sprintf(buffer, "%.2f", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
+                if(SCD4X_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d", co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n scd4x Sensor = %d", co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",d", co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%d,", co2_ppm);
+                        }
+                        else {
+                            printf("%d", co2_ppm);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%d", co2_ppm);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%d", co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d", co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d", co2_ppm);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d", co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d", co2_ppm);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_SCD41 != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "scd41")) {
+                                char buffer[6];
+                                sprintf(buffer, "%.2f", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
 
-                            sprintf(buffer, "%.2f", humidity_f);
-                            strcpy(dp[d].dc[i].data2, buffer);
+                                sprintf(buffer, "%.2f", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
 
-                            sprintf(buffer, "%.2d", co2_ppm);
-                            strcpy(dp[d].dc[i].data4, buffer);
+                                sprintf(buffer, "%.2d", co2_ppm);
+                                strcpy(dp[d].dc[i].data4, buffer);
 
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
@@ -1810,7 +1829,7 @@ uint8_t main(uint8_t argc, char **argv) {
             /*
              * SGP30 enabled
              */
-            if(DP_SGP30 != 0) {
+            if(SGP30_ENABLE != 0 || DP_SGP30 != 0) {
 
                 uint16_t co2_eq_ppm = 0;
                 uint16_t tvoc_ppb = 0;
@@ -1820,24 +1839,76 @@ uint8_t main(uint8_t argc, char **argv) {
                     (void)sgp30_advance_deinit();
                     return 1;
                 }
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "sgp30")) {
-                            char buffer[10];
-                            sprintf(buffer, "%d", co2_eq_ppm);
-                            strcpy(dp[d].dc[i].data4, buffer);
-                            sprintf(buffer, "%d", tvoc_ppb);
-                            strcpy(dp[d].dc[i].data5, buffer);
 
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                if(SGP30_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d", tvoc_ppb);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n sgp30 Sensor = %d", tvoc_ppb);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",d", tvoc_ppb);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%d,", tvoc_ppb);
+                        }
+                        else {
+                            printf("%d", tvoc_ppb);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%d", tvoc_ppb);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%d", tvoc_ppb);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d", tvoc_ppb);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", tvoc_ppb);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d", tvoc_ppb);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d", tvoc_ppb);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", tvoc_ppb);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d", tvoc_ppb);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_SGP30 != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "sgp30")) {
+                                char buffer[10];
+                                sprintf(buffer, "%d", co2_eq_ppm);
+                                strcpy(dp[d].dc[i].data4, buffer);
+                                sprintf(buffer, "%d", tvoc_ppb);
+                                strcpy(dp[d].dc[i].data5, buffer);
+
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }

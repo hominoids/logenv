@@ -161,6 +161,8 @@ static uint8_t DT_ENABLE = 0;
 static uint8_t USAGE_ENABLE = 0;
 static uint8_t UDP_ENABLE = 0;
 static uint8_t OPTIONS_COUNT = 0;
+static uint8_t SGP30_ENABLE = 0;
+static uint8_t SCD4X_ENABLE = 0;
 
 static uint8_t DISPLAY_ENABLE = 0;
 static uint8_t DP_TIME = 0;
