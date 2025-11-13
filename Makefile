@@ -16,6 +16,8 @@ drivers/sht4x/driver_sht4x.o drivers/sht4x/driver_sht4x_basic.o \
 drivers/sht4x/driver_sht4x_interface.o \
 drivers/shtc3/driver_shtc3.o drivers/shtc3/driver_shtc3_basic.o \
 drivers/shtc3/driver_shtc3_interface.o \
+drivers/aht20/driver_aht20.o drivers/aht20/driver_aht20_basic.o \
+drivers/aht20/driver_aht20_interface.o \
 drivers/interface/iic.o drivers/interface/spi.o drivers/interface/wire.o \
 drivers/mcp9808/mcp9808.o \
 drivers/displays.o logenv.o 
@@ -28,5 +30,6 @@ logenv: $(OBJGROUP)
 clean:
 	rm *.o logenv drivers/ssd1681/*.o drivers/ssd1306/*.o \
 drivers/bmp180/*.o drivers/bme280/*.o drivers/mcp9808/*.o \
-drivers/scd4x/*.o drivers/sgp30/*.o drivers/sht4x/*.o drivers/shtc3/*.o
+drivers/scd4x/*.o drivers/sgp30/*.o drivers/sht4x/*.o drivers/shtc3/*.o \
+drivers/aht20/*.o
 

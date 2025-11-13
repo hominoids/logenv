@@ -143,7 +143,7 @@
             "unit": ""
             },
             {
-            "name": "shtc3",
+            "name": "aht20",
             "device": "/dev/i2c-1",
             "address": 112,
             "type": "F",
@@ -155,7 +155,7 @@
             "unit": ""
             },
             {
-            "name": "shtc3",
+            "name": "aht20",
             "device": "/dev/i2c-1",
             "address": 112,
             "type": "C",
@@ -167,7 +167,7 @@
             "unit": "c"
             },
             {
-            "name": "shtc3",
+            "name": "aht20",
             "device": "/dev/i2c-1",
             "address": 112,
             "type": "H",

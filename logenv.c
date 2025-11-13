@@ -57,6 +57,7 @@
 #include "drivers/sgp30/driver_sgp30_advance.h"
 #include "drivers/sht4x/driver_sht4x_basic.h"
 #include "drivers/shtc3/driver_shtc3_basic.h"
+#include "drivers/aht20/driver_aht20_basic.h"
 #include "drivers/displays.h"
 #include "logenv.h"
 
@@ -275,6 +276,16 @@ uint8_t main(uint8_t argc, char **argv) {
                         }
                         shtc3_iic_init = 1;
                         DP_SHTC3++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"aht20")) {
+                        strcpy(aht20_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        aht20_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(aht20_basic_init() != 0) {
+                            printf("\nERROR: Cannot open AHT20 at %s\n", interface);
+                            exit(1);
+                        }
+                        aht20_iic_init = 1;
+                        DP_AHT20++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
                         strcpy(scd41_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
@@ -560,7 +571,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     interface = argv[i+2];
                 }
                 if(shtc3_iic_init == 0) {
-                    strcpy(sht4x_iic_dev, interface);
+                    strcpy(shtc3_iic_dev, interface);
                     if(shtc3_basic_init() != 0) {
                         printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
                         exit(1);
@@ -569,6 +580,29 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             SENSOR_ENABLE = 5;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * aht20 command line options
+         */
+        if(!strcmp(argv[i], "--aht20")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(aht20_iic_init == 0) {
+                    strcpy(aht20_iic_dev, interface);
+                    if(aht20_basic_init() != 0) {
+                        printf("\nERROR: Cannot open AHT20 at %s\n", interface);
+                        exit(1);
+                    }
+                    aht20_iic_init == 1;
+                }
+            }
+            SENSOR_ENABLE = 6;
             OPTIONS_COUNT++;
         }
         /*
@@ -1507,6 +1541,101 @@ uint8_t main(uint8_t argc, char **argv) {
                     }
                 }
             }
+            if(SENSOR_ENABLE == 6) {
+
+                float temperature_f;
+                uint8_t humidity_f;
+
+                uint8_t res = aht20_basic_read((float *)&temperature_f, (uint8_t *)&humidity_f);
+                if (res != 0) {
+                    (void)aht20_basic_deinit();
+                    printf("ERROR: aht20 read failed.\n");
+                    return 1;
+                }
+
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                    printf(",%f", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n aht20 Sensor = %.2lfc", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", temperature_f);
+                    }
+                    else {
+                        printf("%.2lf", temperature_f);
+                    }
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                    fprintf(log_file,",%f", temperature_f);
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                    fprintf(log_file,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    }
+                }
+            OPTIONS_COUNT--;
+            }
+            if(DP_AHT20 != 0) {
+
+                float temperature_f;
+                uint8_t humidity_f;
+
+                uint8_t res = aht20_basic_read((float *)&temperature_f, (uint8_t *)&humidity_f);
+                if (res != 0) {
+                    (void)aht20_basic_deinit();
+                    printf("ERROR: aht20 read failed.\n");
+                    return 1;
+                }
+
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "aht20")) {
+                            char buffer[25];
+                            sprintf(buffer, "%.2lf", temperature_f);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%d", humidity_f);
+                            strcpy(dp[d].dc[i].data2, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
              /*
              * SCD41 enabled
              */
@@ -2417,20 +2546,23 @@ uint8_t main(uint8_t argc, char **argv) {
     if (DP_SGP30 != 0) {
         (void)sgp30_advance_deinit();
     }
-    if (DP_BMP180 != 0) {
+    if (SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
         (void)bmp180_basic_deinit();
     }
-    if (DP_BME280 != 0) {
+    if (SENSOR_ENABLE == 2 || DP_BME280 != 0) {
         (void)bme280_basic_deinit();
     }
-    if (SENSOR_ENABLE != 0 || DP_MCP9808 != 0) {
+    if (SENSOR_ENABLE == 3 || DP_MCP9808 != 0) {
         close(mcp9808_in);
     }
-    if (DP_SHT4X != 0) {
+    if (SENSOR_ENABLE == 4 || DP_SHT4X != 0) {
         (void)sht4x_basic_deinit();
     }
-    if (DP_SHTC3 != 0) {
+    if (SENSOR_ENABLE == 5 || DP_SHTC3 != 0) {
         (void)shtc3_basic_deinit();
+    }
+    if (SENSOR_ENABLE == 6 || DP_AHT20 != 0) {
+        (void)aht20_basic_deinit();
     }
 }
 
@@ -2450,6 +2582,7 @@ void usage (void) {
         printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
         printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
         printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
+        printf("      --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");

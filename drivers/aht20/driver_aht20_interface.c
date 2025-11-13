@@ -21,27 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. 
  *
- * @file      raspberrypi4b_driver_shtc3_interface.c
- * @brief     raspberrypi4b driver shtc3 interface source file
+ * @file      raspberrypi4b_driver_aht20_interface.c
+ * @brief     raspberrypi4b driver aht20 interface source file
  * @version   1.0.0
  * @author    Shifeng Li
- * @date      2025-11-03
+ * @date      2022-10-31
  *
  * <h3>history</h3>
  * <table>
  * <tr><th>Date        <th>Version  <th>Author      <th>Description
- * <tr><td>2025/11/03  <td>1.0      <td>Shifeng Li  <td>first upload
+ * <tr><td>2022/10/31  <td>1.0      <td>Shifeng Li  <td>first upload
  * </table>
  */
 
-#include "driver_shtc3_interface.h"
+#include "driver_aht20_interface.h"
 #include "../interface/iic.h"
 #include <stdarg.h>
 
 /**
  * @brief iic device name definition
  */
-extern char shtc3_iic_dev;
+extern char aht20_iic_dev;
 
 /**
  * @brief iic device handle definition
@@ -55,9 +55,9 @@ static int gs_fd;                           /**< iic handle */
  *         - 1 iic init failed
  * @note   none
  */
-uint8_t shtc3_interface_iic_init(void)
+uint8_t aht20_interface_iic_init(void)
 {
-    return iic_init(&shtc3_iic_dev, &gs_fd);
+    return iic_init(&aht20_iic_dev, &gs_fd);
 }
 
 /**
@@ -67,15 +67,29 @@ uint8_t shtc3_interface_iic_init(void)
  *         - 1 iic deinit failed
  * @note   none
  */
-uint8_t shtc3_interface_iic_deinit(void)
+uint8_t aht20_interface_iic_deinit(void)
 {
     return iic_deinit(gs_fd);
 }
 
 /**
- * @brief     interface iic bus write with 16 bits register address
+ * @brief      interface iic bus read
+ * @param[in]  addr iic device write address
+ * @param[out] *buf pointer to a data buffer
+ * @param[in]  len length of the data buffer
+ * @return     status code
+ *             - 0 success
+ *             - 1 read failed
+ * @note       none
+ */
+uint8_t aht20_interface_iic_read_cmd(uint8_t addr, uint8_t *buf, uint16_t len)
+{
+    return iic_read_cmd(gs_fd, addr, buf, len);
+}
+
+/**
+ * @brief     interface iic bus write
  * @param[in] addr iic device write address
- * @param[in] reg iic register address
  * @param[in] *buf pointer to a data buffer
  * @param[in] len length of the data buffer
  * @return    status code
@@ -83,41 +97,9 @@ uint8_t shtc3_interface_iic_deinit(void)
  *            - 1 write failed
  * @note      none
  */
-uint8_t shtc3_interface_iic_write_address16(uint8_t addr, uint16_t reg, uint8_t *buf, uint16_t len)
+uint8_t aht20_interface_iic_write_cmd(uint8_t addr, uint8_t *buf, uint16_t len)
 {
-    return iic_write_address16(gs_fd, addr, reg, buf, len);
-}
-
-/**
- * @brief      interface iic bus read with 16 bits register address
- * @param[in]  addr iic device write address
- * @param[in]  reg iic register address
- * @param[out] *buf pointer to a data buffer
- * @param[in]  len length of the data buffer
- * @return     status code
- *             - 0 success
- *             - 1 read failed
- * @note       none
- */
-uint8_t shtc3_interface_iic_read_address16(uint8_t addr, uint16_t reg, uint8_t *buf, uint16_t len)
-{
-    return iic_read_address16(gs_fd, addr, reg, buf, len);
-}
-
-/**
- * @brief      interface iic bus read with 16 bits register address
- * @param[in]  addr iic device write address
- * @param[in]  reg iic register address
- * @param[out] *buf pointer to a data buffer
- * @param[in]  len length of the data buffer
- * @return     status code
- *             - 0 success
- *             - 1 read failed
- * @note       none
- */
-uint8_t shtc3_interface_iic_scl_read_address16(uint8_t addr, uint16_t reg, uint8_t *buf, uint16_t len)
-{
-    return iic_read_address16(gs_fd, addr, reg, buf, len);
+    return iic_write_cmd(gs_fd, addr, buf, len);
 }
 
 /**
@@ -125,9 +107,9 @@ uint8_t shtc3_interface_iic_scl_read_address16(uint8_t addr, uint16_t reg, uint8
  * @param[in] ms time
  * @note      none
  */
-void shtc3_interface_delay_ms(uint32_t ms)
+void aht20_interface_delay_ms(uint32_t ms)
 {
-    usleep(1000 * ms);
+    usleep(ms * 1000);
 }
 
 /**
@@ -135,9 +117,10 @@ void shtc3_interface_delay_ms(uint32_t ms)
  * @param[in] fmt format data
  * @note      none
  */
-void shtc3_interface_debug_print(const char *const fmt, ...)
+void aht20_interface_debug_print(const char *const fmt, ...)
 {
     char str[256];
+    uint16_t len;
     va_list args;
     
     memset((char *)str, 0, sizeof(char) * 256); 
@@ -145,5 +128,6 @@ void shtc3_interface_debug_print(const char *const fmt, ...)
     vsnprintf((char *)str, 255, (char const *)fmt, args);
     va_end(args);
     
-    (void)printf((uint8_t *)str);
+    len = strlen((char *)str);
+    (void)printf((uint8_t *)str, len);
 }
