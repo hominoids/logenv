@@ -143,9 +143,9 @@
             "unit": ""
             },
             {
-            "name": "aht20",
+            "name": "htu31d",
             "device": "/dev/i2c-1",
-            "address": 112,
+            "address": 64,
             "type": "F",
             "xloc": 5,
             "yloc": 50,
@@ -155,9 +155,9 @@
             "unit": ""
             },
             {
-            "name": "aht20",
+            "name": "htu31d",
             "device": "/dev/i2c-1",
-            "address": 112,
+            "address": 64,
             "type": "C",
             "xloc": 45,
             "yloc": 50,
@@ -167,9 +167,9 @@
             "unit": "c"
             },
             {
-            "name": "aht20",
+            "name": "htu31d",
             "device": "/dev/i2c-1",
-            "address": 112,
+            "address": 64,
             "type": "H",
             "xloc": 90,
             "yloc": 50,

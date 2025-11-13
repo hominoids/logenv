@@ -18,6 +18,8 @@ drivers/shtc3/driver_shtc3.o drivers/shtc3/driver_shtc3_basic.o \
 drivers/shtc3/driver_shtc3_interface.o \
 drivers/aht20/driver_aht20.o drivers/aht20/driver_aht20_basic.o \
 drivers/aht20/driver_aht20_interface.o \
+drivers/htu31d/driver_htu31d.o drivers/htu31d/driver_htu31d_basic.o \
+drivers/htu31d/driver_htu31d_interface.o \
 drivers/interface/iic.o drivers/interface/spi.o drivers/interface/wire.o \
 drivers/mcp9808/mcp9808.o \
 drivers/displays.o logenv.o 

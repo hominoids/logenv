@@ -58,6 +58,7 @@
 #include "drivers/sht4x/driver_sht4x_basic.h"
 #include "drivers/shtc3/driver_shtc3_basic.h"
 #include "drivers/aht20/driver_aht20_basic.h"
+#include "drivers/htu31d/driver_htu31d_basic.h"
 #include "drivers/displays.h"
 #include "logenv.h"
 
@@ -286,6 +287,16 @@ uint8_t main(uint8_t argc, char **argv) {
                         }
                         aht20_iic_init = 1;
                         DP_AHT20++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"htu31d")) {
+                        strcpy(htu31d_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        htu31d_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(htu31d_basic_init(htu31d_iic_addr) != 0) {
+                            printf("\nERROR: Cannot open HTU31D at %s\n", interface);
+                            exit(1);
+                        }
+                        htu31d_iic_init = 1;
+                        DP_HTU31D++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
                         strcpy(scd41_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
@@ -603,6 +614,29 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             SENSOR_ENABLE = 6;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * htu31d command line options
+         */
+        if(!strcmp(argv[i], "--htu31d")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(htu31d_iic_init == 0) {
+                    strcpy(htu31d_iic_dev, interface);
+                    if(htu31d_basic_init(htu31d_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open HTU31D at %s\n", interface);
+                        exit(1);
+                    }
+                    htu31d_iic_init == 1;
+                }
+            }
+            SENSOR_ENABLE = 7;
             OPTIONS_COUNT++;
         }
         /*
@@ -1090,66 +1124,92 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             /*
-             * read mcp9808 temperature sensor
+             * read bmp180
              */
-            if(SENSOR_ENABLE == 3 || DP_MCP9808 >= 1) {
+            if(SENSOR_ENABLE == 1) {
 
-                float temperature = mcp9808_read();
-                if(SENSOR_ENABLE == 3) {
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%d", temperature);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n MCP9808 Sensor = %.2lfc", temperature);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature);
-                        }
-                        else {
-                            printf("%.2lf", temperature);
-                        }
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%.2lf",temperature);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature);
-                    }
-                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature);
-                    }
-                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature);
-                        }
-                    }
-                    OPTIONS_COUNT--;
+                float temperature_f;
+                float humidity_f;
+                uint32_t pressure;
+
+                uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
+                if (res != 0) {
+                    bmp180_basic_deinit();
+                    printf("ERROR: bmp180 read failed.\n");
+                    return 1;
                 }
-                if(DP_MCP9808 != 0) {
-                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
-                                char buffer[6];
-                                sprintf(buffer, "%.2lf", temperature);
-                                strcpy(dp[d].dc[i].data1, buffer);
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                    printf(",%f", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n BMP180 Sensor = %.2lfc", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                    printf(",%.2lf", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", temperature_f);
+                    }
+                    else {
+                        printf("%.2lf,", temperature_f);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    }
+                }
+            OPTIONS_COUNT--;
+            }
+            if(DP_BMP180 != 0) {
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                float temperature_f;
+                float humidity_f;
+                uint32_t pressure;
+
+                uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
+                if (res != 0) {
+                    bmp180_basic_deinit();
+                    printf("ERROR: bmp180 read failed.\n");
+                    return 1;
+                }
+
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "bmp180")) {
+                            char buffer[25];
+                            sprintf(buffer, "%.2lf", temperature_f);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%.2lf", (double) pressure/100);
+                            strcpy(dp[d].dc[i].data3, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                 }
+                            }
 
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1259,92 +1319,66 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             /*
-             * read bmp180
+             * read mcp9808 temperature sensor
              */
-            if(SENSOR_ENABLE == 1) {
+            if(SENSOR_ENABLE == 3 || DP_MCP9808 >= 1) {
 
-                float temperature_f;
-                float humidity_f;
-                uint32_t pressure;
+                float temperature = mcp9808_read();
+                if(SENSOR_ENABLE == 3) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n MCP9808 Sensor = %.2lfc", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature);
+                        }
+                        else {
+                            printf("%.2lf", temperature);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%.2lf",temperature);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_MCP9808 != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
+                                char buffer[6];
+                                sprintf(buffer, "%.2lf", temperature);
+                                strcpy(dp[d].dc[i].data1, buffer);
 
-                uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
-                if (res != 0) {
-                    bmp180_basic_deinit();
-                    printf("ERROR: bmp180 read failed.\n");
-                    return 1;
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%f", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BMP180 Sensor = %.2lfc", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                    printf(",%.2lf", temperature_f);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", temperature_f);
-                    }
-                    else {
-                        printf("%.2lf,", temperature_f);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
-                    }
-                }
-            OPTIONS_COUNT--;
-            }
-            if(DP_BMP180 != 0) {
-
-                float temperature_f;
-                float humidity_f;
-                uint32_t pressure;
-
-                uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
-                if (res != 0) {
-                    bmp180_basic_deinit();
-                    printf("ERROR: bmp180 read failed.\n");
-                    return 1;
-                }
-
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "bmp180")) {
-                            char buffer[25];
-                            sprintf(buffer, "%.2lf", temperature_f);
-                            strcpy(dp[d].dc[i].data1, buffer);
-                            sprintf(buffer, "%.2lf", (double) pressure/100);
-                            strcpy(dp[d].dc[i].data3, buffer);
-
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
-                            }
 
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    }
                                 }
                             }
                         }
@@ -1630,6 +1664,101 @@ uint8_t main(uint8_t argc, char **argv) {
                             if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                 if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if(SENSOR_ENABLE == 7) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = htu31d_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)htu31d_basic_deinit();
+                    printf("ERROR: htu31d read failed.\n");
+                    return 1;
+                }
+
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                    printf(",%f", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                    printf("\n\n htu31d Sensor = %.2lfc", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf", temperature_f);
+                }
+                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        printf("%.2lf,", temperature_f);
+                    }
+                    else {
+                        printf("%.2lf", temperature_f);
+                    }
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                    fprintf(log_file,",%f", temperature_f);
+                }
+                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                    fprintf(log_file,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                    if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                    }
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                }
+                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                   if(OPTIONS_COUNT > 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                    }
+                    else {
+                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                    }
+                }
+            OPTIONS_COUNT--;
+            }
+            if(DP_HTU31D != 0) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = htu31d_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)htu31d_basic_deinit();
+                    printf("ERROR: htu31d read failed.\n");
+                    return 1;
+                }
+
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "htu31d")) {
+                            char buffer[25];
+                            sprintf(buffer, "%.2lf", temperature_f);
+                            strcpy(dp[d].dc[i].data1, buffer);
+                            sprintf(buffer, "%.2lf", humidity_f);
+                            strcpy(dp[d].dc[i].data2, buffer);
+
+                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+
+                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2564,6 +2693,9 @@ uint8_t main(uint8_t argc, char **argv) {
     if (SENSOR_ENABLE == 6 || DP_AHT20 != 0) {
         (void)aht20_basic_deinit();
     }
+    if (SENSOR_ENABLE == 7 || DP_HTU31D != 0) {
+        (void)htu31d_basic_deinit();
+    }
 }
 
 
@@ -2583,6 +2715,7 @@ void usage (void) {
         printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
         printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
         printf("      --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
+        printf("      --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
