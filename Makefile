@@ -10,6 +10,8 @@ drivers/sgp30/driver_sgp30_advance.o drivers/sgp30/driver_sgp30.o \
 drivers/sgp30/driver_sgp30_interface.o \
 drivers/bmp180/driver_bmp180.o drivers/bmp180/driver_bmp180_basic.o \
 drivers/bmp180/driver_bmp180_interface.o \
+drivers/bmp388/driver_bmp388.o drivers/bmp388/driver_bmp388_basic.o \
+drivers/bmp388/driver_bmp388_interface.o \
 drivers/bme280/driver_bme280.o drivers/bme280/driver_bme280_basic.o \
 drivers/bme280/driver_bme280_shot.o drivers/bme280/driver_bme280_interface.o \
 drivers/sht4x/driver_sht4x.o drivers/sht4x/driver_sht4x_basic.o \
@@ -33,5 +35,5 @@ clean:
 	rm *.o logenv drivers/ssd1681/*.o drivers/ssd1306/*.o \
 drivers/bmp180/*.o drivers/bme280/*.o drivers/mcp9808/*.o \
 drivers/scd4x/*.o drivers/sgp30/*.o drivers/sht4x/*.o drivers/shtc3/*.o \
-drivers/aht20/*.o
+drivers/aht20/*.o drivers/bmp388/*.o
 

@@ -143,9 +143,9 @@
             "unit": ""
             },
             {
-            "name": "htu31d",
+            "name": "bmp388",
             "device": "/dev/i2c-1",
-            "address": 64,
+            "address": 119,
             "type": "F",
             "xloc": 5,
             "yloc": 50,
@@ -155,9 +155,9 @@
             "unit": ""
             },
             {
-            "name": "htu31d",
+            "name": "bmp388",
             "device": "/dev/i2c-1",
-            "address": 64,
+            "address": 119,
             "type": "C",
             "xloc": 45,
             "yloc": 50,
@@ -167,16 +167,16 @@
             "unit": "c"
             },
             {
-            "name": "htu31d",
+            "name": "bmp388",
             "device": "/dev/i2c-1",
-            "address": 64,
-            "type": "H",
+            "address": 119,
+            "type": "P",
             "xloc": 90,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
-            "unit": "%"
+            "unit": "hPa"
             }
         ]
     }

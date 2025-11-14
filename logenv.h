@@ -76,6 +76,11 @@ uint16_t bmp180_iic_addr = 0xEE;
 char bmp180_iic_dev[14] = "/dev/i2c-0";
 uint8_t bmp180_iic_init = 0;
 
+uint16_t bmp388_iic_addr = 0x76;
+char bmp388_iic_dev[14] = "/dev/i2c-0";
+char bmp388_spi_dev[18] = "/dev/spidev0.0";
+uint8_t bmp388_iic_init = 0;
+
 uint16_t mcp9808_iic_addr = 0x18;
 char mcp9808_iic_dev[14] = "/dev/i2c-0";
 uint8_t mcp9808_iic_init = 0;
@@ -163,6 +168,7 @@ static uint8_t UDP_ENABLE = 0;
 static uint8_t OPTIONS_COUNT = 0;
 static uint8_t SGP30_ENABLE = 0;
 static uint8_t SCD4X_ENABLE = 0;
+static uint8_t BMP388_ENABLE = 0;
 
 static uint8_t DISPLAY_ENABLE = 0;
 static uint8_t DP_TIME = 0;
@@ -175,6 +181,7 @@ static uint8_t DP_SP2 = 0;
 static uint8_t DP_SP3CH1 = 0;
 static uint8_t DP_SP3CH2 = 0;
 static uint8_t DP_BMP180 = 0;
+static uint8_t DP_BMP388 = 0;
 static uint8_t DP_BME280 = 0;
 static uint8_t DP_MCP9808 = 0;
 static uint8_t DP_SHT4X = 0;

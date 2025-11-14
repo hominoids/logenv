@@ -50,6 +50,7 @@
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
 #include "drivers/ssd1306/driver_ssd1306_advance.h"
 #include "drivers/bmp180/driver_bmp180_basic.h"
+#include "drivers/bmp388/driver_bmp388_basic.h"
 #include "drivers/bme280/driver_bme280_basic.h"
 #include "drivers/mcp9808/mcp9808.h"
 #include "drivers/scd4x/driver_scd4x_basic.h"
@@ -236,6 +237,16 @@ uint8_t main(uint8_t argc, char **argv) {
                         }
                         bmp180_iic_init = 1;
                         DP_BMP180++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp388")) {
+                        strcpy(bmp388_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        bmp388_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
+                            printf("\nERROR: Cannot open BMP388 at %s\n", interface);
+                            exit(1);
+                        }
+                        bmp388_iic_init = 1;
+                        DP_BMP388++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme280")) {
                         strcpy(bme280_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
@@ -521,6 +532,28 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             SENSOR_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bmp388 command line options
+         */
+        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bmp388")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(bmp388_iic_init == 0) {
+                    strcpy(bmp388_iic_dev, interface);
+                    if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BMP388 at %s\n", interface);
+                        exit(1);
+                    }
+                    bmp388_iic_init == 1;
+                }
+            }
             OPTIONS_COUNT++;
         }
         /*
@@ -1129,7 +1162,6 @@ uint8_t main(uint8_t argc, char **argv) {
             if(SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
 
                 float temperature_f;
-                float humidity_f;
                 uint32_t pressure;
 
                 uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
@@ -1202,6 +1234,91 @@ uint8_t main(uint8_t argc, char **argv) {
                                 if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * read bmp388
+             */
+            if(BMP388_ENABLE == 1 || DP_BMP388 != 0) {
+
+                float temperature_f;
+                float pressure;
+
+                uint8_t res = bmp388_basic_read((float *)&temperature_f, (float *)&pressure);
+                if (res != 0) {
+                    bmp388_basic_deinit();
+                    printf("ERROR: bmp388 read failed.\n");
+                    return 1;
+                }
+
+                if(BMP388_ENABLE == 1) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n BMP388 Sensor = %.2lfc", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf,", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_BMP388 != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "bmp388")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", (double) pressure/100);
+                                strcpy(dp[d].dc[i].data3, buffer);
+
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
                             }
@@ -2749,6 +2866,9 @@ uint8_t main(uint8_t argc, char **argv) {
     if (SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
         (void)bmp180_basic_deinit();
     }
+    if (BMP388_ENABLE == 1 || DP_BMP388 != 0) {
+        (void)bmp388_basic_deinit();
+    }
     if (SENSOR_ENABLE == 2 || DP_BME280 != 0) {
         (void)bme280_basic_deinit();
     }
@@ -2782,6 +2902,7 @@ void usage (void) {
         printf(" -t,  --temperature           Thermal zone temperature\n");
         printf(" -a,  --bme280 <device>       Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
         printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
+        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77\n");
         printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
         printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
         printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
