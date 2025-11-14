@@ -42,7 +42,7 @@
 /**
  * @brief iic device name definition
  */
-extern char scd41_iic_dev;
+extern char sgp30_iic_dev;
 
 /**
  * @brief iic device handle definition
@@ -58,7 +58,7 @@ static int gs_fd;                           /**< iic handle */
  */
 uint8_t sgp30_interface_iic_init(void)
 {
-    return iic_init(&scd41_iic_dev, &gs_fd);
+    return iic_init(&sgp30_iic_dev, &gs_fd);
 }
 
 /**

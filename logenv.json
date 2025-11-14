@@ -143,9 +143,9 @@
             "unit": ""
             },
             {
-            "name": "bmp388",
+            "name": "scd30",
             "device": "/dev/i2c-1",
-            "address": 119,
+            "address": 97,
             "type": "F",
             "xloc": 5,
             "yloc": 50,
@@ -155,9 +155,9 @@
             "unit": ""
             },
             {
-            "name": "bmp388",
+            "name": "scd30",
             "device": "/dev/i2c-1",
-            "address": 119,
+            "address": 97,
             "type": "C",
             "xloc": 45,
             "yloc": 50,
@@ -167,16 +167,16 @@
             "unit": "c"
             },
             {
-            "name": "bmp388",
+            "name": "scd30",
             "device": "/dev/i2c-1",
-            "address": 119,
-            "type": "P",
+            "address": 97,
+            "type": "G",
             "xloc": 90,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
-            "unit": "hPa"
+            "unit": "ppm"
             }
         ]
     }

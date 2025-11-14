@@ -53,6 +53,7 @@
 #include "drivers/bmp388/driver_bmp388_basic.h"
 #include "drivers/bme280/driver_bme280_basic.h"
 #include "drivers/mcp9808/mcp9808.h"
+#include "drivers/scd30/driver_scd30_basic.h"
 #include "drivers/scd4x/driver_scd4x_basic.h"
 #include "drivers/scd4x/driver_scd4x_shot.h"
 #include "drivers/sgp30/driver_sgp30_advance.h"
@@ -309,16 +310,26 @@ uint8_t main(uint8_t argc, char **argv) {
                         htu31d_iic_init = 1;
                         DP_HTU31D++;
                     }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd30")) {
+                        strcpy(scd30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        scd30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
+                            printf("\nERROR: SCD30 Init failed.\n");
+                            exit(1);
+                        }
+                        scd30_iic_init = 1;
+                        DP_SCD30++;
+                    }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
-                        strcpy(scd41_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        scd41_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        strcpy(scd4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        scd4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         scd4x_t chip_type = SCD41;
                         if (scd4x_shot_init(chip_type)) {
                             printf("\nERROR: SCD41 Init failed.\n");
                             exit(1);
                         }
-                        scd41_iic_init = 1;
-                        DP_SCD41++;
+                        scd4x_iic_init = 1;
+                        DP_SCD4X++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sgp30")) {
                         strcpy(sgp30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
@@ -673,6 +684,28 @@ uint8_t main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
+         * scd30 command line options
+         */
+        if(!strcmp(argv[i], "--scd30")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(scd30_iic_init == 0) {
+                    strcpy(scd30_iic_dev, interface);
+                    if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
+                        printf("\nERROR: SCD30 Init failed.\n");
+                        exit(1);
+                    }
+                    scd30_iic_init == 1;
+                }
+            }
+            OPTIONS_COUNT++;
+        }
+        /*
          * scd41 command line options
          */
         if(!strcmp(argv[i], "--scd41")) {
@@ -684,13 +717,13 @@ uint8_t main(uint8_t argc, char **argv) {
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
                 }
-                if(scd41_iic_init == 0) {
-                    strcpy(scd41_iic_dev, interface);
+                if(scd4x_iic_init == 0) {
+                    strcpy(scd4x_iic_dev, interface);
                     if (scd4x_shot_init(chip_type)) {
                         printf("\nERROR: SCD41 Init failed.\n");
                         exit(1);
                     }
-                    scd41_iic_init == 1;
+                    scd4x_iic_init == 1;
                 }
             }
             OPTIONS_COUNT++;
@@ -1852,9 +1885,99 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
             }
             /*
+            * SCD30 enabled
+            */
+            if(SCD30_ENABLE != 0 || DP_SCD30 != 0) {
+
+                scd30_data_t data;
+
+                uint8_t res = scd30_basic_read((scd30_data_t *)&data);
+                if (res != 0) {
+                    (void)scd30_basic_deinit();
+                    return 1;
+                }
+                if(SCD30_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", data.co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n scd30 Sensor = %.2lfppm", data.co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", data.co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", data.co2_ppm);
+                        }
+                        else {
+                            printf("%.2lf", data.co2_ppm);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f", data.co2_ppm);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", data.co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", data.co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", data.co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", data.co2_ppm);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", data.co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", data.co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", data.co2_ppm);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_SCD30 != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "scd30")) {
+                                char buffer[6];
+                                sprintf(buffer, "%.2f", data.temperature_deg);
+                                strcpy(dp[d].dc[i].data1, buffer);
+
+                                sprintf(buffer, "%.2f", data.humidity_percent);
+                                strcpy(dp[d].dc[i].data2, buffer);
+
+                                sprintf(buffer, "%.2f", data.co2_ppm);
+                                strcpy(dp[d].dc[i].data4, buffer);
+
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
             * SCD4x enabled
             */
-            if(SCD4X_ENABLE != 0 || DP_SCD41 != 0) {
+            if(SCD4X_ENABLE != 0 || DP_SCD4X != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1913,7 +2036,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     }
                     OPTIONS_COUNT--;
                 }
-                if(DP_SCD41 != 0) {
+                if(DP_SCD4X != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "scd41")) {
@@ -2857,10 +2980,13 @@ uint8_t main(uint8_t argc, char **argv) {
     if (DISPLAY_ENABLE == 1) {
         (void)ssd1681_deinit(&ssd1681_handle);
     }
-    if (DP_SCD41 != 0) {
+    if (SCD30_ENABLE == 1 || DP_SCD30 != 0) {
+        (void)scd30_basic_deinit();
+    }
+    if (SCD4X_ENABLE == 1 || DP_SCD4X != 0) {
         (void)scd4x_shot_deinit();
     }
-    if (DP_SGP30 != 0) {
+    if (SGP30_ENABLE == 1 || DP_SGP30 != 0) {
         (void)sgp30_advance_deinit();
     }
     if (SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
@@ -2920,6 +3046,7 @@ void usage (void) {
         printf(" -o,                          Output to eInk/Oled/LCD display using logenv.json\n");
         printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
         printf(" -s,  --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0\n");
+        printf("      --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0\n");
         printf("      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");

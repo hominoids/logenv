@@ -51,7 +51,7 @@
 /**
  * @brief chip address definition
  */
-extern uint16_t scd41_iic_addr;
+extern uint16_t scd4x_iic_addr;
 
 /**
  * @brief chip command definition
@@ -122,12 +122,12 @@ static uint8_t a_scd4x_iic_read_with_param(scd4x_handle_t *handle, uint16_t reg,
         buf[2 + i] = data[i];                                                      /* copy write data */
     }
     
-    if (handle->iic_write_cmd(scd41_iic_addr, (uint8_t *)buf, len + 2) != 0)        /* write iic command */
+    if (handle->iic_write_cmd(scd4x_iic_addr, (uint8_t *)buf, len + 2) != 0)        /* write iic command */
     {
         return 1;                                                                  /* write command */
     }
     handle->delay_ms(delay_ms);                                                    /* delay ms */
-    if (handle->iic_read_cmd(scd41_iic_addr, output, output_len) != 0)              /* read data */
+    if (handle->iic_read_cmd(scd4x_iic_addr, output, output_len) != 0)              /* read data */
     {
         return 1;                                                                  /* write command */
     }
@@ -156,12 +156,12 @@ static uint8_t a_scd4x_iic_read(scd4x_handle_t *handle, uint16_t reg, uint8_t *d
     memset(buf, 0, sizeof(uint8_t) * 2);                                     /* clear the buffer */
     buf[0] = (uint8_t)((reg >> 8) & 0xFF);                                   /* set reg MSB */
     buf[1] = (uint8_t)(reg & 0xFF);                                          /* set reg LSB */
-    if (handle->iic_write_cmd(scd41_iic_addr, (uint8_t *)buf, 2) != 0)        /* write command */
+    if (handle->iic_write_cmd(scd4x_iic_addr, (uint8_t *)buf, 2) != 0)        /* write command */
     {   
         return 1;                                                            /* return error */
     }
     handle->delay_ms(delay_ms);                                              /* delay ms */
-    if (handle->iic_read_cmd(scd41_iic_addr, data, len) != 0)                 /* read data */
+    if (handle->iic_read_cmd(scd4x_iic_addr, data, len) != 0)                 /* read data */
     {
         return 1;                                                            /* write command */
     }
@@ -199,7 +199,7 @@ static uint8_t a_scd4x_iic_write(scd4x_handle_t *handle, uint16_t reg, uint8_t *
         buf[2 + i] = data[i];                                                      /* copy write data */
     }
     
-    if (handle->iic_write_cmd(scd41_iic_addr, (uint8_t *)buf, len + 2) != 0)        /* write iic command */
+    if (handle->iic_write_cmd(scd4x_iic_addr, (uint8_t *)buf, len + 2) != 0)        /* write iic command */
     {
         return 1;                                                                  /* write command */
     }

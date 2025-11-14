@@ -21,33 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. 
  *
- * @file      driver_scd4x_interface_template.c
- * @brief     driver scd4x interface template source file
+ * @file      driver_scd30_interface.h
+ * @brief     driver scd30 interface header file
  * @version   1.0.0
  * @author    Shifeng Li
- * @date      2023-09-25
+ * @date      2024-08-30
  *
  * <h3>history</h3>
  * <table>
  * <tr><th>Date        <th>Version  <th>Author      <th>Description
- * <tr><td>2023/09/25  <td>1.0      <td>Shifeng Li  <td>first upload
+ * <tr><td>2024/08/30  <td>1.0      <td>Shifeng Li  <td>first upload
  * </table>
  */
 
-#include "driver_scd4x_interface.h"
-#include "../interface/iic.h"
-#include <stdarg.h>
+#ifndef DRIVER_SCD30_INTERFACE_H
+#define DRIVER_SCD30_INTERFACE_H
+
+#include "driver_scd30.h"
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 /**
- * @brief iic device name definition
+ * @defgroup scd30_interface_driver scd30 interface driver function
+ * @brief    scd30 interface driver modules
+ * @ingroup  scd30_driver
+ * @{
  */
-extern char scd4x_iic_dev;
-
-/**
- * @brief iic device handle definition
- */
-static int gs_fd;                           /**< iic handle */
-
 
 /**
  * @brief  interface iic bus init
@@ -56,10 +57,7 @@ static int gs_fd;                           /**< iic handle */
  *         - 1 iic init failed
  * @note   none
  */
-uint8_t scd4x_interface_iic_init(void)
-{
-    return iic_init(&scd4x_iic_dev, &gs_fd);
-}
+uint8_t scd30_interface_iic_init(void);
 
 /**
  * @brief  interface iic bus deinit
@@ -68,28 +66,10 @@ uint8_t scd4x_interface_iic_init(void)
  *         - 1 iic deinit failed
  * @note   none
  */
-uint8_t scd4x_interface_iic_deinit(void)
-{
-    return iic_deinit(gs_fd);
-}
+uint8_t scd30_interface_iic_deinit(void);
 
 /**
- * @brief     interface iic bus write command
- * @param[in] addr iic device write address
- * @param[in] *buf pointer to a data buffer
- * @param[in] len length of the data buffer
- * @return    status code
- *            - 0 success
- *            - 1 write failed
- * @note      none
- */
-uint8_t scd4x_interface_iic_write_cmd(uint8_t addr, uint8_t *buf, uint16_t len)
-{
-    return iic_write_cmd(gs_fd, addr, buf, len);
-}
-
-/**
- * @brief      interface iic bus read command
+ * @brief      interface iic bus read
  * @param[in]  addr iic device write address
  * @param[out] *buf pointer to a data buffer
  * @param[in]  len length of the data buffer
@@ -98,36 +78,89 @@ uint8_t scd4x_interface_iic_write_cmd(uint8_t addr, uint8_t *buf, uint16_t len)
  *             - 1 read failed
  * @note       none
  */
-uint8_t scd4x_interface_iic_read_cmd(uint8_t addr, uint8_t *buf, uint16_t len)
-{
-    return iic_read_cmd(gs_fd, addr, buf, len);
-}
+uint8_t scd30_interface_iic_read_cmd(uint8_t addr, uint8_t *buf, uint16_t len);
+
+/**
+ * @brief     interface iic bus write
+ * @param[in] addr iic device write address
+ * @param[in] *buf pointer to a data buffer
+ * @param[in] len length of the data buffer
+ * @return    status code
+ *            - 0 success
+ *            - 1 write failed
+ * @note      none
+ */
+uint8_t scd30_interface_iic_write_cmd(uint8_t addr, uint8_t *buf, uint16_t len);
+
+/**
+ * @brief  interface uart init
+ * @return status code
+ *         - 0 success
+ *         - 1 uart init failed
+ * @note   none
+ */
+uint8_t scd30_interface_uart_init(void);
+
+/**
+ * @brief  interface uart deinit
+ * @return status code
+ *         - 0 success
+ *         - 1 uart deinit failed
+ * @note   none
+ */
+uint8_t scd30_interface_uart_deinit(void);
+
+/**
+ * @brief      interface uart read
+ * @param[out] *buf pointer to a data buffer
+ * @param[in]  len length of the data buffer
+ * @return     status code
+ *             - 0 success
+ *             - 1 read failed
+ * @note       none
+ */
+uint16_t scd30_interface_uart_read(uint8_t *buf, uint16_t len);
+
+/**
+ * @brief     interface uart write
+ * @param[in] *buf pointer to a data buffer
+ * @param[in] len length of the data buffer
+ * @return    status code
+ *            - 0 success
+ *            - 1 write failed
+ * @note      none
+ */
+uint8_t scd30_interface_uart_write(uint8_t *buf, uint16_t len);
+
+/**
+ * @brief  interface uart flush
+ * @return status code
+ *         - 0 success
+ *         - 1 uart flush failed
+ * @note   none
+ */
+uint8_t scd30_interface_uart_flush(void);
 
 /**
  * @brief     interface delay ms
  * @param[in] ms time
  * @note      none
  */
-void scd4x_interface_delay_ms(uint32_t ms)
-{
-    usleep(1000 * ms);
-}
+void scd30_interface_delay_ms(uint32_t ms);
 
 /**
  * @brief     interface print format data
  * @param[in] fmt format data
  * @note      none
  */
-void scd4x_interface_debug_print(const char *const fmt, ...)
-{
-    char str[256];
-    va_list args;
-    
-    memset((char *)str, 0, sizeof(char) * 256); 
-    va_start(args, fmt);
-    vsnprintf((char *)str, 255, (char const *)fmt, args);
-    va_end(args);
-    
-    (void)printf((uint8_t *)str);
+void scd30_interface_debug_print(const char *const fmt, ...);
 
+/**
+ * @}
+ */
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif

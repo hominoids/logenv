@@ -85,9 +85,13 @@ uint16_t mcp9808_iic_addr = 0x18;
 char mcp9808_iic_dev[14] = "/dev/i2c-0";
 uint8_t mcp9808_iic_init = 0;
 
-uint16_t scd41_iic_addr = 0x62;
-char scd41_iic_dev[14] = "/dev/i2c-0";
-uint8_t scd41_iic_init = 0;
+uint16_t scd30_iic_addr = 0x61;
+char scd30_iic_dev[14] = "/dev/i2c-0";
+uint8_t scd30_iic_init = 0;
+
+uint16_t scd4x_iic_addr = 0x62;
+char scd4x_iic_dev[14] = "/dev/i2c-0";
+uint8_t scd4x_iic_init = 0;
 
 uint16_t sgp30_iic_addr = 0x58;
 char sgp30_iic_dev[14] = "/dev/i2c-0";
@@ -167,6 +171,7 @@ static uint8_t USAGE_ENABLE = 0;
 static uint8_t UDP_ENABLE = 0;
 static uint8_t OPTIONS_COUNT = 0;
 static uint8_t SGP30_ENABLE = 0;
+static uint8_t SCD30_ENABLE = 0;
 static uint8_t SCD4X_ENABLE = 0;
 static uint8_t BMP388_ENABLE = 0;
 
@@ -188,7 +193,8 @@ static uint8_t DP_SHT4X = 0;
 static uint8_t DP_SHTC3 = 0;
 static uint8_t DP_AHT20 = 0;
 static uint8_t DP_HTU31D = 0;
-static uint8_t DP_SCD41 = 0;
+static uint8_t DP_SCD30 = 0;
+static uint8_t DP_SCD4X = 0;
 static uint8_t DP_SGP30 = 0;
 static uint8_t DP_TEXT = 0;
 static uint8_t DP_POINT = 0;
