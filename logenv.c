@@ -320,12 +320,22 @@ uint8_t main(uint8_t argc, char **argv) {
                         scd30_iic_init = 1;
                         DP_SCD30++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd40") || \
+                        !strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41") || \
+                            !strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
                         strcpy(scd4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         scd4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        scd4x_t chip_type = SCD41;
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd40")) {
+                            scd4x_t chip_type = SCD40;
+                        } 
+                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
+                            scd4x_t chip_type = SCD41;
+                        }
+                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
+                            scd4x_t chip_type = SCD43;
+                        }
                         if (scd4x_shot_init(chip_type)) {
-                            printf("\nERROR: SCD41 Init failed.\n");
+                            printf("\nERROR: SCD4x Init failed.\n");
                             exit(1);
                         }
                         scd4x_iic_init = 1;
@@ -708,8 +718,20 @@ uint8_t main(uint8_t argc, char **argv) {
         /*
          * scd41 command line options
          */
-        if(!strcmp(argv[i], "--scd41")) {
-            scd4x_t chip_type = SCD41;
+        if(!strcmp(argv[i], "--scd40") || !strcmp(argv[i], "--scd41") || !strcmp(argv[i], "--scd43")) {
+            if(!strcmp(argv[i], "--scd40")) {
+                scd4x_t chip_type = SCD40;
+            } 
+            else if (!strcmp(argv[i], "--scd41"))) {
+                scd4x_t chip_type = SCD41;
+            }
+            else if (!strcmp(argv[i], "--scd43")) {
+                scd4x_t chip_type = SCD43;
+            }
+            if (scd4x_shot_init(chip_type)) {
+                printf("\nERROR: SCD4x Init failed.\n");
+                exit(1);
+            }
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
@@ -2039,7 +2061,9 @@ uint8_t main(uint8_t argc, char **argv) {
                 if(DP_SCD4X != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "scd41")) {
+                            if(!strcmp(dp[d].dc[i].name, "scd40") || \
+                                !strcmp(dp[d].dc[i].name, "scd41") || \
+                                    !strcmp(dp[d].dc[i].name, "scd43")) {
                                 char buffer[6];
                                 sprintf(buffer, "%.2f", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
