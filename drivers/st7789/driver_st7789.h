@@ -40,6 +40,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "../fonts/monospace_font.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -819,7 +820,7 @@ uint8_t st7789_draw_point(st7789_handle_t *handle, uint16_t x, uint16_t y, uint3
  *            - 4 x or y is invalid
  * @note      x < column && y < row
  */
-uint8_t st7789_write_string(st7789_handle_t *handle, uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, st7789_font_t font);
+uint8_t st7789_write_string(st7789_handle_t *handle, uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, font_t font);
 
 /**
  * @brief     fill the rect

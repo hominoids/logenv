@@ -35,14 +35,14 @@
  */
 
 #include "driver_st7789_interface.h"
-#include "spi.h"
-#include "wire.h"
+#include "../interface/spi.h"
+#include "../interface/wire.h"
 #include <stdarg.h>
 
 /**
  * @brief spi device name definition
  */
-#define SPI_DEVICE_NAME "/dev/spidev0.0"    /**< spi device name */
+extern char st7789_spi_dev;
 
 /**
  * @brief spi device handle definition
@@ -58,7 +58,7 @@ static int gs_fd;                           /**< spi handle */
  */
 uint8_t st7789_interface_spi_init(void)
 {
-    return spi_init(SPI_DEVICE_NAME, &gs_fd, SPI_MODE_TYPE_3, 1000 * 1000 * 5);
+    return spi_init(&st7789_spi_dev, &gs_fd, SPI_MODE_TYPE_3, 1000 * 1000 * 5);
 }
 
 /**

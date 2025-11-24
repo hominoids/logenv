@@ -40,9 +40,9 @@
 /**
  * @brief gpio device name definition
  */
-#define GPIO_DEVICE_NAME "/dev/gpiochip3"        /**< gpio device name */
-#define GPIO_DEVICE_NAME_CLOCK "/dev/gpiochip3"        /**< gpio device name */
-#define GPIO_DEVICE_NAME_CS "/dev/gpiochip0"        /**< gpio device name */
+#define GPIO_DEVICE_NAME "/dev/gpiochip3"        /**< gpio device name BUSY*/
+#define GPIO_DEVICE_NAME_CLOCK "/dev/gpiochip3"  /**< gpio device clock line name RESET*/
+#define GPIO_DEVICE_NAME_CS "/dev/gpiochip0"     /**< gpio device cs line name DC*/
 
 /**
  * @brief gpio device line definition

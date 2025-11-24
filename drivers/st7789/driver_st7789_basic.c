@@ -36,7 +36,7 @@
 
 #include "driver_st7789_basic.h"
 
-static st7789_handle_t gs_handle;        /**< st7789 handle */
+st7789_handle_t st7789_handle;        /**< st7789 handle */
 
 /**
  * @brief  basic example init
@@ -55,21 +55,21 @@ uint8_t st7789_basic_init(void)
     uint8_t params[64];
 
     /* link functions */
-    DRIVER_ST7789_LINK_INIT(&gs_handle, st7789_handle_t);
-    DRIVER_ST7789_LINK_SPI_INIT(&gs_handle, st7789_interface_spi_init);
-    DRIVER_ST7789_LINK_SPI_DEINIT(&gs_handle, st7789_interface_spi_deinit);
-    DRIVER_ST7789_LINK_SPI_WRITE_COMMAND(&gs_handle, st7789_interface_spi_write_cmd);
-    DRIVER_ST7789_LINK_COMMAND_DATA_GPIO_INIT(&gs_handle, st7789_interface_cmd_data_gpio_init);
-    DRIVER_ST7789_LINK_COMMAND_DATA_GPIO_DEINIT(&gs_handle, st7789_interface_cmd_data_gpio_deinit);
-    DRIVER_ST7789_LINK_COMMAND_DATA_GPIO_WRITE(&gs_handle, st7789_interface_cmd_data_gpio_write);
-    DRIVER_ST7789_LINK_RESET_GPIO_INIT(&gs_handle, st7789_interface_reset_gpio_init);
-    DRIVER_ST7789_LINK_RESET_GPIO_DEINIT(&gs_handle, st7789_interface_reset_gpio_deinit);
-    DRIVER_ST7789_LINK_RESET_GPIO_WRITE(&gs_handle, st7789_interface_reset_gpio_write);
-    DRIVER_ST7789_LINK_DELAY_MS(&gs_handle, st7789_interface_delay_ms);
-    DRIVER_ST7789_LINK_DEBUG_PRINT(&gs_handle, st7789_interface_debug_print);
+    DRIVER_ST7789_LINK_INIT(&st7789_handle, st7789_handle_t);
+    DRIVER_ST7789_LINK_SPI_INIT(&st7789_handle, st7789_interface_spi_init);
+    DRIVER_ST7789_LINK_SPI_DEINIT(&st7789_handle, st7789_interface_spi_deinit);
+    DRIVER_ST7789_LINK_SPI_WRITE_COMMAND(&st7789_handle, st7789_interface_spi_write_cmd);
+    DRIVER_ST7789_LINK_COMMAND_DATA_GPIO_INIT(&st7789_handle, st7789_interface_cmd_data_gpio_init);
+    DRIVER_ST7789_LINK_COMMAND_DATA_GPIO_DEINIT(&st7789_handle, st7789_interface_cmd_data_gpio_deinit);
+    DRIVER_ST7789_LINK_COMMAND_DATA_GPIO_WRITE(&st7789_handle, st7789_interface_cmd_data_gpio_write);
+    DRIVER_ST7789_LINK_RESET_GPIO_INIT(&st7789_handle, st7789_interface_reset_gpio_init);
+    DRIVER_ST7789_LINK_RESET_GPIO_DEINIT(&st7789_handle, st7789_interface_reset_gpio_deinit);
+    DRIVER_ST7789_LINK_RESET_GPIO_WRITE(&st7789_handle, st7789_interface_reset_gpio_write);
+    DRIVER_ST7789_LINK_DELAY_MS(&st7789_handle, st7789_interface_delay_ms);
+    DRIVER_ST7789_LINK_DEBUG_PRINT(&st7789_handle, st7789_interface_debug_print);
 
     /* st7789 init */
-    res = st7789_init(&gs_handle);
+    res = st7789_init(&st7789_handle);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: init failed.\n");
@@ -78,143 +78,143 @@ uint8_t st7789_basic_init(void)
     }
 
     /* set default column */
-    res = st7789_set_column(&gs_handle, ST7789_BASIC_DEFAULT_COLUMN);
+    res = st7789_set_column(&st7789_handle, ST7789_BASIC_DEFAULT_COLUMN);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set column failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default row */
-    res = st7789_set_row(&gs_handle, ST7789_BASIC_DEFAULT_ROW);
+    res = st7789_set_row(&st7789_handle, ST7789_BASIC_DEFAULT_ROW);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set row failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* sleep out */
-    res = st7789_sleep_out(&gs_handle);
+    res = st7789_sleep_out(&st7789_handle);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: sleep out failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* idle mode off */
-    res = st7789_idle_mode_off(&gs_handle);
+    res = st7789_idle_mode_off(&st7789_handle);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: idle mode off failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* normal display mode on */
-    res = st7789_normal_display_mode_on(&gs_handle);
+    res = st7789_normal_display_mode_on(&st7789_handle);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: normal display mode on failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* display inversion on */
-    res = st7789_display_inversion_on(&gs_handle);
+    res = st7789_display_inversion_on(&st7789_handle);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: display inversion on failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default gamma */
-    res = st7789_set_gamma(&gs_handle, ST7789_BASIC_DEFAULT_GAMMA_CURVE);
+    res = st7789_set_gamma(&st7789_handle, ST7789_BASIC_DEFAULT_GAMMA_CURVE);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set gamma failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default memory data access control */
-    res = st7789_set_memory_data_access_control(&gs_handle, ST7789_BASIC_DEFAULT_ACCESS);
+    res = st7789_set_memory_data_access_control(&st7789_handle, ST7789_BASIC_DEFAULT_ACCESS);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set memory data access control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default pixel format */
-    res = st7789_set_interface_pixel_format(&gs_handle, ST7789_BASIC_DEFAULT_RGB_INTERFACE_COLOR_FORMAT,
+    res = st7789_set_interface_pixel_format(&st7789_handle, ST7789_BASIC_DEFAULT_RGB_INTERFACE_COLOR_FORMAT,
                                             ST7789_BASIC_DEFAULT_CONTROL_INTERFACE_COLOR_FORMAT);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set interface pixel format failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default brightness */
-    res = st7789_set_display_brightness(&gs_handle, ST7789_BASIC_DEFAULT_BRIGHTNESS);
+    res = st7789_set_display_brightness(&st7789_handle, ST7789_BASIC_DEFAULT_BRIGHTNESS);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set display brightness failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default brightness control */
-    res = st7789_set_display_control(&gs_handle,
+    res = st7789_set_display_control(&st7789_handle,
                                      ST7789_BASIC_DEFAULT_BRIGHTNESS_BLOCK,
                                      ST7789_BASIC_DEFAULT_DISPLAY_DIMMING,
                                      ST7789_BASIC_DEFAULT_BACKLIGHT);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set display control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default color enhancement */
-    res = st7789_set_brightness_control_and_color_enhancement(&gs_handle, ST7789_BASIC_DEFAULT_COLOR_ENHANCEMENT,
+    res = st7789_set_brightness_control_and_color_enhancement(&st7789_handle, ST7789_BASIC_DEFAULT_COLOR_ENHANCEMENT,
                                                               ST7789_BASIC_DEFAULT_COLOR_ENHANCEMENT_MODE,
                                                               ST7789_BASIC_DEFAULT_COLOR_ENHANCEMENT_LEVEL);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set brightness control and color enhancement failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default cabc minimum brightness */
-    res = st7789_set_cabc_minimum_brightness(&gs_handle, ST7789_BASIC_DEFAULT_CABC_MINIMUM_BRIGHTNESS);
+    res = st7789_set_cabc_minimum_brightness(&st7789_handle, ST7789_BASIC_DEFAULT_CABC_MINIMUM_BRIGHTNESS);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set cabc minimum brightness failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default ram control */
-    res = st7789_set_ram_control(&gs_handle,
+    res = st7789_set_ram_control(&st7789_handle,
                                  ST7789_BASIC_DEFAULT_RAM_ACCESS,
                                  ST7789_BASIC_DEFAULT_DISPLAY_MODE,
                                  ST7789_BASIC_DEFAULT_FRAME_TYPE,
@@ -224,13 +224,13 @@ uint8_t st7789_basic_init(void)
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set ram control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default rgb interface control */
-    res = st7789_set_rgb_interface_control(&gs_handle,
+    res = st7789_set_rgb_interface_control(&st7789_handle,
                                            ST7789_BASIC_DEFAULT_DIRECT_RGB_MODE,
                                            ST7789_BASIC_DEFAULT_RGB_IF_ENABLE_MODE,
                                            ST7789_BASIC_DEFAULT_VSPL,
@@ -242,13 +242,13 @@ uint8_t st7789_basic_init(void)
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set rgb interface control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default porch */
-    res = st7789_set_porch(&gs_handle,
+    res = st7789_set_porch(&st7789_handle,
                            ST7789_BASIC_DEFAULT_PORCH_NORMAL_BACK,
                            ST7789_BASIC_DEFAULT_PORCH_NORMAL_FRONT,
                            ST7789_BASIC_DEFAULT_PORCH_ENABLE,
@@ -259,13 +259,13 @@ uint8_t st7789_basic_init(void)
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set porch failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default frame rate control */
-    res = st7789_set_frame_rate_control(&gs_handle,
+    res = st7789_set_frame_rate_control(&st7789_handle,
                                         ST7789_BASIC_DEFAULT_SEPARATE_FR,
                                         ST7789_BASIC_DEFAULT_FRAME_RATE_DIVIDED,
                                         ST7789_BASIC_DEFAULT_INVERSION_IDLE_MODE,
@@ -275,79 +275,79 @@ uint8_t st7789_basic_init(void)
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set frame rate control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default partial mode control */
-    res = st7789_set_partial_mode_control(&gs_handle,
+    res = st7789_set_partial_mode_control(&st7789_handle,
                                           ST7789_BASIC_DEFAULT_NON_DISPLAY_SOURCE_OUTPUT_LEVEL,
                                           ST7789_BASIC_DEFAULT_NON_DISPLAY_AREA_SCAN_MODE,
                                           ST7789_BASIC_DEFAULT_NON_DISPLAY_FRAME_FREQUENCY);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set partial mode control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default gate control */
-    res = st7789_set_gate_control(&gs_handle, ST7789_BASIC_DEFAULT_VGHS, ST7789_BASIC_DEFAULT_VGLS_NEGATIVE);
+    res = st7789_set_gate_control(&st7789_handle, ST7789_BASIC_DEFAULT_VGHS, ST7789_BASIC_DEFAULT_VGLS_NEGATIVE);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set gate control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default gate on timing adjustment */
-    res = st7789_set_gate_on_timing_adjustment(&gs_handle,
+    res = st7789_set_gate_on_timing_adjustment(&st7789_handle,
                                                ST7789_BASIC_DEFAULT_GATE_ON_TIMING,
                                                ST7789_BASIC_DEFAULT_GATE_OFF_TIMING_RGB,
                                                ST7789_BASIC_DEFAULT_GATE_OFF_TIMING);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set gate on timing adjustment failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default digital gamma */
-    res = st7789_set_digital_gamma(&gs_handle, ST7789_BASIC_DEFAULT_DIGITAL_GAMMA);
+    res = st7789_set_digital_gamma(&st7789_handle, ST7789_BASIC_DEFAULT_DIGITAL_GAMMA);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set digital gamma failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* vcom convert to register  */
-    res = st7789_vcom_convert_to_register(&gs_handle, ST7789_BASIC_DEFAULT_VCOMS, &reg);
+    res = st7789_vcom_convert_to_register(&st7789_handle, ST7789_BASIC_DEFAULT_VCOMS, &reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: vcom convert to register failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default vcoms */
-    res = st7789_set_vcoms(&gs_handle, reg);
+    res = st7789_set_vcoms(&st7789_handle, reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set vcoms failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default lcm control */
-    res = st7789_set_lcm_control(&gs_handle,
+    res = st7789_set_lcm_control(&st7789_handle,
                                  ST7789_BASIC_DEFAULT_XMY,
                                  ST7789_BASIC_DEFAULT_XBGR,
                                  ST7789_BASIC_DEFAULT_XINV,
@@ -358,93 +358,93 @@ uint8_t st7789_basic_init(void)
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set lcm control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default vdv vrh cmd */
-    res = st7789_set_vdv_vrh_from(&gs_handle, ST7789_BASIC_DEFAULT_VDV_VRH_FROM);
+    res = st7789_set_vdv_vrh_from(&st7789_handle, ST7789_BASIC_DEFAULT_VDV_VRH_FROM);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set vdv vrh from failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* vrhs convert to register */
-    res = st7789_vrhs_convert_to_register(&gs_handle, ST7789_BASIC_DEFAULT_VRHS, &reg);
+    res = st7789_vrhs_convert_to_register(&st7789_handle, ST7789_BASIC_DEFAULT_VRHS, &reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: vrhs convert to register failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default vrhs */
-    res = st7789_set_vrhs(&gs_handle, reg);
+    res = st7789_set_vrhs(&st7789_handle, reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set vrhs failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* vdv convert to register */
-    res = st7789_vdv_convert_to_register(&gs_handle, ST7789_BASIC_DEFAULT_VDV, &reg);
+    res = st7789_vdv_convert_to_register(&st7789_handle, ST7789_BASIC_DEFAULT_VDV, &reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: vdv convert to register failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default vdv */
-    res = st7789_set_vdv(&gs_handle, reg);
+    res = st7789_set_vdv(&st7789_handle, reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set vdv failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* vcoms offset convert to register */
-    res = st7789_vcoms_offset_convert_to_register(&gs_handle, ST7789_BASIC_DEFAULT_VCOMS_OFFSET, &reg);
+    res = st7789_vcoms_offset_convert_to_register(&st7789_handle, ST7789_BASIC_DEFAULT_VCOMS_OFFSET, &reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: vcoms offset convert to register failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default vcoms offset */
-    res = st7789_set_vcoms_offset(&gs_handle, reg);
+    res = st7789_set_vcoms_offset(&st7789_handle, reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set vcoms offset failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default frame rate */
-    res = st7789_set_frame_rate(&gs_handle, ST7789_BASIC_DEFAULT_INVERSION_SELECTION, ST7789_BASIC_DEFAULT_FRAME_RATE);
+    res = st7789_set_frame_rate(&st7789_handle, ST7789_BASIC_DEFAULT_INVERSION_SELECTION, ST7789_BASIC_DEFAULT_FRAME_RATE);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set frame rate failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default cabc control */
-    res = st7789_set_cabc_control(&gs_handle,
+    res = st7789_set_cabc_control(&st7789_handle,
                                   ST7789_BASIC_DEFAULT_LED_ON,
                                   ST7789_BASIC_DEFAULT_LED_PWM_INIT,
                                   ST7789_BASIC_DEFAULT_LED_PWM_FIX,
@@ -452,60 +452,60 @@ uint8_t st7789_basic_init(void)
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set cabc control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default pwm frequency */
-    res = st7789_set_pwm_frequency(&gs_handle, ST7789_BASIC_DEFAULT_PWM_FREQUENCY);
+    res = st7789_set_pwm_frequency(&st7789_handle, ST7789_BASIC_DEFAULT_PWM_FREQUENCY);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set pwm frequency failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default power control 1 */
-    res = st7789_set_power_control_1(&gs_handle,
+    res = st7789_set_power_control_1(&st7789_handle,
                                      ST7789_BASIC_DEFAULT_AVDD,
                                      ST7789_BASIC_DEFAULT_AVCL_NEGTIVE,
                                      ST7789_BASIC_DEFAULT_VDS);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set power control 1 failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default command 2 */
-    res = st7789_set_command_2_enable(&gs_handle, ST7789_BASIC_DEFAULT_COMMAND_2_ENABLE);
+    res = st7789_set_command_2_enable(&st7789_handle, ST7789_BASIC_DEFAULT_COMMAND_2_ENABLE);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set command 2 enable failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default positive voltage gamma control */
-    res = st7789_set_positive_voltage_gamma_control(&gs_handle, param_positive);
+    res = st7789_set_positive_voltage_gamma_control(&st7789_handle, param_positive);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set positive voltage gamma control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default negative voltage gamma control */
-    res = st7789_set_negative_voltage_gamma_control(&gs_handle, param_negative);
+    res = st7789_set_negative_voltage_gamma_control(&st7789_handle, param_negative);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set negative voltage gamma control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
@@ -517,37 +517,37 @@ uint8_t st7789_basic_init(void)
     }
 
     /* set default digital gamma look up table red */
-    res = st7789_set_digital_gamma_look_up_table_red(&gs_handle, params);
+    res = st7789_set_digital_gamma_look_up_table_red(&st7789_handle, params);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set digital gamma look up table red ailed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default digital gamma look up table blue */
-    res = st7789_set_digital_gamma_look_up_table_blue(&gs_handle, params);
+    res = st7789_set_digital_gamma_look_up_table_blue(&st7789_handle, params);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set digital gamma look up table blue ailed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default gate line convert to register */
-    res = st7789_gate_line_convert_to_register(&gs_handle, ST7789_BASIC_DEFAULT_GATE_LINE, &reg);
+    res = st7789_gate_line_convert_to_register(&st7789_handle, ST7789_BASIC_DEFAULT_GATE_LINE, &reg);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: gate line convert to register failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default gate */
-    res = st7789_set_gate(&gs_handle,
+    res = st7789_set_gate(&st7789_handle,
                           reg,
                           ST7789_BASIC_DEFAULT_FIRST_SCAN_LINE,
                           ST7789_BASIC_DEFAULT_GATE_SCAN_MODE,
@@ -555,70 +555,70 @@ uint8_t st7789_basic_init(void)
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set gate failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default spi2 */
-    res = st7789_set_spi2_enable(&gs_handle, ST7789_BASIC_DEFAULT_SPI2_LANE, ST7789_BASIC_DEFAULT_COMMAND_TABLE_2);
+    res = st7789_set_spi2_enable(&st7789_handle, ST7789_BASIC_DEFAULT_SPI2_LANE, ST7789_BASIC_DEFAULT_COMMAND_TABLE_2);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set spi2 enable failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default power control 2 */
-    res = st7789_set_power_control_2(&gs_handle, ST7789_BASIC_DEFAULT_SBCLK_DIV, ST7789_BASIC_DEFAULT_STP14CK_DIV);
+    res = st7789_set_power_control_2(&st7789_handle, ST7789_BASIC_DEFAULT_SBCLK_DIV, ST7789_BASIC_DEFAULT_STP14CK_DIV);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set power control 2 failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default equalize time control */
-    res = st7789_set_equalize_time_control(&gs_handle,
+    res = st7789_set_equalize_time_control(&st7789_handle,
                                            ST7789_BASIC_DEFAULT_SOURCE_EQUALIZE_TIME,
                                            ST7789_BASIC_DEFAULT_SOURCE_PRE_DRIVE_TIME,
                                            ST7789_BASIC_DEFAULT_GATE_EQUALIZE_TIME);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set equalize time control failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* set default program mode */
-    res = st7789_set_program_mode_enable(&gs_handle, ST7789_BASIC_DEFAULT_PROGRAM_MODE);
+    res = st7789_set_program_mode_enable(&st7789_handle, ST7789_BASIC_DEFAULT_PROGRAM_MODE);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: set program mode enable ailed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* display on */
-    res = st7789_display_on(&gs_handle);
+    res = st7789_display_on(&st7789_handle);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: display on failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
 
     /* clear */
-    res = st7789_clear(&gs_handle);
+    res = st7789_clear(&st7789_handle);
     if (res != 0)
     {
         st7789_interface_debug_print("st7789: clear failed.\n");
-        (void)st7789_deinit(&gs_handle);
+        (void)st7789_deinit(&st7789_handle);
 
         return 1;
     }
@@ -636,7 +636,7 @@ uint8_t st7789_basic_init(void)
 uint8_t st7789_basic_deinit(void)
 {
     /* st7789 deinit */
-    if (st7789_deinit(&gs_handle) != 0)
+    if (st7789_deinit(&st7789_handle) != 0)
     {
         return 1;
     }
@@ -654,7 +654,7 @@ uint8_t st7789_basic_deinit(void)
 uint8_t st7789_basic_clear(void)
 {
     /* st7789 clear */
-    if (st7789_clear(&gs_handle) != 0)
+    if (st7789_clear(&st7789_handle) != 0)
     {
         return 1;
     }
@@ -672,7 +672,7 @@ uint8_t st7789_basic_clear(void)
 uint8_t st7789_basic_display_on(void)
 {
     /* display on */
-    if (st7789_display_on(&gs_handle) != 0)
+    if (st7789_display_on(&st7789_handle) != 0)
     {
         return 1;
     }
@@ -690,7 +690,7 @@ uint8_t st7789_basic_display_on(void)
 uint8_t st7789_basic_display_off(void)
 {
     /* display off */
-    if (st7789_display_off(&gs_handle) != 0)
+    if (st7789_display_off(&st7789_handle) != 0)
     {
         return 1;
     }
@@ -711,10 +711,10 @@ uint8_t st7789_basic_display_off(void)
  *            - 1 draw string failed
  * @note      none
  */
-uint8_t st7789_basic_string(uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, st7789_font_t font)
+uint8_t st7789_basic_string(uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, font_t font)
 {
     /* write string */
-    if (st7789_write_string(&gs_handle, x, y, str, len, color, font) != 0)
+    if (st7789_write_string(&st7789_handle, x, y, str, len, color, font) != 0)
     {
         return 1;
     }
@@ -735,7 +735,7 @@ uint8_t st7789_basic_string(uint16_t x, uint16_t y, char *str, uint16_t len, uin
 uint8_t st7789_basic_write_point(uint16_t x, uint16_t y, uint32_t color)
 {
     /* draw point */
-    if (st7789_draw_point(&gs_handle, x, y, color) != 0)
+    if (st7789_draw_point(&st7789_handle, x, y, color) != 0)
     {
         return 1;
     }
@@ -758,7 +758,7 @@ uint8_t st7789_basic_write_point(uint16_t x, uint16_t y, uint32_t color)
 uint8_t st7789_basic_rect(uint16_t left, uint16_t top, uint16_t right, uint16_t bottom, uint32_t color)
 {
     /* fill rect */
-    if (st7789_fill_rect(&gs_handle, left, top, right, bottom, color) != 0)
+    if (st7789_fill_rect(&st7789_handle, left, top, right, bottom, color) != 0)
     {
         return 1;
     }
@@ -781,7 +781,7 @@ uint8_t st7789_basic_rect(uint16_t left, uint16_t top, uint16_t right, uint16_t 
 uint8_t st7789_basic_draw_picture_16bits(uint16_t left, uint16_t top, uint16_t right, uint16_t bottom, uint16_t *img)
 {
     /* draw picture in 16 bits */
-    if (st7789_draw_picture_16bits(&gs_handle, left, top, right, bottom, img) != 0)
+    if (st7789_draw_picture_16bits(&st7789_handle, left, top, right, bottom, img) != 0)
     {
         return 1;
     }

@@ -4,6 +4,8 @@ OBJGROUP=drivers/ssd1681/driver_ssd1681.o drivers/ssd1681/driver_ssd1681_interfa
 drivers/ssd1681/driver_ssd1681_basic.o \
 drivers/ssd1306/driver_ssd1306.o drivers/ssd1306/driver_ssd1306_interface.o \
 drivers/ssd1306/driver_ssd1306_advance.o \
+drivers/st7789/driver_st7789.o drivers/st7789/driver_st7789_interface.o \
+drivers/st7789/driver_st7789_basic.o \
 drivers/scd30/driver_scd30.o drivers/scd30/driver_scd30_basic.o \
 drivers/scd30/driver_scd30_interface.o \
 drivers/scd4x/driver_scd4x.o drivers/scd4x/driver_scd4x_basic.o \

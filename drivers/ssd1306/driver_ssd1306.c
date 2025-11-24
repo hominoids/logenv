@@ -1057,6 +1057,7 @@ uint8_t ssd1306_deinit(ssd1306_handle_t *handle)
     {
         return 3;                                                                    /* return error */
     }
+
     
     buf[0] = SSD1306_CMD_CHARGE_PUMP_SETTING;                                        /* charge pump off */
     buf[1] = 0x10 | (0 << 2);                                                        /* set charge pump */
@@ -1072,18 +1073,21 @@ uint8_t ssd1306_deinit(ssd1306_handle_t *handle)
             
         return 4;                                                                    /* return error */
     }
-    if (handle->reset_gpio_deinit() != 0)                                            /* reset gpio deinit */
-    {
-        handle->debug_print("ssd1306: reset gpio deinit failed.\n");                 /* reset gpio deinit failed */
+
+//    if (handle->reset_gpio_deinit() != 0)                                            /* reset gpio deinit */
+//    {
+//        handle->debug_print("ssd1306: reset gpio deinit failed.\n");                 /* reset gpio deinit failed */
             
-        return 5;                                                                    /* return error */
-    }
-    if (handle->spi_cmd_data_gpio_deinit() != 0)                                     /* spi cmd data gpio deinit */
-    {
-        handle->debug_print("ssd1306: spi cmd data gpio deinit failed.\n");          /* spi cmd data gpio deinit failed */
+//        return 5;                                                                    /* return error */
+//    }
+
+//    if (handle->spi_cmd_data_gpio_deinit() != 0)                                     /* spi cmd data gpio deinit */
+//    {
+//        handle->debug_print("ssd1306: spi cmd data gpio deinit failed.\n");          /* spi cmd data gpio deinit failed */
             
-        return 6;                                                                    /* return error */
-    }
+//        return 6;                                                                    /* return error */
+//    }
+
     if (handle->iic_spi == SSD1306_INTERFACE_IIC)                                    /* if iic interface */
     {
         if (handle->iic_deinit() != 0)                                               /* iic deinit */

@@ -30,7 +30,6 @@
 #define DISPLAY_SENSOR 9
 
 uint8_t fontoi(char *);
-uint8_t open_ssd1681(void);
 
 struct display_content {
     char name[15];
@@ -39,7 +38,7 @@ struct display_content {
     char type[15];
     uint16_t xloc;
     uint16_t yloc;
-    uint16_t color;
+    uint32_t color;
     char font[30];
     char label[20];
     char unit[5];

@@ -2723,7 +2723,6 @@ uint8_t ssd1681_gram_write_string(ssd1681_handle_t *handle, ssd1681_color_t colo
         {
             return 1;                                                                    /* return error */
         }
-//printf("string=%s,font=%d,x=%d,y=%d\n",str,font,x,y);
         x += (uint8_t)(font / 2);                                                        /* x + font / 2 */
         str++;                                                                           /* str address++ */
         len--;                                                                           /* str length-- */

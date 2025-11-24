@@ -35,7 +35,7 @@
  */
 
 #include "driver_st7789.h"
-#include "driver_st7789_font.h"
+#include "../fonts/monospace_font.h"
 
 /**
  * @brief chip information definition
@@ -4470,15 +4470,31 @@ static uint8_t a_st7789_show_char(st7789_handle_t *handle, uint16_t x, uint16_t 
     {
         if (size == 12)                                                             /* if size 12 */
         {
-            temp = gsc_st7789_ascii_1206[chr][t];                                   /* get ascii 1206 */
+            temp = monospace_12[chr][t];                                  /* get ascii 1206 */
         }
         else if (size == 16)                                                        /* if size 16 */
         {
-            temp = gsc_st7789_ascii_1608[chr][t];                                   /* get ascii 1608 */
+            temp = monospace_16[chr][t];                                  /* get ascii 1608 */
         }
         else if(size == 24)                                                         /* if size 24 */
         {
-            temp = gsc_st7789_ascii_2412[chr][t];                                   /* get ascii 2412 */
+            temp = monospace_24[chr][t];                                  /* get ascii 2412 */
+        }
+        else if(size == 32)                                                         /* if size 28 */
+        {
+            temp = monospace_28[chr][t];
+        }
+        else if(size == 40)                                                         /* if size 36 */
+        {
+            temp = monospace_36[chr][t];
+        }
+        else if(size == 50)                                                         /* if size 48 */
+        {
+            temp = monospace_48[chr][t];
+        }
+        else if(size == 74)                                                         /* if size 72 */
+        {
+            temp = monospace_72[chr][t];
         }
         else
         {
@@ -4525,7 +4541,7 @@ static uint8_t a_st7789_show_char(st7789_handle_t *handle, uint16_t x, uint16_t 
  *            - 4 x or y is invalid
  * @note      x < column && y < row
  */
-uint8_t st7789_write_string(st7789_handle_t *handle, uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, st7789_font_t font)
+uint8_t st7789_write_string(st7789_handle_t *handle, uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, font_t font)
 {
     if (handle == NULL)                                                      /* check handle */
     {
@@ -4537,7 +4553,7 @@ uint8_t st7789_write_string(st7789_handle_t *handle, uint16_t x, uint16_t y, cha
     }
     if((x >= handle->column) || (y >= handle->row))                          /* check x, y */
     {
-        handle->debug_print("ssd1351: x or y is invalid.\n");                /* x or y is invalid */
+        handle->debug_print("st7789: x or y is invalid.\n");                /* x or y is invalid */
 
         return 4;                                                            /* return error */
     }
@@ -4592,13 +4608,13 @@ uint8_t st7789_draw_point(st7789_handle_t *handle, uint16_t x, uint16_t y, uint3
     }
     if (x >= handle->column)                                     /* check x */
     {
-        handle->debug_print("ssd1351: x is over column.\n");     /* x is over column */
+        handle->debug_print("st7789: x is over column.\n");     /* x is over column */
 
         return 4;                                                /* return error */
     }
     if (y >= handle->row)                                        /* check y */
     {
-        handle->debug_print("ssd1351: y is over row.\n");        /* y is over row */
+        handle->debug_print("st7789: y is over row.\n");        /* y is over row */
 
         return 5;                                                /* return error */
     }

@@ -27,9 +27,11 @@ static void sig_handler(int);
 
 extern ssd1681_handle_t ssd1681_handle;
 extern ssd1306_handle_t ssd1306_handle;
+extern st7789_handle_t st7789_handle;
 extern uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *, uint8_t, uint8_t);
 extern uint8_t ssd1681(struct display *, uint8_t, uint8_t);
 extern uint8_t ssd1306(struct display *, uint8_t, uint8_t);
+extern uint8_t st7789(struct display *, uint8_t, uint8_t);
 
 static volatile sig_atomic_t go = 1;
 
@@ -37,6 +39,8 @@ FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
      *log_file, *gnuplot_file, *json_file;
 
 bool VERBOSE_DEBUG = 1;
+
+static uint8_t zi = 0;
 
 uint8_t display_count = 0;
 uint8_t page = 0;
@@ -61,6 +65,8 @@ uint16_t ssd1306_iic_addr = 0x62;
 char ssd1306_iic_dev[14] = "/dev/i2c-0";
 char ssd1306_spi_dev[14] = "/dev/spidev0.0";
 uint8_t ssd1306_iic_init = 0;
+
+char st7789_spi_dev[14] = "/dev/spidev0.0";
 
 uint16_t pwr_in;
 uint16_t mcp9808_in;
@@ -176,6 +182,9 @@ static uint8_t SCD4X_ENABLE = 0;
 static uint8_t BMP388_ENABLE = 0;
 
 static uint8_t DISPLAY_ENABLE = 0;
+static uint8_t SSD1681_ENABLE = 0;
+static uint8_t SSD1306_ENABLE = 0;
+static uint8_t ST7789_ENABLE = 0;
 static uint8_t DP_TIME = 0;
 static uint8_t DP_DATE = 0;
 static uint8_t DP_FREQ = 0;

@@ -23,9 +23,10 @@
 #include <stdio.h>
 #include "ssd1681/driver_ssd1681_basic.h"
 #include "ssd1681/driver_ssd1681_interface.h"
-#include "ssd1306/driver_ssd1306.h"
 #include "ssd1306/driver_ssd1306_advance.h"
 #include "ssd1306/driver_ssd1306_interface.h"
+#include "st7789/driver_st7789_basic.h"
+#include "st7789/driver_st7789_interface.h"
 #include "displays.h"
 
 extern uint8_t display_count;
@@ -34,6 +35,7 @@ extern char display_time[];
 extern char display_date[];
 extern ssd1681_handle_t ssd1681_handle;
 extern ssd1306_handle_t ssd1306_handle;
+extern st7789_handle_t st7789_handle;
 
 uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     if(op(ptr, dcidx, cmd)) {
@@ -46,7 +48,7 @@ uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct displ
 uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
-        if(open_ssd1681()) {
+        if(ssd1681_basic_init()) {
             printf("\nERROR: Cannot open ssd1681\n");
             return(1);
         }
@@ -168,7 +170,7 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(ssd1306_gram_write_string(&ssd1306_handle, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, display_time, (uint16_t)strlen(display_time), 1, \
                 fontoi(ptr->dc[dcidx].font)) != 0) {
-ssd1306_interface_debug_print("ssd1306: time string write failed.\n");
+            ssd1306_interface_debug_print("ssd1306: time string write failed.\n");
             return(1);
         }
         return(0);
@@ -248,6 +250,103 @@ ssd1306_interface_debug_print("ssd1306: time string write failed.\n");
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, \
                 fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1306_interface_debug_print("ssd1306: date string write failed.\n");
+            return(1);
+        }
+        return(0);
+    }
+}
+
+
+uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
+
+    if(cmd == DISPLAY_OPEN) {
+        if(st7789_basic_init()) {
+            printf("\nERROR: Cannot open st7789\n");
+            return(1);
+        }
+        return(0);
+    }
+
+    if(cmd == DISPLAY_TIME) {
+        if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
+            display_time, (uint16_t)strlen(display_time), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
+            st7789_interface_debug_print("st7789: time string write failed.\n");
+            return(1);
+        }
+        return(0);
+    }
+    if(cmd == DISPLAY_DATE) {
+        if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
+            display_date, (uint16_t)strlen(display_date), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
+            st7789_interface_debug_print("st7789: date string write failed.\n");
+            return(1);
+        }
+        return(0);
+    }
+    if(cmd == DISPLAY_WRITE) {
+
+        char buffer[48];
+
+        strcpy(buffer, "\0");
+        if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(ptr->dc[dcidx].label) {
+            strcat(buffer,ptr->dc[dcidx].label);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"T") || !strcmp(ptr->dc[dcidx].type,"TN") || !strcmp(ptr->dc[dcidx].type,"NT")) {
+            strcat(buffer, ptr->dc[dcidx].data2);
+        }
+        if(ptr->dc[dcidx].unit) {
+            strcat(buffer,ptr->dc[dcidx].unit);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"TN")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
+            buffer, (uint16_t)strlen(buffer), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
+            st7789_interface_debug_print("st7789: string write failed.\n");
+            return(1);
+        }
+        return(0);
+    }
+    if(cmd == DISPLAY_SENSOR) {
+
+        char buffer[25];
+        char buffer2[7];
+        float temp_f = 0;
+
+        strcpy(buffer,"\0");
+        if(ptr->dc[dcidx].label) {
+            strcat(buffer,ptr->dc[dcidx].label);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"C")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"F")) {
+            sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
+            temp_f = temp_f * 1.8 + 32;
+            sprintf(buffer2, "%.2lf", temp_f);
+            strcat(buffer, buffer2);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"H")) {
+            strcat(buffer, ptr->dc[dcidx].data2);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"P")) {
+            strcat(buffer, ptr->dc[dcidx].data3);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"G")) {
+            strcat(buffer, ptr->dc[dcidx].data4);
+        }
+        if(!strcmp(ptr->dc[dcidx].type,"V")) {
+            strcat(buffer, ptr->dc[dcidx].data5);
+        }
+        if(ptr->dc[dcidx].unit) {
+            strcat(buffer,ptr->dc[dcidx].unit);
+        }
+        if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
+            buffer, (uint16_t)strlen(buffer), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
+            st7789_interface_debug_print("st7789: sensor string write failed.\n");
             return(1);
         }
         return(0);

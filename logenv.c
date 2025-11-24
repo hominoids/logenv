@@ -49,6 +49,7 @@
 #include <cjson/cJSON.h>
 #include "drivers/ssd1681/driver_ssd1681_basic.h"
 #include "drivers/ssd1306/driver_ssd1306_advance.h"
+#include "drivers/st7789/driver_st7789_basic.h"
 #include "drivers/bmp180/driver_bmp180_basic.h"
 #include "drivers/bmp388/driver_bmp388_basic.h"
 #include "drivers/bme280/driver_bme280_basic.h"
@@ -325,14 +326,15 @@ uint8_t main(uint8_t argc, char **argv) {
                             !strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
                         strcpy(scd4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         scd4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        scd4x_t chip_type;
                         if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd40")) {
-                            scd4x_t chip_type = SCD40;
+                            chip_type = SCD40;
                         } 
                         else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
-                            scd4x_t chip_type = SCD41;
+                            chip_type = SCD41;
                         }
                         else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
-                            scd4x_t chip_type = SCD43;
+                            chip_type = SCD43;
                         }
                         if (scd4x_shot_init(chip_type)) {
                             printf("\nERROR: SCD4x Init failed.\n");
@@ -378,6 +380,7 @@ uint8_t main(uint8_t argc, char **argv) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
+                    SSD1681_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") && dp[DISPLAY_ENABLE].page == 0) {
                     ssd1306_iic_addr = dp[DISPLAY_ENABLE].address;
@@ -391,6 +394,15 @@ uint8_t main(uint8_t argc, char **argv) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
+                    SSD1306_ENABLE = 1;
+                }
+                if(!strcmp(dp[DISPLAY_ENABLE].name, "st7789") && dp[DISPLAY_ENABLE].page == 0) {
+                    strcpy(st7789_spi_dev, dp[DISPLAY_ENABLE].device);
+                    if(displays(st7789, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
+                        printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
+                        exit(0);
+                    }
+                    ST7789_ENABLE = 1;
                 }
                 DISPLAY_ENABLE++;
                 if(VERBOSE_DEBUG) printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
@@ -719,14 +731,15 @@ uint8_t main(uint8_t argc, char **argv) {
          * scd41 command line options
          */
         if(!strcmp(argv[i], "--scd40") || !strcmp(argv[i], "--scd41") || !strcmp(argv[i], "--scd43")) {
+            scd4x_t chip_type;
             if(!strcmp(argv[i], "--scd40")) {
-                scd4x_t chip_type = SCD40;
+                chip_type = SCD40;
             } 
-            else if (!strcmp(argv[i], "--scd41"))) {
-                scd4x_t chip_type = SCD41;
+            else if (!strcmp(argv[i], "--scd41")) {
+                chip_type = SCD41;
             }
             else if (!strcmp(argv[i], "--scd43")) {
-                scd4x_t chip_type = SCD43;
+                chip_type = SCD43;
             }
             if (scd4x_shot_init(chip_type)) {
                 printf("\nERROR: SCD4x Init failed.\n");
@@ -835,8 +848,11 @@ uint8_t main(uint8_t argc, char **argv) {
          */
         float i = 0;
         uint8_t c = OPTIONS_COUNT;
+
         while(i >= 0 && go != -1) {
             uint8_t udp_count = 0;
+printf("loop start...i=%d z=%d\n", i, zi);
+
             /*
              * count or date and time stamp
              */
@@ -883,6 +899,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                     printf("%s time failed\n", &dp[d].name);
                                 }
                             }
+
+                            if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                if(displays(st7789, &dp[d], i, DISPLAY_TIME)){
+                                    printf("%s time failed\n", &dp[d].name);
+                                }
+                            }
                         }
                         if(DISPLAY_ENABLE  != 0 && DP_DATE  != 0 && !strcmp(dp[d].dc[i].name, "date")) {
                             uint16_t count = 0;
@@ -902,6 +924,13 @@ uint8_t main(uint8_t argc, char **argv) {
                                     printf("%s date failed\n", i, &dp[d].name);
                                 }
                             }
+
+                            if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                if(displays(st7789, &dp[d], i, DISPLAY_DATE)){
+                                    printf("%s date failed\n", i, &dp[d].name);
+                                }
+                            }
+
                         }
                     }
                 }
@@ -942,6 +971,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     }
                 }
             }
+printf("date and time complete...\n");
             /*
              * open and read each core frequency file
              */
@@ -1064,6 +1094,12 @@ uint8_t main(uint8_t argc, char **argv) {
 
                                 if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_WRITE)){
+                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"st7788") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1205,6 +1241,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
+                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                                 dp[d].dc[i].yloc = yloc_reset;
                             }
                         }
@@ -1291,6 +1333,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                             }
                         }
                     }
@@ -1373,6 +1421,12 @@ uint8_t main(uint8_t argc, char **argv) {
 
                                 if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1470,6 +1524,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                             }
                         }
                     }
@@ -1537,6 +1597,12 @@ uint8_t main(uint8_t argc, char **argv) {
 
                                 if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1631,6 +1697,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                             }
                         }
                     }
@@ -1718,6 +1790,12 @@ uint8_t main(uint8_t argc, char **argv) {
 
                                 if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1811,6 +1889,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                             }
                         }
                     }
@@ -1901,6 +1985,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                             }
                         }
                     }
@@ -1988,6 +2078,12 @@ uint8_t main(uint8_t argc, char **argv) {
 
                                 if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2085,6 +2181,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                             }
                         }
                     }
@@ -2171,6 +2273,12 @@ uint8_t main(uint8_t argc, char **argv) {
 
                                 if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                                     if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2482,6 +2590,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                             printf("%s usage cmd %d failed\n", &dp[d].name, i);
                                         }
                                     }
+
+                                    if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                        if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
+                                            printf("%s usage cmd %d failed\n", &dp[d].name, i);
+                                        }
+                                    }
                                     dp[d].dc[i].yloc = yloc_reset;
                                 }
                             }
@@ -2597,6 +2711,12 @@ uint8_t main(uint8_t argc, char **argv) {
                                         printf("%s memory cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
+                                        printf("%s memory cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
                             }
                         }
                     }
@@ -2641,18 +2761,39 @@ uint8_t main(uint8_t argc, char **argv) {
                     break;
                 }
                 else {
+printf("start sleep...page=%d pg_count=%d z=%d\n", page,pg_count,zi);
                     sleep_ms(1000 * dp[page].seconds);
                     if(page < pg_count-1) {
                         page++;     
+//                        sleep_ms(1000 * dp[page].seconds);
                     }
                     else {
+//                        sleep_ms(1000 * dp[page].seconds);
                         page = 0;
                     }
-                    if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
-                        ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
-                        (void)ssd1681_deinit(&ssd1681_handle);
-                        return 1;
+                    if(SSD1681_ENABLE != 0) {
+                        if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
+                            ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
+                            (void)ssd1681_deinit(&ssd1681_handle);
+                            return 1;
+                        }
                     }
+//                    if(SSD1306_ENABLE != 0) {
+//                        if (ssd1306_clear(&ssd1306_handle)) {
+//                            ssd1306_interface_debug_print("ssd1306: gram clear failed.\n");
+//                            (void)ssd1306_deinit(&ssd1306_handle);
+//                            return 1;
+//                        }
+//                    }
+                    if(ST7789_ENABLE != 0) {
+                        if (st7789_clear(&st7789_handle)) {
+                            st7789_interface_debug_print("st7789: clear failed.\n");
+                            (void)st7789_deinit(&st7789_handle);
+                            return 1;
+                        }
+                    }
+printf("clear complete...page=%d pg_count=%d z=%d\n\n", page,pg_count,zi);
+++zi;
                 }
             }
             else {
@@ -3001,8 +3142,16 @@ uint8_t main(uint8_t argc, char **argv) {
     if (UDP_ENABLE == 1) {
         close(udp_socket);
     }
-    if (DISPLAY_ENABLE == 1) {
-        (void)ssd1681_deinit(&ssd1681_handle);
+    if (DISPLAY_ENABLE != 0) {
+        if(SSD1681_ENABLE != 0) {
+            (void)ssd1681_deinit(&ssd1681_handle);
+        }
+        if(SSD1306_ENABLE != 0) {
+            (void)ssd1306_deinit(&ssd1306_handle);
+        }
+        if(ST7789_ENABLE != 0) {
+            (void)st7789_deinit(&st7789_handle);
+        }
     }
     if (SCD30_ENABLE == 1 || DP_SCD30 != 0) {
         (void)scd30_basic_deinit();

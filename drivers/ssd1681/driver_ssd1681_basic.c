@@ -1,11 +1,44 @@
+/**
+ * Copyright (c) 2015 - present LibDriver All rights reserved
+ *
+ * The MIT License (MIT)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * @file      driver_ssd1681_basic.c
+ * @brief     driver ssd1681 basic source file
+ * @version   1.0.0
+ * @author    Shifeng Li
+ * @date      2022-08-30
+ *
+ * <h3>history</h3>
+ * <table>
+ * <tr><th>Date        <th>Version  <th>Author      <th>Description
+ * <tr><td>2022/08/30  <td>1.0      <td>Shifeng Li  <td>first upload
+ * </table>
+ */
 
-#include <sys/types.h>
 #include "driver_ssd1681_basic.h"
-#include "driver_ssd1681_interface.h"
 
 ssd1681_handle_t ssd1681_handle;
 
-uint8_t gs_lut[153] = {
+static uint8_t gs_lut[153] = {            /**< lut */
     0x80, 0x48, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
     0x40, 0x48, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
     0x80, 0x48, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
@@ -26,9 +59,15 @@ uint8_t gs_lut[153] = {
     0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x0, 0x0, 0x0,
 };
 
-int open_ssd1681(void)
+/**
+ * @brief  basic example init
+ * @return status code
+ *         - 0 success
+ *         - 1 init failed
+ * @note   none
+ */
+uint8_t ssd1681_basic_init(void)
 {
-
     uint8_t res;
 
     /* link functions */
@@ -68,8 +107,11 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the driver output */
-    res = ssd1681_set_driver_output(&ssd1681_handle, 0xC7, SSD1681_BOOL_FALSE, SSD1681_BOOL_FALSE, SSD1681_BOOL_FALSE);
+    /* set the default driver output */
+    res = ssd1681_set_driver_output(&ssd1681_handle, SSD1681_BASIC_DEFAULT_DRIVER_OUTPUT_MUX,
+                                    SSD1681_BASIC_DEFAULT_DRIVER_OUTPUT_GD,
+                                    SSD1681_BASIC_DEFAULT_DRIVER_OUTPUT_SM,
+                                    SSD1681_BASIC_DEFAULT_DRIVER_OUTPUT_TB);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set the driver output failed.\n");
@@ -78,7 +120,7 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the data entry mode */
+    /* set the default data entry mode */
     res = ssd1681_set_data_entry_mode(&ssd1681_handle, SSD1681_BASIC_DEFAULT_ADDRESS_MODE, SSD1681_BASIC_DEFAULT_ADDRESS_DIRECTION);
     if (res != 0)
     {
@@ -88,8 +130,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the internal sensor */
-    res = ssd1681_set_temperature_sensor(&ssd1681_handle, SSD1681_TEMPERATURE_SENSOR_INTERNAL);
+    /* set the default temperature sensor */
+    res = ssd1681_set_temperature_sensor(&ssd1681_handle, SSD1681_BASIC_DEFAULT_TEMPERATURE_SENSOR);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set temperature sensor failed.\n");
@@ -98,9 +140,9 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the border waveform */
-    res = ssd1681_set_border_waveform(&ssd1681_handle, SSD1681_VBD_GS_TRANSITION, SSD1681_VBD_FIX_LEVEL_VSS,
-                                      SSD1681_GS_TRANSITION_FOLLOW_LUT, SSD1681_VBD_TRANSITION_LUT1);
+    /* set the default border waveform */
+    res = ssd1681_set_border_waveform(&ssd1681_handle, SSD1681_BASIC_DEFAULT_VBD, SSD1681_BASIC_DEFAULT_VBD_FIX_LEVEL,
+                                      SSD1681_BASIC_DEFAULT_GS_TRANSITION, SSD1681_BASIC_DEFAULT_VBD_TRANSITION);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set border waveform failed.\n");
@@ -109,8 +151,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the x range */
-    res = ssd1681_set_ram_x(&ssd1681_handle, 0x00, 0x18);
+    /* set the default x range */
+    res = ssd1681_set_ram_x(&ssd1681_handle, SSD1681_BASIC_DEFAULT_RAM_X_START, SSD1681_BASIC_DEFAULT_RAM_X_END);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set ram x failed.\n");
@@ -119,8 +161,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the y range */
-    res = ssd1681_set_ram_y(&ssd1681_handle, 0xC7, 0x00);
+    /* set the default y range */
+    res = ssd1681_set_ram_y(&ssd1681_handle, SSD1681_BASIC_DEFAULT_RAM_Y_START, SSD1681_BASIC_DEFAULT_RAM_Y_END);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set ram y failed.\n");
@@ -129,8 +171,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the ram x address counter */
-    res = ssd1681_set_ram_x_address_counter(&ssd1681_handle, 0x00);
+    /* set the default ram x address counter */
+    res = ssd1681_set_ram_x_address_counter(&ssd1681_handle, SSD1681_BASIC_DEFAULT_RAM_X_ADDRESS_COUNTER);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set ram x address counter failed.\n");
@@ -139,8 +181,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the ram y address counter */
-    res = ssd1681_set_ram_y_address_counter(&ssd1681_handle, 0xC7);
+    /* set the default ram y address counter */
+    res = ssd1681_set_ram_y_address_counter(&ssd1681_handle, SSD1681_BASIC_DEFAULT_RAM_Y_ADDRESS_COUNTER);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set ram y address counter failed.\n");
@@ -149,8 +191,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set display update control normal mode */
-    res = ssd1681_set_display_update_control(&ssd1681_handle, SSD1681_DISPLAY_CONTROL_NORMAL, SSD1681_DISPLAY_CONTROL_NORMAL);
+    /* set the default display update control mode */
+    res = ssd1681_set_display_update_control(&ssd1681_handle, SSD1681_BASIC_DEFAULT_DISPLAY_CONTROL_RED, SSD1681_BASIC_DEFAULT_DISPLAY_CONTROL_BLACK);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set display update control failed.\n");
@@ -159,8 +201,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the sequence 0 */
-    res = ssd1681_set_display_sequence(&ssd1681_handle, SSD1681_DISPLAY_SEQUENCE_0);
+    /* set the default sequence */
+    res = ssd1681_set_display_sequence(&ssd1681_handle, SSD1681_BASIC_DEFAULT_DISPLAY_SEQUENCE);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set display sequence failed.\n");
@@ -169,8 +211,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the vcom sense duration 0x00 */
-    res = ssd1681_set_vcom_sense_duration(&ssd1681_handle, 0x00);
+    /* set the default vcom sense duration */
+    res = ssd1681_set_vcom_sense_duration(&ssd1681_handle, SSD1681_BASIC_DEFAULT_VCOM_SENSE_DURATION);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set vcom sense duration failed.\n");
@@ -209,8 +251,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* end the option */
-    res = ssd1681_set_end_option(&ssd1681_handle, SSD1681_END_OPT_NORMAL);
+    /* set the default end option */
+    res = ssd1681_set_end_option(&ssd1681_handle, SSD1681_BASIC_DEFAULT_END_OPT);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set end option failed.\n");
@@ -219,8 +261,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the gate driving voltage 20V */
-    res = ssd1681_set_gate_driving_voltage(&ssd1681_handle, SSD1681_GATE_DRIVING_VOLTAGE_20V);
+    /* set the default gate driving voltage */
+    res = ssd1681_set_gate_driving_voltage(&ssd1681_handle, SSD1681_BASIC_DEFAULT_GATE_DRIVING_VOLTAGE);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set gate driving voltage failed.\n");
@@ -229,8 +271,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the source driving voltage */
-    res = ssd1681_set_source_driving_voltage(&ssd1681_handle, SSD1681_VSH_15V, SSD1681_VSH_5V, SSD1681_VSL_NEGATIVE_15);
+    /* set the default source driving voltage */
+    res = ssd1681_set_source_driving_voltage(&ssd1681_handle, SSD1681_BASIC_DEFAULT_VSH1, SSD1681_BASIC_DEFAULT_VSH2, SSD1681_BASIC_DEFAULT_VSL);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set source driving voltage failed.\n");
@@ -239,7 +281,7 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set vcom -0.8 */
+    /* set the default vcom */
     res = ssd1681_set_vcom_register(&ssd1681_handle, SSD1681_VCOM_NEGATIVE_0P8);
     if (res != 0)
     {
@@ -249,8 +291,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* height 200 and width 200 */
-    res = ssd1681_set_auto_write_red_ram(&ssd1681_handle, SSD1681_STEP_HEIGHT_200, SSD1681_STEP_WIDTH_200);
+    /* set the default auto write red ram */
+    res = ssd1681_set_auto_write_red_ram(&ssd1681_handle, SSD1681_BASIC_DEFAULT_AUTO_RED_STEP_HEIGHT, SSD1681_BASIC_DEFAULT_AUTO_RED_STEP_WIDTH);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set auto write red ram failed.\n");
@@ -259,8 +301,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* height 200 and width 200 */
-    res = ssd1681_set_auto_write_black_ram(&ssd1681_handle, SSD1681_STEP_HEIGHT_200, SSD1681_STEP_WIDTH_200);
+    /* set the default auto write black ram */
+    res = ssd1681_set_auto_write_black_ram(&ssd1681_handle, SSD1681_BASIC_DEFAULT_AUTO_BLACK_STEP_HEIGHT, SSD1681_BASIC_DEFAULT_AUTO_BLACK_STEP_WIDTH);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set auto write black ram failed.\n");
@@ -269,8 +311,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the hv ready detection */
-    res = ssd1681_set_hv_ready_detection(&ssd1681_handle, 0x00, 0x00);
+    /* set the default hv ready detection */
+    res = ssd1681_set_hv_ready_detection(&ssd1681_handle, SSD1681_BASIC_DEFAULT_COOL_DOWN_DURATION, SSD1681_BASIC_DEFAULT_COOL_DOWN_LOOP_NUM);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set hv ready detection failed.\n");
@@ -279,8 +321,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the vci detection 2.3V */
-    res = ssd1681_set_vci_detection(&ssd1681_handle, SSD1681_VCI_LEVEL_2P3V);
+    /* set the default vci detection */
+    res = ssd1681_set_vci_detection(&ssd1681_handle, SSD1681_BASIC_DEFAULT_VCI);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set vci detection failed.\n");
@@ -289,12 +331,12 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the booster soft start param */
+    /* set the default booster soft start param */
     res = ssd1681_set_booster_soft_start(&ssd1681_handle,
-                                        (uint8_t)(SSD1681_DRIVING_STRENGTH_1 | SSD1681_MIN_OFF_TIME_8P4),
-                                        (uint8_t)(SSD1681_DRIVING_STRENGTH_2 | SSD1681_MIN_OFF_TIME_9P8),
-                                        (uint8_t)(SSD1681_DRIVING_STRENGTH_2 | SSD1681_MIN_OFF_TIME_3P9),
-                                        (uint8_t)((SSD1681_PHASE_DURATION_10MS << 4) | (SSD1681_PHASE_DURATION_40MS << 2) | (SSD1681_PHASE_DURATION_40MS << 0)));
+                                        (uint8_t)(SSD1681_BASIC_DEFAULT_PHASE1),
+                                        (uint8_t)(SSD1681_BASIC_DEFAULT_PHASE2),
+                                        (uint8_t)(SSD1681_BASIC_DEFAULT_PHASE3),
+                                        (uint8_t)(SSD1681_BASIC_DEFAULT_DURATION));
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set booster soft start failed.\n");
@@ -303,8 +345,8 @@ int open_ssd1681(void)
         return 1;
     }
 
-    /* set the normal mode */
-    res = ssd1681_set_mode(&ssd1681_handle, SSD1681_MODE_NORMAL);
+    /* set the default mode */
+    res = ssd1681_set_mode(&ssd1681_handle, SSD1681_BASIC_DEFAULT_MODE);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: set mode failed.\n");
@@ -314,7 +356,7 @@ int open_ssd1681(void)
     }
 
     /* clear the black */
-    res = ssd1681_clear(&ssd1681_handle, SSD1681_COLOR_BLACK);
+    res = ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK);
     if (res != 0)
     {
         ssd1681_interface_debug_print("ssd1681: clear failed.\n");
@@ -323,4 +365,220 @@ int open_ssd1681(void)
         return 1;
     }
 
+    /* clear the red */
+    res = ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_RED);
+    if (res != 0)
+    {
+        ssd1681_interface_debug_print("ssd1681: clear failed.\n");
+        (void)ssd1681_deinit(&ssd1681_handle);
+
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief  basic example deinit
+ * @return status code
+ *         - 0 success
+ *         - 1 deinit failed
+ * @note   none
+ */
+uint8_t ssd1681_basic_deinit(void)
+{
+    /* deinit ssd1681 */
+    if (ssd1681_deinit(&ssd1681_handle) != 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+ * @brief     basic example clear
+ * @param[in] color color type
+ * @return    status code
+ *            - 0 success
+ *            - 1 clear failed
+ * @note      none
+ */
+uint8_t ssd1681_basic_clear(ssd1681_color_t color)
+{
+    /* clear */
+    if (ssd1681_clear(&ssd1681_handle, color) != 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+ * @brief     basic example write a point
+ * @param[in] color color type
+ * @param[in] x coordinate x
+ * @param[in] y coordinate y
+ * @param[in] data written data
+ * @return    status code
+ *            - 0 success
+ *            - 1 write point failed
+ * @note      none
+ */
+uint8_t ssd1681_basic_write_point(ssd1681_color_t color, uint8_t x, uint8_t y, uint8_t data)
+{
+    uint8_t res;
+
+    /* write point */
+    res = ssd1681_gram_write_point(&ssd1681_handle, color, x, y, data);
+    if (res != 0)
+    {
+        return 1;
+    }
+
+    /* update gram */
+    if (ssd1681_gram_update(&ssd1681_handle, color) != 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+ * @brief      basic example read a point
+ * @param[in]  color color type
+ * @param[in]  x coordinate x
+ * @param[in]  y coordinate y
+ * @param[out] *data pointer to a data buffer
+ * @return     status code
+ *             - 0 success
+ *             - 1 read point failed
+ * @note       none
+ */
+uint8_t ssd1681_basic_read_point(ssd1681_color_t color, uint8_t x, uint8_t y, uint8_t *data)
+{
+    uint8_t res;
+
+    /* read point in gram */
+    res = ssd1681_gram_read_point(&ssd1681_handle, color, x, y, data);
+    if (res != 0)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * @brief     basic example draw a string
+ * @param[in] color color type
+ * @param[in] x coordinate x
+ * @param[in] y coordinate y
+ * @param[in] *str pointer to a written string address
+ * @param[in] len length of the string
+ * @param[in] data display color
+ * @param[in] font display font size
+ * @return    status code
+ *            - 0 success
+ *            - 1 write string failed
+ * @note      none
+ */
+uint8_t ssd1681_basic_string(ssd1681_color_t color, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t data, font_t font)
+{
+    uint8_t res;
+
+    /* write string in gram */
+    res = ssd1681_gram_write_string(&ssd1681_handle, color, x, y, str, len, data, font);
+    if (res != 0)
+    {
+        return 1;
+    }
+
+    /* update gram */
+    if (ssd1681_gram_update(&ssd1681_handle, color) != 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+ * @brief     basic example fill a rectangle
+ * @param[in] color color type
+ * @param[in] left left coordinate x
+ * @param[in] top top coordinate y
+ * @param[in] right right coordinate x
+ * @param[in] bottom bottom coordinate y
+ * @param[in] data display color
+ * @return    status code
+ *            - 0 success
+ *            - 1 fill rect failed
+ * @note      none
+ */
+uint8_t ssd1681_basic_rect(ssd1681_color_t color, uint8_t left, uint8_t top, uint8_t right, uint8_t bottom, uint8_t data)
+{
+    uint8_t res;
+
+    /* fill rect in gram */
+    res = ssd1681_gram_fill_rect(&ssd1681_handle, color, left, top, right, bottom, data);
+    if (res != 0)
+    {
+        return 1;
+    }
+
+    /* update gram */
+    if (ssd1681_gram_update(&ssd1681_handle, color) != 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+ * @brief     basic example draw a picture
+ * @param[in] color color type
+ * @param[in] left left coordinate x
+ * @param[in] top top coordinate y
+ * @param[in] right right coordinate x
+ * @param[in] bottom bottom coordinate y
+ * @param[in] *img pointer to a image buffer
+ * @return    status code
+ *            - 0 success
+ *            - 1 draw picture failed
+ * @note      none
+ */
+uint8_t ssd1681_basic_picture(ssd1681_color_t color, uint8_t left, uint8_t top, uint8_t right, uint8_t bottom, uint8_t *img)
+{
+    uint8_t res;
+
+    /* draw picture in gram */
+    res = ssd1681_gram_draw_picture(&ssd1681_handle, color, left, top, right, bottom, img);
+    if (res != 0)
+    {
+        return 1;
+    }
+
+    /* update gram */
+    if (ssd1681_gram_update(&ssd1681_handle, color) != 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }

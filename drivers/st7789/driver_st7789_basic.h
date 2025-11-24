@@ -54,7 +54,7 @@ extern "C"{
  * @brief st7789 basic example default definition
  */
 #define ST7789_BASIC_DEFAULT_COLUMN                             240                                             /**< 240 */
-#define ST7789_BASIC_DEFAULT_ROW                                320                                             /**< 320 */
+#define ST7789_BASIC_DEFAULT_ROW                                240                                             /**< 320 */
 #define ST7789_BASIC_DEFAULT_GAMMA_CURVE                        ST7789_GAMMA_CURVE_1
 #define ST7789_BASIC_DEFAULT_ACCESS                            (ST7789_ORDER_PAGE_TOP_TO_BOTTOM | \
                                                                 ST7789_ORDER_COLUMN_LEFT_TO_RIGHT | \
@@ -65,7 +65,7 @@ extern "C"{
 #define ST7789_BASIC_DEFAULT_RGB_INTERFACE_COLOR_FORMAT         ST7789_RGB_INTERFACE_COLOR_FORMAT_262K          /**< 262K color format */
 #define ST7789_BASIC_DEFAULT_CONTROL_INTERFACE_COLOR_FORMAT     ST7789_CONTROL_INTERFACE_COLOR_FORMAT_16_BIT    /**< 16bit color format */
 #define ST7789_BASIC_DEFAULT_BRIGHTNESS                         0xFF                                            /**< 0xFF brightness */
-#define ST7789_BASIC_DEFAULT_BRIGHTNESS_BLOCK                   ST7789_BOOL_FALSE                               /**< disable brightness block */
+#define ST7789_BASIC_DEFAULT_BRIGHTNESS_BLOCK                   ST7789_BOOL_TRUE                               /**< disable brightness block */
 #define ST7789_BASIC_DEFAULT_DISPLAY_DIMMING                    ST7789_BOOL_FALSE                               /**< disable display dimming */
 #define ST7789_BASIC_DEFAULT_BACKLIGHT                          ST7789_BOOL_FALSE                               /**< disable backlight */
 #define ST7789_BASIC_DEFAULT_COLOR_ENHANCEMENT                  ST7789_BOOL_TRUE                                /**< enable color enhancement */
@@ -206,7 +206,7 @@ uint8_t st7789_basic_display_off(void);
  *            - 1 draw string failed
  * @note      none
  */
-uint8_t st7789_basic_string(uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, st7789_font_t font);
+uint8_t st7789_basic_string(uint16_t x, uint16_t y, char *str, uint16_t len, uint32_t color, font_t font);
 
 /**
  * @brief     basic example write a point
