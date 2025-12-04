@@ -18,6 +18,9 @@ drivers/bmp388/driver_bmp388.o drivers/bmp388/driver_bmp388_basic.o \
 drivers/bmp388/driver_bmp388_interface.o \
 drivers/bme280/driver_bme280.o drivers/bme280/driver_bme280_basic.o \
 drivers/bme280/driver_bme280_shot.o drivers/bme280/driver_bme280_interface.o \
+drivers/bme680/driver_bme680.o drivers/bme680/driver_bme680_basic.o \
+drivers/bme680/driver_bme680_shot.o drivers/bme680/driver_bme680_interface.o \
+drivers/bme680/driver_bme680_gas.o \
 drivers/sht4x/driver_sht4x.o drivers/sht4x/driver_sht4x_basic.o \
 drivers/sht4x/driver_sht4x_interface.o \
 drivers/shtc3/driver_shtc3.o drivers/shtc3/driver_shtc3_basic.o \
