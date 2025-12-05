@@ -53,6 +53,7 @@
 #include "drivers/bmp180/driver_bmp180_basic.h"
 #include "drivers/bmp388/driver_bmp388_basic.h"
 #include "drivers/bme280/driver_bme280_basic.h"
+#include "drivers/bme680/driver_bme680_basic.h"
 #include "drivers/mcp9808/mcp9808.h"
 #include "drivers/scd30/driver_scd30_basic.h"
 #include "drivers/scd4x/driver_scd4x_basic.h"
@@ -259,6 +260,16 @@ uint8_t main(uint8_t argc, char **argv) {
                         }
                         bme280_iic_init = 1;
                         DP_BME280++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme680")) {
+                        strcpy(bme680_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                        bme680_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                        if(bme680_basic_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
+                            printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
+                            exit(1);
+                        }
+                        bme680_iic_init = 1;
+                        DP_BME680++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"mcp9808")) {
                         strcpy(mcp9808_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
@@ -545,6 +556,29 @@ uint8_t main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
+         * bme680 command line options
+         */
+        if(!strcmp(argv[i], "--bme680")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                }
+                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
+                    interface = argv[i+2];
+                }
+                if(bme680_iic_init == 0) {
+                    strcpy(bme680_iic_dev, interface);
+                    if(bme680_basic_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
+                        exit(1);
+                    }
+                    bme680_iic_init == 1;
+                }
+            }
+            BME680_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
          * bmp180 command line options
          */
         if(!strcmp(argv[i], "--bmp180")) {
@@ -587,6 +621,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     bmp388_iic_init == 1;
                 }
             }
+            BMP388_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -725,6 +760,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     scd30_iic_init == 1;
                 }
             }
+            SCD30_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -761,6 +797,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     scd4x_iic_init == 1;
                 }
             }
+            SCD4X_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -782,6 +819,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     sgp30_iic_init == 1;
                  }
             }
+            SGP30_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -848,7 +886,7 @@ uint8_t main(uint8_t argc, char **argv) {
          */
         float i = 0;
         uint8_t c = OPTIONS_COUNT;
-
+uint16_t zi = 0;
         while(i >= 0 && go != -1) {
             uint8_t udp_count = 0;
 printf("loop start...i=%d z=%d\n", i, zi);
@@ -971,7 +1009,6 @@ printf("loop start...i=%d z=%d\n", i, zi);
                     }
                 }
             }
-printf("date and time complete...\n");
             /*
              * open and read each core frequency file
              */
@@ -1457,8 +1494,10 @@ printf("date and time complete...\n");
                         printf(",%f", temperature_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n BME280 Sensor = %.2lfc", temperature_f);
-                    }
+                        printf("\n BME280 Sensor = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("        Pres = %.2lf hPa\n", pressure_f/100);
+                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature_f);
                     }
@@ -1528,6 +1567,107 @@ printf("date and time complete...\n");
                                 if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
                                     if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * read bme680
+             */
+            if(BME680_ENABLE != 0 || DP_BME680 != 0) {
+
+                float temperature_f;
+                float humidity_f;
+                float pressure_f;
+
+                uint8_t res = bme680_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)bme680_basic_deinit();
+                    printf("ERROR: bme680 read failed.\n");
+                    return 1;
+                }
+                if(BME680_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n BME680 Temp = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("        Pres = %.2lf hPa\n", pressure_f/100);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature_f);
+                        }
+                        else {
+                            printf("%.2lf", temperature_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f", temperature_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_BME680 != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "bme680")) {
+                                char buffer[25];
+                                sprintf(buffer, "%.2lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.2lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
+                                sprintf(buffer, "%.2lf", pressure_f/100);
+                                strcpy(dp[d].dc[i].data3, buffer);
+
+                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
+                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
+                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+
+                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
+                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
                             }
@@ -3170,6 +3310,9 @@ printf("clear complete...page=%d pg_count=%d z=%d\n\n", page,pg_count,zi);
     }
     if (SENSOR_ENABLE == 2 || DP_BME280 != 0) {
         (void)bme280_basic_deinit();
+    }
+    if (SENSOR_ENABLE == 8 || DP_BME680 != 0) {
+        (void)bme680_basic_deinit();
     }
     if (SENSOR_ENABLE == 3 || DP_MCP9808 != 0) {
         close(mcp9808_in);

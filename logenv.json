@@ -143,8 +143,8 @@
             "unit": ""
             },
             {
-            "name": "bme280",
-            "device": "/dev/i2c-0",
+            "name": "bme680",
+            "device": "/dev/i2c-1",
             "address": 119,
             "type": "F",
             "xloc": 5,
@@ -155,28 +155,28 @@
             "unit": ""
             },
             {
-            "name": "bme280",
-            "device": "/dev/i2c-0",
+            "name": "bme680",
+            "device": "/dev/i2c-1",
             "address": 119,
-            "type": "C",
+            "type": "H",
             "xloc": 45,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
-            "unit": "c"
+            "unit": "%"
             },
             {
-            "name": "bme280",
-            "device": "/dev/i2c-0",
+            "name": "bme680",
+            "device": "/dev/i2c-1",
             "address": 119,
-            "type": "H",
+            "type": "P",
             "xloc": 90,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
-            "unit": "%"
+            "unit": " hPa"
             }
         ]
     }

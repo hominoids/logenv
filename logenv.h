@@ -74,15 +74,20 @@ uint16_t iic_device_address = 0;
 char iic_device_name[18] = "/dev/i2c-0";
 char spi_device_name[18] = "/dev/spidev0.0";
 
-uint16_t bme280_iic_addr = 0x76;
+uint16_t bme280_iic_addr = 0x77 << 1;
 char bme280_iic_dev[14] = "/dev/i2c-0";
 uint8_t bme280_iic_init = 0;
+
+uint16_t bme680_iic_addr = 0x77 << 1;
+char bme680_iic_dev[14] = "/dev/i2c-1";
+char bme680_spi_dev[18] = "/dev/spidev0.0";
+uint8_t bme680_iic_init = 0;
 
 uint16_t bmp180_iic_addr = 0xEE;
 char bmp180_iic_dev[14] = "/dev/i2c-0";
 uint8_t bmp180_iic_init = 0;
 
-uint16_t bmp388_iic_addr = 0x76;
+uint16_t bmp388_iic_addr = 0x76 << 1;
 char bmp388_iic_dev[14] = "/dev/i2c-0";
 char bmp388_spi_dev[18] = "/dev/spidev0.0";
 uint8_t bmp388_iic_init = 0;
@@ -91,31 +96,31 @@ uint16_t mcp9808_iic_addr = 0x18;
 char mcp9808_iic_dev[14] = "/dev/i2c-0";
 uint8_t mcp9808_iic_init = 0;
 
-uint16_t scd30_iic_addr = 0x61;
+uint16_t scd30_iic_addr = 0x61 << 1;
 char scd30_iic_dev[14] = "/dev/i2c-0";
 uint8_t scd30_iic_init = 0;
 
-uint16_t scd4x_iic_addr = 0x62;
+uint16_t scd4x_iic_addr = 0x62 << 1;
 char scd4x_iic_dev[14] = "/dev/i2c-0";
 uint8_t scd4x_iic_init = 0;
 
-uint16_t sgp30_iic_addr = 0x58;
+uint16_t sgp30_iic_addr = 0x58 << 1;
 char sgp30_iic_dev[14] = "/dev/i2c-0";
 uint8_t sgp30_iic_init = 0;
 
-uint16_t sht4x_iic_addr = 0x44;
+uint16_t sht4x_iic_addr = 0x44 << 1;
 char sht4x_iic_dev[14] = "/dev/i2c-0";
 uint8_t sht4x_iic_init = 0;
 
-uint16_t shtc3_iic_addr = 0x70;
+uint16_t shtc3_iic_addr = 0x70 << 1;
 char shtc3_iic_dev[14] = "/dev/i2c-0";
 uint8_t shtc3_iic_init = 0;
 
-uint16_t aht20_iic_addr = 0x70;
+uint16_t aht20_iic_addr = 0x70 << 1;
 char aht20_iic_dev[14] = "/dev/i2c-0";
 uint8_t aht20_iic_init = 0;
 
-uint16_t htu31d_iic_addr = 0x40;
+uint16_t htu31d_iic_addr = 0x40 << 1;
 char htu31d_iic_dev[14] = "/dev/i2c-0";
 uint8_t htu31d_iic_init = 0;
 
@@ -180,6 +185,7 @@ static uint8_t SGP30_ENABLE = 0;
 static uint8_t SCD30_ENABLE = 0;
 static uint8_t SCD4X_ENABLE = 0;
 static uint8_t BMP388_ENABLE = 0;
+static uint8_t BME680_ENABLE = 0;
 
 static uint8_t DISPLAY_ENABLE = 0;
 static uint8_t SSD1681_ENABLE = 0;
@@ -194,9 +200,10 @@ static uint8_t DP_USAGE = 0;
 static uint8_t DP_SP2 = 0;
 static uint8_t DP_SP3CH1 = 0;
 static uint8_t DP_SP3CH2 = 0;
+static uint8_t DP_BME280 = 0;
+static uint8_t DP_BME680 = 0;
 static uint8_t DP_BMP180 = 0;
 static uint8_t DP_BMP388 = 0;
-static uint8_t DP_BME280 = 0;
 static uint8_t DP_MCP9808 = 0;
 static uint8_t DP_SHT4X = 0;
 static uint8_t DP_SHTC3 = 0;
