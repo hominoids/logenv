@@ -170,13 +170,13 @@
             "name": "bme680",
             "device": "/dev/i2c-1",
             "address": 119,
-            "type": "P",
+            "type": "V",
             "xloc": 90,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
-            "unit": " hPa"
+            "unit": " ppm"
             }
         ]
     }

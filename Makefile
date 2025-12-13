@@ -38,8 +38,9 @@ logenv: $(OBJGROUP)
 	$(CC) -Wall -o logenv $(OBJGROUP) -lm -lpthread -lgpiod -lcjson
 
 clean:
-	rm *.o logenv drivers/ssd1681/*.o drivers/ssd1306/*.o \
+	rm *.o logenv drivers/ssd1681/*.o drivers/ssd1306/*.o drivers/st7789/*.o \
 drivers/bmp180/*.o drivers/bme280/*.o drivers/mcp9808/*.o \
 drivers/scd4x/*.o drivers/sgp30/*.o drivers/sht4x/*.o drivers/shtc3/*.o \
-drivers/aht20/*.o drivers/bmp388/*.o drivers/scd30/*.o
+drivers/aht20/*.o drivers/htu31d/*.o drivers/bmp388/*.o drivers/scd30/*.o \
+drivers/interface/*.o drivers/*.o drivers/bme680/*.o
 

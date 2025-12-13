@@ -53,7 +53,7 @@
 #include "drivers/bmp180/driver_bmp180_basic.h"
 #include "drivers/bmp388/driver_bmp388_basic.h"
 #include "drivers/bme280/driver_bme280_basic.h"
-#include "drivers/bme680/driver_bme680_basic.h"
+#include "drivers/bme680/driver_bme680_gas.h"
 #include "drivers/mcp9808/mcp9808.h"
 #include "drivers/scd30/driver_scd30_basic.h"
 #include "drivers/scd4x/driver_scd4x_basic.h"
@@ -264,7 +264,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme680")) {
                         strcpy(bme680_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bme680_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(bme680_basic_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
+                        if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
                             printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
                             exit(1);
                         }
@@ -538,13 +538,14 @@ uint8_t main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    strcpy(bme280_iic_dev, interface);
                     interface = argv[i+1];
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(bme280_iic_dev, interface);
                 }
                 if(bme280_iic_init == 0) {
-                    strcpy(bme280_iic_dev, interface);
                     if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
                         printf("\nERROR: Cannot open BME280 at %s\n", interface);
                         exit(1);
@@ -561,14 +562,15 @@ uint8_t main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--bme680")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    strcpy(bme680_iic_dev, interface);
                     interface = argv[i+1];
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(bme680_iic_dev, interface);
                 }
                 if(bme680_iic_init == 0) {
-                    strcpy(bme680_iic_dev, interface);
-                    if(bme680_basic_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
+                    if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
                         printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
                         exit(1);
                     }
@@ -585,12 +587,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(bmp180_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(bmp180_iic_dev, interface);
                 }
                 if(bmp180_iic_init == 0) {
-                    strcpy(bmp180_iic_dev, interface);
                     if(bmp180_basic_init() != 0) {
                         printf("\nERROR: Cannot open BMP180 at %s\n", interface);
                         exit(1);
@@ -608,12 +611,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(bmp388_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(bmp388_iic_dev, interface);
                 }
                 if(bmp388_iic_init == 0) {
-                    strcpy(bmp388_iic_dev, interface);
                     if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
                         printf("\nERROR: Cannot open BMP388 at %s\n", interface);
                         exit(1);
@@ -631,12 +635,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(mcp9808_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(mcp9808_iic_dev, interface);
                 }
                 if(mcp9808_iic_init == 0) {
-                    strcpy(mcp9808_iic_dev, interface);
                     if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
                         printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
                         exit(1);
@@ -655,12 +660,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(sht4x_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(sht4x_iic_dev, interface);
                 }
                 if(sht4x_iic_init == 0) {
-                    strcpy(sht4x_iic_dev, interface);
                     if(sht4x_basic_init(sht4x_iic_addr) != 0) {
                         printf("\nERROR: Cannot open SHT4x at %s\n", interface);
                         exit(1);
@@ -678,12 +684,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(shtc3_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(shtc3_iic_dev, interface);
                 }
                 if(shtc3_iic_init == 0) {
-                    strcpy(shtc3_iic_dev, interface);
                     if(shtc3_basic_init() != 0) {
                         printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
                         exit(1);
@@ -701,12 +708,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(aht20_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(aht20_iic_dev, interface);
                 }
                 if(aht20_iic_init == 0) {
-                    strcpy(aht20_iic_dev, interface);
                     if(aht20_basic_init() != 0) {
                         printf("\nERROR: Cannot open AHT20 at %s\n", interface);
                         exit(1);
@@ -724,12 +732,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(htu31d_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(htu31d_iic_dev, interface);
                 }
                 if(htu31d_iic_init == 0) {
-                    strcpy(htu31d_iic_dev, interface);
                     if(htu31d_basic_init(htu31d_iic_addr) != 0) {
                         printf("\nERROR: Cannot open HTU31D at %s\n", interface);
                         exit(1);
@@ -747,12 +756,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(scd30_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(scd30_iic_dev, interface);
                 }
                 if(scd30_iic_init == 0) {
-                    strcpy(scd30_iic_dev, interface);
                     if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
                         printf("\nERROR: SCD30 Init failed.\n");
                         exit(1);
@@ -784,12 +794,13 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(scd4x_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(scd4x_iic_dev, interface);
                 }
                 if(scd4x_iic_init == 0) {
-                    strcpy(scd4x_iic_dev, interface);
                     if (scd4x_shot_init(chip_type)) {
                         printf("\nERROR: SCD41 Init failed.\n");
                         exit(1);
@@ -807,9 +818,11 @@ uint8_t main(uint8_t argc, char **argv) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     interface = argv[i+1];
+                    strcpy(sgp30_iic_dev, interface);
                 }
                 if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
                     interface = argv[i+2];
+                    strcpy(sgp30_iic_dev, interface);
                 }
                 if(sgp30_iic_init == 0) {
                     if (sgp30_advance_init()) {
@@ -1311,7 +1324,8 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%f", temperature_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n BMP180 Sensor = %.2lfc", temperature_f);
+                        printf("\n\n BMP180 Sensor = %.2lf c\n", temperature_f);
+                        printf("        Pres = %d hPa\n", pressure/100);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                         printf(",%.2lf", temperature_f);
@@ -1402,7 +1416,8 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%f", temperature_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n BMP388 Sensor = %.2lfc", temperature_f);
+                        printf("\n BMP388 Sensor = %.2lf c\n", temperature_f);
+                        printf("        Pres = %.2lf hPa\n", pressure/100);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                         printf(",%.2lf", temperature_f);
@@ -1582,10 +1597,16 @@ printf("loop start...i=%d z=%d\n", i, zi);
                 float temperature_f;
                 float humidity_f;
                 float pressure_f;
+                float idac_ma = 5.0f;
+                float degree_celsius = 200.0f;
+                float ohms;
+                uint8_t index = 0;
+                uint16_t gas_wait_ms = 150;
 
-                uint8_t res = bme680_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
+                uint8_t res = bme680_gas_read(idac_ma, degree_celsius, gas_wait_ms, index, \
+                    (float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f,(float *)&ohms);
                 if (res != 0) {
-                    (void)bme680_basic_deinit();
+                    (void)bme680_gas_deinit();
                     printf("ERROR: bme680 read failed.\n");
                     return 1;
                 }
@@ -1598,6 +1619,7 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf("\n BME680 Temp = %.2lf c\n", temperature_f);
                         printf("        Humd = %.2lf %\n", humidity_f);
                         printf("        Pres = %.2lf hPa\n", pressure_f/100);
+                        printf("         Gas = %d\n", index);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature_f);
@@ -1652,7 +1674,8 @@ printf("loop start...i=%d z=%d\n", i, zi);
                                 strcpy(dp[d].dc[i].data2, buffer);
                                 sprintf(buffer, "%.2lf", pressure_f/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
-
+                                sprintf(buffer, "%d", index);
+                                strcpy(dp[d].dc[i].data5, buffer);
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
                                     if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
@@ -1688,7 +1711,7 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%d", temperature);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n MCP9808 Sensor = %.2lfc", temperature);
+                        printf("\n MCP9808 Sensor = %.2lfc\n", temperature);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature);
@@ -1772,7 +1795,8 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%f", temperature_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n sht4x Sensor = %.2lfc", temperature_f);
+                        printf("\n sht4x Sensor = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature_f);
@@ -1868,7 +1892,8 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%f", temperature_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n shtc3 Sensor = %.2lfc", temperature_f);
+                        printf("\n shtc3 Sensor = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature_f);
@@ -1964,7 +1989,8 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%f", temperature_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n aht20 Sensor = %.2lfc", temperature_f);
+                        printf("\n aht20 Sensor = %.2lf c", temperature_f);
+                        printf("        Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature_f);
@@ -2060,7 +2086,8 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%f", temperature_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n htu31d Sensor = %.2lfc", temperature_f);
+                        printf("\n htu31d Sensor = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature_f);
@@ -2153,7 +2180,9 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%f", data.co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n scd30 Sensor = %.2lfppm", data.co2_ppm);
+                        printf("\n scd30 Sensor = %.2lf ppm", data.co2_ppm);
+                        printf("        Temp = %.2lf c\n", data.temperature_deg);
+                        printf("        Humd = %.2lf %\n", data.humidity_percent);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", data.co2_ppm);
@@ -2251,10 +2280,12 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%d", co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n scd4x Sensor = %d", co2_ppm);
+                        printf("\n scd4x Sensor = %d ppm\n", co2_ppm);
+                        printf("         Temp = %.2lf c\n", temperature_f);
+                        printf("         Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",d", co2_ppm);
+                            printf(",%d", co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
@@ -2351,10 +2382,11 @@ printf("loop start...i=%d z=%d\n", i, zi);
                         printf(",%d", tvoc_ppb);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n sgp30 Sensor = %d", tvoc_ppb);
+                        printf("\n sgp30 Sensor = %d ppm\n", tvoc_ppb);
+                        printf(" eCO2 = %d ppm\n", co2_eq_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",d", tvoc_ppb);
+                            printf(",%d", tvoc_ppb);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
@@ -3312,7 +3344,7 @@ printf("clear complete...page=%d pg_count=%d z=%d\n\n", page,pg_count,zi);
         (void)bme280_basic_deinit();
     }
     if (SENSOR_ENABLE == 8 || DP_BME680 != 0) {
-        (void)bme680_basic_deinit();
+        (void)bme680_gas_deinit();
     }
     if (SENSOR_ENABLE == 3 || DP_MCP9808 != 0) {
         close(mcp9808_in);
