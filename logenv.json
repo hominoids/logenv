@@ -143,40 +143,28 @@
             "unit": ""
             },
             {
-            "name": "bme680",
+            "name": "bmp390",
             "device": "/dev/i2c-1",
             "address": 119,
-            "type": "F",
+            "type": "C",
             "xloc": 5,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
-            "unit": ""
+            "unit": "c"
             },
             {
-            "name": "bme680",
+            "name": "bmp390",
             "device": "/dev/i2c-1",
             "address": 119,
-            "type": "H",
+            "type": "P",
             "xloc": 45,
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "",
-            "unit": "%"
-            },
-            {
-            "name": "bme680",
-            "device": "/dev/i2c-1",
-            "address": 119,
-            "type": "V",
-            "xloc": 90,
-            "yloc": 50,
-            "color": 0,
-            "font": "MONOSPACE_12",
-            "label": "",
-            "unit": " ppm"
+            "unit": " hPa"
             }
         ]
     }

@@ -16,6 +16,8 @@ drivers/bmp180/driver_bmp180.o drivers/bmp180/driver_bmp180_basic.o \
 drivers/bmp180/driver_bmp180_interface.o \
 drivers/bmp388/driver_bmp388.o drivers/bmp388/driver_bmp388_basic.o \
 drivers/bmp388/driver_bmp388_interface.o \
+drivers/bmp390/driver_bmp390.o drivers/bmp390/driver_bmp390_basic.o \
+drivers/bmp390/driver_bmp390_interface.o \
 drivers/bme280/driver_bme280.o drivers/bme280/driver_bme280_basic.o \
 drivers/bme280/driver_bme280_shot.o drivers/bme280/driver_bme280_interface.o \
 drivers/bme680/driver_bme680.o drivers/bme680/driver_bme680_basic.o \
@@ -42,5 +44,5 @@ clean:
 drivers/bmp180/*.o drivers/bme280/*.o drivers/mcp9808/*.o \
 drivers/scd4x/*.o drivers/sgp30/*.o drivers/sht4x/*.o drivers/shtc3/*.o \
 drivers/aht20/*.o drivers/htu31d/*.o drivers/bmp388/*.o drivers/scd30/*.o \
-drivers/interface/*.o drivers/*.o drivers/bme680/*.o
+drivers/interface/*.o drivers/*.o drivers/bme680/*.o drivers/bmp390/*.o
 
