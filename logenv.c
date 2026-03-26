@@ -97,7 +97,7 @@ uint8_t main(uint8_t argc, char **argv) {
          * Load json display configuration
          */
         if(!strcmp(argv[i], "-o")) {
-            if((json_file = fopen("logenv.json", "r")) == NULL) {
+            if((json_file = fopen("/etc/logenv.json", "r")) == NULL) {
                 printf("\nERROR: Cannot open file logenv.json\n\n");
                 usage();
             }
@@ -427,7 +427,7 @@ uint8_t main(uint8_t argc, char **argv) {
                     ST7789_ENABLE = 1;
                 }
                 DISPLAY_ENABLE++;
-                if(VERBOSE_DEBUG) printf("Display page %d complete...\n\n", DISPLAY_ENABLE);
+                if(VERBOSE_DEBUG) printf("Display %d complete...\n\n", DISPLAY_ENABLE);
                 item=item->next;
             }
             cJSON_Delete(root);
@@ -934,11 +934,9 @@ uint8_t main(uint8_t argc, char **argv) {
          */
         float i = 0;
         uint8_t c = OPTIONS_COUNT;
-uint16_t zi = 0;
+
         while(i >= 0 && go != -1) {
             uint8_t udp_count = 0;
-printf("loop start...i=%d z=%d\n", i, zi);
-
             /*
              * count or date and time stamp
              */
@@ -3060,7 +3058,6 @@ printf("loop start...i=%d z=%d\n", i, zi);
                     break;
                 }
                 else {
-printf("start sleep...page=%d pg_count=%d z=%d\n", page,pg_count,zi);
                     sleep_ms(1000 * dp[page].seconds);
                     if(page < pg_count-1) {
                         page++;     
@@ -3091,8 +3088,6 @@ printf("start sleep...page=%d pg_count=%d z=%d\n", page,pg_count,zi);
                             return 1;
                         }
                     }
-printf("clear complete...page=%d pg_count=%d z=%d\n\n", page,pg_count,zi);
-++zi;
                 }
             }
             else {

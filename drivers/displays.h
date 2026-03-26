@@ -47,6 +47,7 @@ struct display_content {
     char data3[20];  // Pressure hPa
     char data4[20];  // CO2 as ppm
     char data5[20];  // TVOC as ppb
+    uint8_t read;
 };
 
 struct display {

@@ -71,7 +71,7 @@
             "unit": "%"
             },
             {
-            "name": "bme280",
+            "name": "bmp390",
             "device": "/dev/i2c-0",
             "address": 119,
             "type": "P",
@@ -109,6 +109,114 @@
         ]
     },
     {
+        "name": "ssd1681",
+        "device": "/dev/spidev0.0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
+        "rotation": 0,
+        "page": 1,
+        "seconds": 10,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 35,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 55,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "thermal",
+            "device": "",
+            "address": 0,
+            "type": "TN",
+            "xloc": 3,
+            "yloc": 60,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": "c "
+            }
+        ]
+    },
+    {
+        "name": "ssd1681",
+        "device": "/dev/spidev0.0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
+        "rotation": 0,
+        "page": 2,
+        "seconds": 10,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 35,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "usage",
+            "device": "",
+            "address": 0,
+            "type": "NT",
+            "xloc": 5,
+            "yloc": 45,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": "%"
+            },
+            {
+            "name": "memory",
+            "device": "",
+            "address": 0,
+            "type": "NT",
+            "xloc": 125,
+            "yloc": 45,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": "%"
+            },
+            {
+            "name": "frequency",
+            "device": "",
+            "address": 0,
+            "type": "T",
+            "xloc": 125,
+            "yloc": 60,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": " GHz"
+            }
+        ]
+      },
+    {
         "name": "ssd1306",
         "device": "/dev/i2c-1",
         "address": 122,
@@ -116,7 +224,7 @@
         "ysize": 64,
         "rotation": 0,
         "page": 0,
-        "seconds": 10,
+        "seconds": 0,
         "content": [
             {
             "name": "time",
@@ -143,7 +251,7 @@
             "unit": ""
             },
             {
-            "name": "bmp390",
+            "name": "bme680",
             "device": "/dev/i2c-1",
             "address": 119,
             "type": "C",
@@ -155,7 +263,7 @@
             "unit": "c"
             },
             {
-            "name": "bmp390",
+            "name": "bme680",
             "device": "/dev/i2c-1",
             "address": 119,
             "type": "P",
@@ -163,10 +271,11 @@
             "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_12",
-            "label": "",
+            "label": " ",
             "unit": " hPa"
             }
         ]
     }
    ]
 }
+

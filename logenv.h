@@ -38,7 +38,7 @@ static volatile sig_atomic_t go = 1;
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
      *log_file, *gnuplot_file, *json_file;
 
-bool VERBOSE_DEBUG = 1;
+bool VERBOSE_DEBUG = 0;
 
 static uint8_t zi = 0;
 
@@ -87,12 +87,12 @@ uint16_t bmp180_iic_addr = 0xEE;
 char bmp180_iic_dev[14] = "/dev/i2c-0";
 uint8_t bmp180_iic_init = 0;
 
-uint16_t bmp388_iic_addr = 0x76 << 1;
+uint16_t bmp388_iic_addr = 0x77 << 1;
 char bmp388_iic_dev[14] = "/dev/i2c-0";
 char bmp388_spi_dev[18] = "/dev/spidev0.0";
 uint8_t bmp388_iic_init = 0;
 
-uint16_t bmp390_iic_addr = 0x76 << 1;
+uint16_t bmp390_iic_addr = 0x77 << 1;
 char bmp390_iic_dev[14] = "/dev/i2c-0";
 char bmp390_spi_dev[18] = "/dev/spidev0.0";
 uint8_t bmp390_iic_init = 0;
