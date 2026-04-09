@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024 Edward A. Kisiel
+    logenv Copyright 2019,2020,2024,2025,2026 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,13 @@
 
 
     void usage (void)
-    int itoa(int n, char s[])
-    int set_tty_attributes(int fd, int speed, bool canconical)
-    void sleep_ms(int milliseconds)
+    int16_t itoa(int32_t n, char s[])
+    int16_t set_tty_attributes(int16_t fd, int32_t speed, bool canconical)
+    void sleep_ms(uint32_t milliseconds)
     static void sig_handler(int _)
 
 */
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <ctype.h>
@@ -44,6 +45,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <termios.h>
+#include <threads.h>
 #include <time.h>
 #include <unistd.h>
 #include "bme280/bmp180.h"
@@ -51,17 +53,16 @@
 #include "bme280/bme280-i2c.h"
 #include "logenv.h"
 
-int main(int argc, char **argv) {
+int main(uint8_t argc, char **argv) {
 
     signal(SIGINT, sig_handler);
-
     if(argc == 1) {
         usage();
     }
     /*
      * check if creating gnuplot script
      */
-    int i = argc;
+    uint8_t i = argc;
     while (i-- > 1) {
 
         if(!strcmp(argv[i], "-g") || !strcmp(argv[i], "--gnuplot")) {
@@ -113,7 +114,7 @@ int main(int argc, char **argv) {
             OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "-i") || !strcmp(argv[i], "--milliseconds")) {
-            INTERACTIVE_ENABLE = atoi(argv[i+1]);
+            INTERACTIVE_ENABLE = atol(argv[i+1]);
             COUNT_ENABLE = 1;
         }
         if(!strcmp(argv[i], "-l") || !strcmp(argv[i], "--log")) {
@@ -165,7 +166,7 @@ int main(int argc, char **argv) {
          */
         if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temperature")) {
 
-            for (int c = 0; c <= 1024; c++) {
+            for (uint16_t c = 0; c <= 1024; c++) {
                 char strChar[5] = {0};
                 itoa(c,strChar);
                 strcpy(thermalzone,thermalzone1);
@@ -313,10 +314,10 @@ int main(int argc, char **argv) {
         /*
          * primary poll loop
          */
-        float i = 0;
-        int c = OPTIONS_COUNT;
+        double i = 0;
+        int8_t c = OPTIONS_COUNT;
         while(i >= 0 && go != -1) {
-            int udp_count = 0;
+            int8_t udp_count = 0;
             /*
              * count or date and time stamp
              */
@@ -384,12 +385,12 @@ int main(int argc, char **argv) {
             if(FREQ_ENABLE != 0) {
                 if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                     printf("\n");
-                    for (int c = 0; c < FREQ_ENABLE; c++) {
+                    for (uint16_t c = 0; c < FREQ_ENABLE; c++) {
                         printf("  Core%d  ", c);
                     }
                     printf("\n");
                 }
-                for (int c = 0; c < FREQ_ENABLE; c++) {
+                for (uint16_t c = 0; c < FREQ_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(cpufreq,cpufreq1);
@@ -472,7 +473,7 @@ int main(int argc, char **argv) {
              */
             if(THERMAL_ENABLE != 0) {
 
-                for (int c = 0; c < THERMAL_ENABLE; c++) {
+                for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(thermalzone,thermalzone1);
@@ -573,7 +574,7 @@ int main(int argc, char **argv) {
                 /*
                  * Convert the data to 13-bits
                  */
-                int temp = ((data[0] & 0x1F) * 256 + data[1]);
+                uint32_t temp = ((data[0] & 0x1F) * 256 + data[1]);
                 if(temp > 4095) {
                     temp -= 8192;
                 }
@@ -728,7 +729,7 @@ int main(int argc, char **argv) {
                  */
                 if(SP_ENABLE == 2) {
                     unsigned char temp[18];
-                    int sp_read = 0;
+                    uint8_t sp_read = 0;
                     if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
@@ -805,7 +806,7 @@ int main(int argc, char **argv) {
                 if(SP_ENABLE == 31 || SP_ENABLE == 32) {
 
                     unsigned char temp[82];
-                    int sp_read = 0;
+                    uint8_t sp_read = 0;
 
                     if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
@@ -874,7 +875,7 @@ int main(int argc, char **argv) {
                     printf("\nERROR: Cannot open %s\n", cpuusage);
                     exit(1);
                 }
-                for (int c = 0; c <= USAGE_ENABLE; c++) {
+                for (uint16_t c = 0; c <= USAGE_ENABLE; c++) {
                     char t[20];
                     char us[10][256] = {0};
                     double long u[10][256] = {0};
@@ -1088,7 +1089,7 @@ int main(int argc, char **argv) {
                 break;
             }
             OPTIONS_COUNT = c;
-            i += INTERACTIVE_ENABLE;
+            i += (float)INTERACTIVE_ENABLE;
             sleep_ms(INTERACTIVE_ENABLE);
         }
     }
@@ -1096,7 +1097,7 @@ int main(int argc, char **argv) {
         /*
          * Build of gnuplot script
          */
-        i = 0;
+        uint16_t i = 0;
         while (i < 11) {
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
             i++;
@@ -1105,7 +1106,7 @@ int main(int argc, char **argv) {
          * get thermal zone names and set titles
          */
         char strChar[5] = {0};
-        for (int c = 0; c < THERMAL_ENABLE; c++) {
+        for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
             itoa(c,strChar);
             strcpy(thermaltype,thermalzone1);
             strcat(thermaltype,strChar);
@@ -1404,7 +1405,7 @@ int main(int argc, char **argv) {
             }
 
             i = 0;
-            int power = SP_ENABLE > 0 ? 3 : 0;
+            uint8_t power = SP_ENABLE > 0 ? 3 : 0;
             fprintf(gnuplot_file, "plot ");
             if(USAGE_ENABLE != 0) {
                 fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
@@ -1438,7 +1439,7 @@ int main(int argc, char **argv) {
 
 
 void usage (void) {
-        printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024 by Edward Kisiel\n", version);
+        printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024,2025 by Edward Kisiel\n", version);
         printf("logs count or time stamp, CPU frequency, thermal zone temperatures,\n");
         printf("external sensor temperature, volts, amps and watts and CPU core usage\n\n");
         printf("usage: logenv [options]\n\n");
@@ -1448,8 +1449,8 @@ void usage (void) {
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
         printf(" -a,  --bme280 <device>       Ambient Temperature Sensor, BME280 Temperature Sensor default /dev/i2c-0\n");
-        printf("      --bmp180 <device>       BMP180 Sensor, default /dev/i2c-0\n");
-        printf("      --mcp9808 <device>      MCP9808 Sensor, default /dev/i2c-0\n");
+        printf("      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0\n");
+        printf("      --mcp9808 <device>      MCP9808 TemperatureSensor, default /dev/i2c-0\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
@@ -1476,8 +1477,8 @@ void usage (void) {
 }
 
 
-int itoa(int n, char s[]) {
-    int i =  0;
+int16_t itoa(int32_t n, char s[]) {
+    int16_t i =  0;
 
     if(n / 10 != 0)
         i = itoa(n/10, s);
@@ -1491,7 +1492,7 @@ int itoa(int n, char s[]) {
 }
 
 
-int set_tty_attributes(int fd, int speed, bool canconical) {
+int16_t set_tty_attributes(int16_t fd, int32_t speed, bool canconical) {
     struct termios tty;
 
     if (tcgetattr(fd, &tty) < 0) {
@@ -1529,7 +1530,7 @@ int set_tty_attributes(int fd, int speed, bool canconical) {
 }
 
 
-void sleep_ms(int milliseconds) {
+void sleep_ms(int32_t milliseconds) {
     struct timespec ts;
     ts.tv_sec = milliseconds / 1000;
     ts.tv_nsec = (milliseconds % 1000) * 1000000;

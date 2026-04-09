@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024 Edward A. Kisiel
+    logenv Copyright 2019,2020,2024,2025,2026 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -20,9 +20,9 @@
 */
 
 void usage(void);
-int itoa(int, char[]);
-int set_tty_attributes(int, int, bool);
-void sleep_ms(int);
+int16_t itoa(int32_t, char[]);
+int16_t set_tty_attributes(int16_t, int32_t, bool);
+void sleep_ms(int32_t);
 static void sig_handler(int);
 
 static volatile sig_atomic_t go = 1;
@@ -32,16 +32,16 @@ FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, *
 time_t now;
 struct tm *t;
 
-int udp_socket;
-int sin_size;
+int16_t udp_socket;
+int16_t sin_size;
 struct sockaddr_in udp_server_addr;
 struct hostent *udp_host;
-static int udp_port = 5000;
+static int16_t udp_port = 5000;
 static char udp_name[256] = "127.0.0.1";
 static char udp_tx_data[1024] = {0};
 
-int  pwr_in;
-int  sensor_in;
+int16_t pwr_in;
+int16_t sensor_in;
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
@@ -76,56 +76,56 @@ char spline1[5];
 char spline2[5];
 char logfile[255];
 char gplotfile[255];
-char version[] = "0.99 Pre-release";
+char version[] = "1.0";
 char one2one[] = "1,1";
 char two2one[] = "2,1";
 char three2one[] = "3,1";
 char four2one[] = "4,1";
 
-static int SP_ENABLE = 0;
-static int SENSOR_ENABLE = 0;
-static int FREQ_ENABLE = 0;
-static int MEM_ENABLE = 0;
-static int THERMAL_ENABLE = 0;
-static int QUIET_ENABLE = 0;
-static int VERBOSE_ENABLE = 0;
-static int INTERACTIVE_ENABLE = 0;
-static int LOG_ENABLE = 0;
-static int RAW_ENABLE = 0;
-static int GNUPLOT_ENABLE = 0;
-static int COUNT_ENABLE = 0;
-static int DT_ENABLE = 0;
-static int USAGE_ENABLE = 0;
-static int UDP_ENABLE = 0;
-static int OPTIONS_COUNT = 0;
+static int8_t SP_ENABLE = 0;
+static int8_t SENSOR_ENABLE = 0;
+static int8_t FREQ_ENABLE = 0;
+static int8_t MEM_ENABLE = 0;
+static int8_t THERMAL_ENABLE = 0;
+static int8_t QUIET_ENABLE = 0;
+static int8_t VERBOSE_ENABLE = 0;
+static uint32_t INTERACTIVE_ENABLE = 0;
+static int8_t LOG_ENABLE = 0;
+static int8_t RAW_ENABLE = 0;
+static int8_t GNUPLOT_ENABLE = 0;
+static int8_t COUNT_ENABLE = 0;
+static int8_t DT_ENABLE = 0;
+static int8_t USAGE_ENABLE = 0;
+static int8_t UDP_ENABLE = 0;
+static int8_t OPTIONS_COUNT = 0;
 
-static int xmtics = 10;
-static int temperature;
-static int humidity;
-static int pressure;
-static int freq;
+static int16_t xmtics = 10;
+static int32_t temperature;
+static int32_t humidity;
+static int32_t pressure;
+static int32_t freq;
 static float coretemp;
 static float volt;
 static float amp;
 static float watt;
 
 static double long sp_ms;
-static unsigned int in_mv;
-static unsigned int in_ma;
-static unsigned int in_w;
-static unsigned int in_on;
-static unsigned int ch1_mv;
-static unsigned int ch1_ma;
-static unsigned int ch1_w;
-static unsigned int ch1_on;
-static unsigned int ch1_int;
-static unsigned int ch2_mv;
-static unsigned int ch2_ma;
-static unsigned int ch2_w;
-static unsigned int ch2_on;
-static unsigned int ch2_int;
-static unsigned int chk_comp;
-static unsigned int chk_xor;
+static uint16_t in_mv;
+static uint16_t in_ma;
+static uint16_t in_w;
+static uint16_t in_on;
+static uint16_t ch1_mv;
+static uint16_t ch1_ma;
+static uint16_t ch1_w;
+static uint16_t ch1_on;
+static uint16_t ch1_int;
+static uint16_t ch2_mv;
+static uint16_t ch2_ma;
+static uint16_t ch2_w;
+static uint16_t ch2_on;
+static uint16_t ch2_int;
+static uint16_t chk_comp;
+static uint16_t chk_xor;
 static char gpscript_freq1[30];
 static char gpscript_freq2[30];
 static char gpscript_thermal1[30];

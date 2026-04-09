@@ -1,4 +1,4 @@
-﻿# logenv
+# logenv
 
 
 ## Introduction
@@ -21,9 +21,9 @@ License: GPLv3.
 ```
 logenv [options]
 
-logenv - Version 0.99 Pre-release Copyright (C) 2019,2020,2024 by Edward Kisiel
+logenv - Version 1.0 Copyright (C) 2019,2020,2024,2025 by Edward Kisiel
 logs count or time stamp, CPU frequency, thermal zone temperatures,
-external sensor temperature, volts, amps and watts and CPU core usage.
+external sensor temperature, volts, amps and watts and CPU core usage
 
 usage: logenv [options]
 
@@ -50,6 +50,7 @@ Options:
       --xmtics <number>       Chart x-axis major second tics <number>
       --version               Version
  -h,  --help                  Help screen
+
 ```
 
 
@@ -83,7 +84,7 @@ Single or stacked charts are created based on the type and number of datum that 
 The UDP client -n option is followed by the server host and port <host:port>. The host entry can be either an IP address or host name.  Make sure the port is open if using a firewall.  From the command-line on the server host system, netcat can be used to read the UDP feed.
 
 ```
-netcat -l -u -p <port>
+netcat -l -u <hostname> -p <port>
 ```
 
 ## Compatibility
