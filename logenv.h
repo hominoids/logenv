@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024,2025 Edward A. Kisiel
+    logenv Copyright 2019,2020,2024,2025,2026 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -20,9 +20,9 @@
 */
 
 void usage(void);
-uint16_t itoa(uint32_t, char[]);
-uint16_t set_tty_attributes(uint16_t, uint32_t, bool);
-void sleep_ms(uint32_t);
+int16_t itoa(int32_t, char[]);
+int16_t set_tty_attributes(int16_t, int32_t, bool);
+void sleep_ms(int32_t);
 static void sig_handler(int);
 
 extern ssd1681_handle_t ssd1681_handle;
@@ -51,32 +51,29 @@ struct tm *t;
 char display_time[10];
 char display_date[12];
 
-uint16_t udp_socket;
-uint16_t sin_size;
+int16_t udp_socket;
+int16_t sin_size;
 struct sockaddr_in udp_server_addr;
 struct hostent *udp_host;
-static uint16_t udp_port = 5000;
+static int16_t udp_port = 5000;
 static char udp_name[256] = "127.0.0.1";
 static char udp_tx_data[1024] = {0};
 
 char ssd1681_spi_dev[18] = "/dev/spidev0.0";
+char st7789_spi_dev[14] = "/dev/spidev0.0";
 
-uint16_t ssd1306_iic_addr = 0x62;
+uint16_t ssd1306_iic_addr = 0x3d << 1;
 char ssd1306_iic_dev[14] = "/dev/i2c-0";
 char ssd1306_spi_dev[14] = "/dev/spidev0.0";
 uint8_t ssd1306_iic_init = 0;
 
-char st7789_spi_dev[14] = "/dev/spidev0.0";
-
-uint16_t pwr_in;
+int16_t pwr_in;
 uint16_t mcp9808_in;
-uint16_t iic_device_address = 0;
-char iic_device_name[18] = "/dev/i2c-0";
-char spi_device_name[18] = "/dev/spidev0.0";
 
 uint16_t bme280_iic_addr = 0x77 << 1;
 char bme280_iic_dev[14] = "/dev/i2c-0";
 uint8_t bme280_iic_init = 0;
+char bme280_spi_dev[18] = "/dev/spidev0.0";
 
 uint16_t bme680_iic_addr = 0x77 << 1;
 char bme680_iic_dev[14] = "/dev/i2c-1";
@@ -164,73 +161,73 @@ char spline2[5];
 char logfile[255];
 char gplotfile[255];
 char jsonfile[255];
-char version[] = "0.99 Pre-release";
+char version[] = "1.0";
 char one2one[] = "1,1";
 char two2one[] = "2,1";
 char three2one[] = "3,1";
 char four2one[] = "4,1";
 
-static uint8_t SP_ENABLE = 0;
-static uint8_t SENSOR_ENABLE = 0;
-static uint8_t FREQ_ENABLE = 0;
-static uint8_t MEM_ENABLE = 0;
-static uint8_t THERMAL_ENABLE = 0;
-static uint8_t QUIET_ENABLE = 0;
-static uint8_t VERBOSE_ENABLE = 0;
-static uint8_t INTERACTIVE_ENABLE = 0;
-static uint8_t LOG_ENABLE = 0;
-static uint8_t RAW_ENABLE = 0;
-static uint8_t GNUPLOT_ENABLE = 0;
-static uint8_t COUNT_ENABLE = 0;
-static uint8_t DT_ENABLE = 0;
-static uint8_t USAGE_ENABLE = 0;
-static uint8_t UDP_ENABLE = 0;
-static uint8_t OPTIONS_COUNT = 0;
-static uint8_t SGP30_ENABLE = 0;
-static uint8_t SCD30_ENABLE = 0;
-static uint8_t SCD4X_ENABLE = 0;
-static uint8_t BMP388_ENABLE = 0;
-static uint8_t BMP390_ENABLE = 0;
-static uint8_t BME680_ENABLE = 0;
+static int8_t SP_ENABLE = 0;
+static int8_t SENSOR_ENABLE = 0;
+static int8_t FREQ_ENABLE = 0;
+static int8_t MEM_ENABLE = 0;
+static int8_t THERMAL_ENABLE = 0;
+static int8_t QUIET_ENABLE = 0;
+static int8_t VERBOSE_ENABLE = 0;
+static uint32_t INTERACTIVE_ENABLE = 0;
+static int8_t LOG_ENABLE = 0;
+static int8_t RAW_ENABLE = 0;
+static int8_t GNUPLOT_ENABLE = 0;
+static int8_t COUNT_ENABLE = 0;
+static int8_t DT_ENABLE = 0;
+static int8_t USAGE_ENABLE = 0;
+static int8_t UDP_ENABLE = 0;
+static int8_t OPTIONS_COUNT = 0;
+static int8_t SGP30_ENABLE = 0;
+static int8_t SCD30_ENABLE = 0;
+static int8_t SCD4X_ENABLE = 0;
+static int8_t BMP388_ENABLE = 0;
+static int8_t BMP390_ENABLE = 0;
+static int8_t BME680_ENABLE = 0;
 
-static uint8_t DISPLAY_ENABLE = 0;
-static uint8_t SSD1681_ENABLE = 0;
-static uint8_t SSD1306_ENABLE = 0;
-static uint8_t ST7789_ENABLE = 0;
-static uint8_t DP_TIME = 0;
-static uint8_t DP_DATE = 0;
-static uint8_t DP_FREQ = 0;
-static uint8_t DP_THERMAL = 0;
-static uint8_t DP_MEMORY = 0;
-static uint8_t DP_USAGE = 0;
-static uint8_t DP_SP2 = 0;
-static uint8_t DP_SP3CH1 = 0;
-static uint8_t DP_SP3CH2 = 0;
-static uint8_t DP_BME280 = 0;
-static uint8_t DP_BME680 = 0;
-static uint8_t DP_BMP180 = 0;
-static uint8_t DP_BMP388 = 0;
-static uint8_t DP_BMP390 = 0;
-static uint8_t DP_MCP9808 = 0;
-static uint8_t DP_SHT4X = 0;
-static uint8_t DP_SHTC3 = 0;
-static uint8_t DP_AHT20 = 0;
-static uint8_t DP_HTU31D = 0;
-static uint8_t DP_SCD30 = 0;
-static uint8_t DP_SCD4X = 0;
-static uint8_t DP_SGP30 = 0;
-static uint8_t DP_TEXT = 0;
-static uint8_t DP_POINT = 0;
-static uint8_t DP_LINE = 0;
-static uint8_t DP_CIRCLE = 0;
-static uint8_t DP_RECTANGLE = 0;
-static uint8_t DP_IMAGE = 0;
+static int8_t DISPLAY_ENABLE = 0;
+static int8_t SSD1681_ENABLE = 0;
+static int8_t SSD1306_ENABLE = 0;
+static int8_t ST7789_ENABLE = 0;
+static int8_t DP_TIME = 0;
+static int8_t DP_DATE = 0;
+static int8_t DP_FREQ = 0;
+static int8_t DP_THERMAL = 0;
+static int8_t DP_MEMORY = 0;
+static int8_t DP_USAGE = 0;
+static int8_t DP_SP2 = 0;
+static int8_t DP_SP3CH1 = 0;
+static int8_t DP_SP3CH2 = 0;
+static int8_t DP_BME280 = 0;
+static int8_t DP_BME680 = 0;
+static int8_t DP_BMP180 = 0;
+static int8_t DP_BMP388 = 0;
+static int8_t DP_BMP390 = 0;
+static int8_t DP_MCP9808 = 0;
+static int8_t DP_SHT4X = 0;
+static int8_t DP_SHTC3 = 0;
+static int8_t DP_AHT20 = 0;
+static int8_t DP_HTU31D = 0;
+static int8_t DP_SCD30 = 0;
+static int8_t DP_SCD4X = 0;
+static int8_t DP_SGP30 = 0;
+static int8_t DP_TEXT = 0;
+static int8_t DP_POINT = 0;
+static int8_t DP_LINE = 0;
+static int8_t DP_CIRCLE = 0;
+static int8_t DP_RECTANGLE = 0;
+static int8_t DP_IMAGE = 0;
 
-static uint16_t xmtics = 10;
-static uint16_t temperature;
-static uint16_t humidity;
-static uint16_t pressure;
-static uint32_t freq;
+static int16_t xmtics = 10;
+static int32_t temperature;
+static int32_t humidity;
+static int32_t pressure;
+static int32_t freq;
 static float coretemp;
 static float volt;
 static float amp;

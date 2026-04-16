@@ -47,7 +47,7 @@ extern char bme280_iic_dev;
 /**
  * @brief spi device name definition
  */
-extern char spi_device_name;
+extern char bme280_spi_dev;
 
 /**
  * @brief iic device handle definition
@@ -124,7 +124,7 @@ uint8_t bme280_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uint
  */
 uint8_t bme280_interface_spi_init(void)
 {
-    return spi_init(&spi_device_name, &gs_spi_fd, SPI_MODE_TYPE_3, 1000 * 1000);
+    return spi_init(&bme280_spi_dev, &gs_spi_fd, SPI_MODE_TYPE_3, 1000 * 1000);
 }
 
 /**

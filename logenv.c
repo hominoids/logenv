@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024,2025 Edward A. Kisiel
+    logenv Copyright 2019,2020,2024,2025,2026 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,13 @@
 
 
     void usage (void)
-    int itoa(int n, char s[])
-    int set_tty_attributes(int fd, int speed, bool canconical)
-    void sleep_ms(int milliseconds)
+    int16_t itoa(int32_t n, char s[])
+    int16_t set_tty_attributes(int16_t fd, int32_t speed, bool canconical)
+    void sleep_ms(uint32_t milliseconds)
     static void sig_handler(int _)
 
 */
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <ctype.h>
@@ -44,6 +45,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <termios.h>
+#include <threads.h>
 #include <time.h>
 #include <unistd.h>
 #include <cjson/cJSON.h>
@@ -67,7 +69,7 @@
 #include "drivers/displays.h"
 #include "logenv.h"
 
-uint8_t main(uint8_t argc, char **argv) {
+int main(uint8_t argc, char **argv) {
 
     signal(SIGINT, sig_handler);
 
@@ -130,10 +132,7 @@ uint8_t main(uint8_t argc, char **argv) {
                 }
                 cJSON *address = cJSON_GetObjectItemCaseSensitive(item, "address");
                 if (cJSON_IsNumber(address)) {
-                    dp[DISPLAY_ENABLE].address = address->valueint;
-                    if(strchr(dp[DISPLAY_ENABLE].name, 'c')) {
-                        iic_device_address = dp[DISPLAY_ENABLE].address << 1;
-                    }
+                    dp[DISPLAY_ENABLE].address = address->valueint << 1;
                     if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].address);
                 }
                 cJSON *xsize = cJSON_GetObjectItemCaseSensitive(item, "xsize");
@@ -405,7 +404,11 @@ uint8_t main(uint8_t argc, char **argv) {
                     SSD1681_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") && dp[DISPLAY_ENABLE].page == 0) {
-                    ssd1306_iic_addr = dp[DISPLAY_ENABLE].address;
+//ssd1306_iic_addr = iic_device_address;
+//printf("ssd1306_iic_addr = %d\n", ssd1306_iic_addr);
+//printf("dp[DISPLAY_ENABLE].address = %d\n", dp[DISPLAY_ENABLE].address);
+//printf("dp[DISPLAY_ENABLE].address << 1 = %d\n", dp[DISPLAY_ENABLE].address << 1);
+//ssd1306_iic_addr = dp[DISPLAY_ENABLE].address;
                     if(strchr(dp[DISPLAY_ENABLE].device, 's')) {
                         strcpy(ssd1306_spi_dev, dp[DISPLAY_ENABLE].device);
                     }
@@ -932,11 +935,11 @@ uint8_t main(uint8_t argc, char **argv) {
         /*
          * primary poll loop
          */
-        float i = 0;
-        uint8_t c = OPTIONS_COUNT;
+        double i = 0;
+        int8_t c = OPTIONS_COUNT;
 
         while(i >= 0 && go != -1) {
-            uint8_t udp_count = 0;
+            int8_t udp_count = 0;
             /*
              * count or date and time stamp
              */
@@ -3092,7 +3095,7 @@ uint8_t main(uint8_t argc, char **argv) {
             }
             else {
                 OPTIONS_COUNT = c;
-                i += INTERACTIVE_ENABLE;
+                i += (float)INTERACTIVE_ENABLE;
                 sleep_ms(INTERACTIVE_ENABLE);
             }
         }
@@ -3101,7 +3104,7 @@ uint8_t main(uint8_t argc, char **argv) {
         /*
          * Build of gnuplot script
          */
-        i = 0;
+        uint16_t i = 0;
         while (i < 11) {
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
             i++;
@@ -3490,7 +3493,7 @@ uint8_t main(uint8_t argc, char **argv) {
 
 
 void usage (void) {
-        printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024 by Edward Kisiel\n", version);
+        printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024,2025,2026 by Edward A. Kisiel\n", version);
         printf("logs count or time stamp, CPU frequency, thermal zone temperatures,\n");
         printf("external sensor temperature, volts, amps and watts and CPU core usage\n\n");
         printf("usage: logenv [options]\n\n");
@@ -3538,8 +3541,8 @@ void usage (void) {
 }
 
 
-uint16_t itoa(uint32_t n, char s[]) {
-    int i =  0;
+int16_t itoa(int32_t n, char s[]) {
+    int16_t i =  0;
 
     if(n / 10 != 0)
         i = itoa(n/10, s);
@@ -3553,7 +3556,7 @@ uint16_t itoa(uint32_t n, char s[]) {
 }
 
 
-uint16_t set_tty_attributes(uint16_t fd, uint32_t speed, bool canconical) {
+int16_t set_tty_attributes(int16_t fd, int32_t speed, bool canconical) {
     struct termios tty;
 
     if (tcgetattr(fd, &tty) < 0) {
@@ -3591,7 +3594,7 @@ uint16_t set_tty_attributes(uint16_t fd, uint32_t speed, bool canconical) {
 }
 
 
-void sleep_ms(uint32_t milliseconds) {
+void sleep_ms(int32_t milliseconds) {
     struct timespec ts;
     ts.tv_sec = milliseconds / 1000;
     ts.tv_nsec = (milliseconds % 1000) * 1000000;

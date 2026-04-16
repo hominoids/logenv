@@ -1,13 +1,34 @@
-﻿# logenv
+# logenv
 
 
 ## Introduction
-logenv is a Linux command-line utility for the aggregating, logging and charting of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage and volts, amps and watts from a HardKernel SmartPower2 or SmartPower3.  It can also generate GNUplot scripts for any collected data set and supports a UDP network stream as a singleshot or continous interval based feed. 
+logenv is a Linux command-line utility for the aggregating, logging and charting of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage and volts, amps and watts from a HardKernel SmartPower2 or SmartPower3 as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set as well as a UDP network stream . Local display of data on small oled and eInk displays is supported for the SSD1306 and SSD1681 controllers. 
 
 ![Image](./example/ocl-m2_g610-a76_1.png)
 
 License: GPLv3.
 
+
+### prerequisite
+Any OS repository version of cjson should work but gpiod version 2.x is not supported at this time.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
+
+gnuplot
+
+cjson
+https://github.com/DaveGamble/cJSON
+
+gpiod v1.x
+https://libgpiod.readthedocs.io/en/stable/
+
+````
+wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.4.tar.xz
+tar -xvf ./libgpiod-1.6.4.tar.xz
+cd ./libgpiod-1.6.4/
+./configure --enable-tools
+make
+sudo make install
+sudo ldconfig /usr/local/lib
+````
 
 ### Install
 ```
@@ -19,12 +40,6 @@ License: GPLv3.
   
 ## Usage
 ```
-logenv [options]
-
-logenv - Version 0.99 Pre-release Copyright (C) 2019,2020,2024 by Edward Kisiel
-logs count or time stamp, CPU frequency, thermal zone temperatures,
-external sensor temperature, volts, amps and watts and CPU core usage.
-
 usage: logenv [options]
 
 Options:
@@ -32,9 +47,15 @@ Options:
  -i,  --milliseconds <number> Poll Interval <number> in milliseconds
  -f,  --frequency             CPU core frequency
  -t,  --temperature           Thermal zone temperature
- -a,  --bme280 <device>       Ambient Temperature Sensor, BME280 Temperature Sensor default /dev/i2c-0
-      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0
-      --mcp9808 <device>      MCP9808 Temperature Sensor, default /dev/i2c-0
+ -a,  --bme280 <device>       Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0
+      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0
+      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77
+      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77
+      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0
+      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0
+      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
+      --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
+      --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0
  -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
       --smartpower3-ch2 <tty>
       --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
@@ -44,7 +65,11 @@ Options:
  -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
  -v,  --verbose               Readable dashboard output
  -q,  --quiet                 No output to stdout
+ -o,                          Output to eInk/Oled/LCD display using logenv.json
  -n,  --udp <host>:<port>     UDP output to <host>:<port>
+ -s,  --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0
+      --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0
+      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
  -g,  --gnuplot <file>        Gnuplot script generation
       --title <string>        Chart title <string>
       --xmtics <number>       Chart x-axis major second tics <number>
