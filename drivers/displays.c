@@ -125,7 +125,7 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].type,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
-            sprintf(buffer2, "%.2lf", temp_f);
+            sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
         if(!strcmp(ptr->dc[dcidx].type,"H")) {
@@ -232,7 +232,7 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].type,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
-            sprintf(buffer2, "%.2lf", temp_f);
+            sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
         if(!strcmp(ptr->dc[dcidx].type,"H")) {
@@ -339,7 +339,7 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].type,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
-            sprintf(buffer2, "%.2lf", temp_f);
+            sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
         if(!strcmp(ptr->dc[dcidx].type,"H")) {
@@ -437,7 +437,7 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].type,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
-            sprintf(buffer2, "%.2lf", temp_f);
+            sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
         if(!strcmp(ptr->dc[dcidx].type,"H")) {

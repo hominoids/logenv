@@ -82,7 +82,7 @@ int main(uint8_t argc, char **argv) {
         usage();
     }
     /*
-     * check if creating gnuplot script
+     * check if creating gnuplot script or using displays
      */
     uint8_t i = argc;
     while (i-- > 1) {
@@ -96,13 +96,22 @@ int main(uint8_t argc, char **argv) {
             }
             GNUPLOT_ENABLE = 1;
         }
+
         /*
-         * Load json display configuration
+         * check for debug output
+         */
+        if(!strcmp(argv[i], "--debug")) {
+            VERBOSE_DEBUG = 1;
+        }
+        /*
+         * check for display and load json configuration
          */
         if(!strcmp(argv[i], "-o")) {
             if((json_file = fopen("./logenv.json", "r")) == NULL) {
-                printf("\nERROR: Cannot open file logenv.json\n\n");
-                usage();
+                if((json_file = fopen("/etc/logenv/logenv.json", "r")) == NULL) {
+                    printf("\nERROR: Cannot open file logenv.json in ./ or /etc/logenv/\n");
+                    usage();
+                }
             }
 
             char buffer[16384];
@@ -1437,9 +1446,9 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "bmp180")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.2lf", (double) pressure/100);
+                                sprintf(buffer, "%.0lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
@@ -1535,7 +1544,7 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "bmp388")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
@@ -1633,7 +1642,7 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "bmp390")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
@@ -1739,9 +1748,9 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "bme280")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.2lf", humidity_f);
+                                sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
                                 sprintf(buffer, "%.2lf", pressure_f/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
@@ -1853,9 +1862,9 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "bme680")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.2lf", humidity_f);
+                                sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
                                 sprintf(buffer, "%.2lf", pressure_f/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
@@ -1940,7 +1949,7 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
                                 char buffer[6];
-                                sprintf(buffer, "%.2lf", temperature);
+                                sprintf(buffer, "%.1lf", temperature);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
@@ -2042,9 +2051,9 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "sht4x")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.2lf", humidity_f);
+                                sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
@@ -2145,9 +2154,9 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "shtc3")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.2lf", humidity_f);
+                                sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
@@ -2248,7 +2257,7 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "aht20")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%d", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
@@ -2351,9 +2360,9 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "htu31d")) {
                                 char buffer[25];
-                                sprintf(buffer, "%.2lf", temperature_f);
+                                sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.2lf", humidity_f);
+                                sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
@@ -2451,13 +2460,13 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].name, "scd30")) {
                                 char buffer[6];
-                                sprintf(buffer, "%.2f", data.temperature_deg);
+                                sprintf(buffer, "%.1f", data.temperature_deg);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
-                                sprintf(buffer, "%.2f", data.humidity_percent);
+                                sprintf(buffer, "%.0f", data.humidity_percent);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                sprintf(buffer, "%.2f", data.co2_ppm);
+                                sprintf(buffer, "%.0f", data.co2_ppm);
                                 strcpy(dp[d].dc[i].data4, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
@@ -2559,13 +2568,13 @@ int main(uint8_t argc, char **argv) {
                                 !strcmp(dp[d].dc[i].name, "scd41") || \
                                     !strcmp(dp[d].dc[i].name, "scd43")) {
                                 char buffer[6];
-                                sprintf(buffer, "%.2f", temperature_f);
+                                sprintf(buffer, "%.1f", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
-                                sprintf(buffer, "%.2f", humidity_f);
+                                sprintf(buffer, "%.0f", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                sprintf(buffer, "%.2d", co2_ppm);
+                                sprintf(buffer, "%d", co2_ppm);
                                 strcpy(dp[d].dc[i].data4, buffer);
 
                                 if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
@@ -3168,7 +3177,6 @@ int main(uint8_t argc, char **argv) {
                             printf("%s update failed\n", &dp[d].name);
                         }
                     }
-
                     if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
                         if(displays(ssd1306, &dp[d], 0, DISPLAY_UPDATE)){
                             printf("%s update failed\n", &dp[d].name);
