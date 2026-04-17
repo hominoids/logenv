@@ -6,6 +6,8 @@ OBJGROUP=drivers/ssd1681/driver_ssd1681.o drivers/ssd1681/driver_ssd1681_interfa
 	 drivers/ssd1681/driver_ssd1681_basic.o \
 	 drivers/ssd1306/driver_ssd1306.o drivers/ssd1306/driver_ssd1306_interface.o \
 	 drivers/ssd1306/driver_ssd1306_advance.o \
+	 drivers/ssh1107/driver_ssh1107.o drivers/ssh1107/driver_ssh1107_interface.o \
+	 drivers/ssh1107/driver_ssh1107_advance.o \
 	 drivers/st7789/driver_st7789.o drivers/st7789/driver_st7789_interface.o \
 	 drivers/st7789/driver_st7789_basic.o \
 	 drivers/scd30/driver_scd30.o drivers/scd30/driver_scd30_basic.o \
@@ -43,7 +45,7 @@ logenv: $(OBJGROUP)
 
 clean:
 	rm *.o logenv drivers/*.o drivers/interface/*.o \
-	drivers/ssd1681/*.o drivers/ssd1306/*.o drivers/st7789/*.o \
+	drivers/ssd1681/*.o drivers/ssd1306/*.o drivers/ssh1107/*.o drivers/st7789/*.o \
 	drivers/bmp180/*.o drivers/bme280/*.o drivers/mcp9808/*.o \
 	drivers/scd4x/*.o drivers/sgp30/*.o drivers/sht4x/*.o drivers/shtc3/*.o \
 	drivers/aht20/*.o drivers/htu31d/*.o drivers/bmp388/*.o drivers/scd30/*.o \

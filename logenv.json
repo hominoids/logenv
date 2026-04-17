@@ -219,7 +219,7 @@
     {
         "name": "ssd1306",
         "device": "/dev/i2c-1",
-        "address": 122,
+        "address": 61,
         "xsize": 128,
         "ysize": 64,
         "rotation": 0,
@@ -273,6 +273,66 @@
             "font": "MONOSPACE_12",
             "label": " ",
             "unit": " hPa"
+            }
+        ]
+    },
+    {
+        "name": "ssh1107",
+        "device": "/dev/i2c-0",
+        "address": 61,
+        "xsize": 128,
+        "ysize": 128,
+        "rotation": 0,
+        "page": 0,
+        "seconds": 0,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 17,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_36",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 30,
+            "yloc": 30,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "F",
+            "xloc": 0,
+            "yloc": 65,
+            "color": 0,
+            "font": "MONOSPACE_24",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "C",
+            "xloc": 75,
+            "yloc": 70,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": "c"
             }
         ]
     }
