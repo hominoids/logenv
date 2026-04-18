@@ -41,14 +41,6 @@ extern ssh1107_handle_t ssh1107_handle;
 extern st7789_handle_t st7789_handle;
 
 
-uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *ptr, uint8_t dcidx, uint8_t cmd) {
-    if(op(ptr, dcidx, cmd)) {
-        return(1);
-    }
-    return(0);
-}
-
-
 uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {

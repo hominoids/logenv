@@ -19,6 +19,13 @@
 
 */
 
+#ifndef LOGENV_H
+#define LOGENV_H
+
+#ifdef __cplusplus
+extern "C"{
+    #endif
+
 void usage(void);
 int16_t itoa(int32_t, char[]);
 int16_t set_tty_attributes(int16_t, int32_t, bool);
@@ -29,7 +36,7 @@ extern ssd1681_handle_t ssd1681_handle;
 extern ssd1306_handle_t ssd1306_handle;
 extern ssh1107_handle_t ssh1107_handle;
 extern st7789_handle_t st7789_handle;
-extern uint8_t displays(uint8_t (*op)(struct display *, uint8_t, uint8_t), struct display *, uint8_t, uint8_t);
+
 extern uint8_t ssd1681(struct display *, uint8_t, uint8_t);
 extern uint8_t ssd1306(struct display *, uint8_t, uint8_t);
 extern uint8_t ssh1107(struct display *, uint8_t, uint8_t);
@@ -44,6 +51,7 @@ bool VERBOSE_DEBUG = 0;
 
 static uint8_t zi = 0;
 
+//uint8_t (*dptr)(struct display *, uint8_t, uint8_t) = NULL;
 uint8_t display_count = 0;
 uint8_t page = 0;
 uint8_t pg_count = 0;
@@ -379,3 +387,9 @@ static char gpscript_usage[11][55] = {
     "set noxlabel\n\n"};
 
 static char gpscript_end[18] = {"unset multiplot\n" };
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

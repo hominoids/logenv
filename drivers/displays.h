@@ -19,6 +19,13 @@
 
 */
 
+#ifndef DISPLAYS_H
+#define DISPLAYS_H
+
+#ifdef __cplusplus
+extern "C"{
+    #endif
+
 #define DISPLAY_OPEN 1
 #define DISPLAY_WRITE 2
 #define DISPLAY_READ 3
@@ -61,7 +68,13 @@ struct display {
     uint8_t page;
     uint16_t seconds;
     uint8_t init;
+    uint8_t (*dptr)(struct display *, uint8_t, uint8_t);
     uint8_t dc_count;
     struct display_content dc[32];
 };
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -135,6 +135,11 @@ int main(uint8_t argc, char **argv) {
                     strcpy(dp[DISPLAY_ENABLE].name, name->valuestring);
                     if(VERBOSE_DEBUG) printf("Displays: %s ", &dp[DISPLAY_ENABLE].name);
                 }
+                dp[DISPLAY_ENABLE].dptr = !strcmp(dp[DISPLAY_ENABLE].name,"ssd1681") ? ssd1681 :
+                    !strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") ? ssd1306 :
+                    !strcmp(dp[DISPLAY_ENABLE].name, "ssh1107") ? ssh1107 :
+                    !strcmp(dp[DISPLAY_ENABLE].name, "st7789") ? st7789 : NULL;
+
                 cJSON *device = cJSON_GetObjectItemCaseSensitive(item, "device");
                 if (cJSON_IsString(device) && (device->valuestring)) {
                     strcpy(dp[DISPLAY_ENABLE].device, device->valuestring);
@@ -407,7 +412,7 @@ int main(uint8_t argc, char **argv) {
                 dp[DISPLAY_ENABLE].dc_count = ac;
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1681") && dp[DISPLAY_ENABLE].page == 0) {
                     strcpy(ssd1681_spi_dev, dp[DISPLAY_ENABLE].device);
-                    if(displays(ssd1681, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
+                    if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
@@ -420,7 +425,7 @@ int main(uint8_t argc, char **argv) {
                     if(strchr(dp[DISPLAY_ENABLE].device, 'c')) {
                         strcpy(ssd1306_iic_dev, dp[DISPLAY_ENABLE].device);
                     }
-                    if(displays(ssd1306, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
+                    if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
@@ -433,7 +438,7 @@ int main(uint8_t argc, char **argv) {
                     if(strchr(dp[DISPLAY_ENABLE].device, 'c')) {
                         strcpy(ssh1107_iic_dev, dp[DISPLAY_ENABLE].device);
                     }
-                    if(displays(ssh1107, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
+                    if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
@@ -441,7 +446,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "st7789") && dp[DISPLAY_ENABLE].page == 0) {
                     strcpy(st7789_spi_dev, dp[DISPLAY_ENABLE].device);
-                    if(displays(st7789, &dp[DISPLAY_ENABLE], 0, DISPLAY_OPEN)) {
+                    if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
@@ -993,26 +998,8 @@ int main(uint8_t argc, char **argv) {
                             t = localtime(&now);
                             count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min);
 
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_TIME)){
-                                    printf("%s time failed\n", &dp[d].name);
-                                }
-                            }
-
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_TIME)){
-                                    printf("%s time failed\n", &dp[d].name);
-                                }
-                            }
-
-                            if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                if(displays(ssh1107, &dp[d], i, DISPLAY_TIME)){
-                                    printf("%s time failed\n", &dp[d].name);
-                                }
-                            }
-
-                            if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                if(displays(st7789, &dp[d], i, DISPLAY_TIME)){
+                            if(dp[d].page == page) {
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_TIME)){
                                     printf("%s time failed\n", &dp[d].name);
                                 }
                             }
@@ -1024,30 +1011,11 @@ int main(uint8_t argc, char **argv) {
                             t = localtime(&now);
                             count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
 
-                            if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                if(displays(ssd1681, &dp[d], i, DISPLAY_DATE)){
+                            if(dp[d].page == page) {
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_DATE)){
                                     printf("%s date failed\n", i, &dp[d].name);
                                 }
                             }
-
-                            if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                if(displays(ssd1306, &dp[d], i, DISPLAY_DATE)){
-                                    printf("%s date failed\n", i, &dp[d].name);
-                                }
-                            }
-
-                            if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                if(displays(ssh1107, &dp[d], i, DISPLAY_DATE)){
-                                    printf("%s date failed\n", i, &dp[d].name);
-                                }
-                            }
-
-                            if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                if(displays(st7789, &dp[d], i, DISPLAY_DATE)){
-                                    printf("%s date failed\n", i, &dp[d].name);
-                                }
-                            }
-
                         }
                     }
                 }
@@ -1202,26 +1170,8 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data2, buffer);
                                 dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7788") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1352,26 +1302,8 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data2, buffer);
                                 dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                         printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1451,26 +1383,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.0lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1549,27 +1463,9 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.2lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
                             }
@@ -1647,26 +1543,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.2lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp390 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp390 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp390 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bmp390 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1755,26 +1633,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.2lf", pressure_f/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1870,26 +1730,9 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data3, buffer);
                                 sprintf(buffer, "%d", index);
                                 strcpy(dp[d].dc[i].data5, buffer);
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
 
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -1952,26 +1795,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.1lf", temperature);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2056,26 +1881,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2159,26 +1966,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2262,26 +2051,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%d", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2365,26 +2136,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2469,26 +2222,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.0f", data.co2_ppm);
                                 strcpy(dp[d].dc[i].data4, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2577,26 +2312,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%d", co2_ppm);
                                 strcpy(dp[d].dc[i].data4, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2679,26 +2396,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%d", tvoc_ppb);
                                 strcpy(dp[d].dc[i].data5, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_SENSOR)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                         printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -2999,26 +2698,8 @@ int main(uint8_t argc, char **argv) {
                                     strcpy(dp[d].dc[i].data2, buffer);
                                     dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
-                                    if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                        if(displays(ssd1681, &dp[d], i, DISPLAY_WRITE)){
-                                            printf("%s usage cmd %d failed\n", &dp[d].name, i);
-                                        }
-                                    }
-
-                                    if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                        if(displays(ssd1306, &dp[d], i, DISPLAY_WRITE)){
-                                            printf("%s usage cmd %d failed\n", &dp[d].name, i);
-                                        }
-                                    }
-
-                                    if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                        if(displays(ssh1107, &dp[d], i, DISPLAY_WRITE)){
-                                            printf("%s usage cmd %d failed\n", &dp[d].name, i);
-                                        }
-                                    }
-
-                                    if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                        if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
+                                    if(dp[d].page == page) {
+                                        if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                             printf("%s usage cmd %d failed\n", &dp[d].name, i);
                                         }
                                     }
@@ -3126,26 +2807,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.3g", r);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                                    if(displays(ssd1681, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s memory cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                                    if(displays(ssd1306, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s memory cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                                    if(displays(ssh1107, &dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s memory cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-
-                                if(!strcmp(dp[d].name,"st7789") && dp[d].page == page) {
-                                    if(displays(st7789, &dp[d], i, DISPLAY_WRITE)){
+                                if(dp[d].page == page) {
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                         printf("%s memory cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
@@ -3172,18 +2835,8 @@ int main(uint8_t argc, char **argv) {
             }
             if(DISPLAY_ENABLE != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    if(!strcmp(dp[d].name,"ssd1681") && dp[d].page == page) {
-                        if(displays(ssd1681, &dp[d], 0, DISPLAY_UPDATE)){
-                            printf("%s update failed\n", &dp[d].name);
-                        }
-                    }
-                    if(!strcmp(dp[d].name,"ssd1306") && dp[d].page == page) {
-                        if(displays(ssd1306, &dp[d], 0, DISPLAY_UPDATE)){
-                            printf("%s update failed\n", &dp[d].name);
-                        }
-                    }
-                    if(!strcmp(dp[d].name,"ssh1107") && dp[d].page == page) {
-                        if(displays(ssh1107, &dp[d], 0, DISPLAY_UPDATE)){
+                    if(dp[d].page == page) {
+                        if(dp[d].dptr(&dp[d], i, DISPLAY_UPDATE)){
                             printf("%s update failed\n", &dp[d].name);
                         }
                     }
@@ -3213,13 +2866,6 @@ int main(uint8_t argc, char **argv) {
                             return 1;
                         }
                     }
-//                    if(SSD1306_ENABLE != 0) {
-//                        if (ssd1306_clear(&ssd1306_handle)) {
-//                            ssd1306_interface_debug_print("ssd1306: gram clear failed.\n");
-//                            (void)ssd1306_deinit(&ssd1306_handle);
-//                            return 1;
-//                        }
-//                    }
                     if(ST7789_ENABLE != 0) {
                         if (st7789_clear(&st7789_handle)) {
                             st7789_interface_debug_print("st7789: clear failed.\n");
