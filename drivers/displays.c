@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024,2025 Edward A. Kisiel
+    logenv Copyright 2025,2026 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -15,31 +15,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Code released under GPLv3: http://www.gnu.org/licenses/gpl.html
 
-    int displays(int (*op)(void), init)
-
 */
 
 #include <stdint.h>
 #include <stdio.h>
-#include "ssd1681/driver_ssd1681_basic.h"
-#include "ssd1681/driver_ssd1681_interface.h"
-#include "ssd1306/driver_ssd1306_advance.h"
-#include "ssd1306/driver_ssd1306_interface.h"
-#include "ssh1107/driver_ssh1107_advance.h"
-#include "ssh1107/driver_ssh1107_interface.h"
-#include "st7789/driver_st7789_basic.h"
-#include "st7789/driver_st7789_interface.h"
 #include "displays.h"
-
-extern uint8_t display_count;
-extern uint8_t page;
-extern char display_time[];
-extern char display_date[];
-extern ssd1681_handle_t ssd1681_handle;
-extern ssd1306_handle_t ssd1306_handle;
-extern ssh1107_handle_t ssh1107_handle;
-extern st7789_handle_t st7789_handle;
-
 
 uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 

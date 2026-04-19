@@ -49,24 +49,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <cjson/cJSON.h>
-#include "drivers/ssd1681/driver_ssd1681_basic.h"
-#include "drivers/ssd1306/driver_ssd1306_advance.h"
-#include "drivers/ssh1107/driver_ssh1107_advance.h"
-#include "drivers/st7789/driver_st7789_basic.h"
-#include "drivers/bmp180/driver_bmp180_basic.h"
-#include "drivers/bmp388/driver_bmp388_basic.h"
-#include "drivers/bmp390/driver_bmp390_basic.h"
-#include "drivers/bme280/driver_bme280_basic.h"
-#include "drivers/bme680/driver_bme680_gas.h"
-#include "drivers/mcp9808/mcp9808.h"
-#include "drivers/scd30/driver_scd30_basic.h"
-#include "drivers/scd4x/driver_scd4x_basic.h"
-#include "drivers/scd4x/driver_scd4x_shot.h"
-#include "drivers/sgp30/driver_sgp30_advance.h"
-#include "drivers/sht4x/driver_sht4x_basic.h"
-#include "drivers/shtc3/driver_shtc3_basic.h"
-#include "drivers/aht20/driver_aht20_basic.h"
-#include "drivers/htu31d/driver_htu31d_basic.h"
 #include "drivers/displays.h"
 #include "logenv.h"
 

@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024,2025 Edward A. Kisiel
+    logenv Copyright 2025,2026 Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -22,19 +22,47 @@
 #ifndef DISPLAYS_H
 #define DISPLAYS_H
 
+#include "./ssd1681/driver_ssd1681_basic.h"
+#include "./ssd1306/driver_ssd1306_advance.h"
+#include "./ssh1107/driver_ssh1107_advance.h"
+#include "./st7789/driver_st7789_basic.h"
+#include "./bmp180/driver_bmp180_basic.h"
+#include "./bmp388/driver_bmp388_basic.h"
+#include "./bmp390/driver_bmp390_basic.h"
+#include "./bme280/driver_bme280_basic.h"
+#include "./bme680/driver_bme680_gas.h"
+#include "./mcp9808/mcp9808.h"
+#include "./scd30/driver_scd30_basic.h"
+#include "./scd4x/driver_scd4x_basic.h"
+#include "./scd4x/driver_scd4x_shot.h"
+#include "./sgp30/driver_sgp30_advance.h"
+#include "./sht4x/driver_sht4x_basic.h"
+#include "./shtc3/driver_shtc3_basic.h"
+#include "./aht20/driver_aht20_basic.h"
+#include "./htu31d/driver_htu31d_basic.h"
+
 #ifdef __cplusplus
 extern "C"{
     #endif
 
 #define DISPLAY_OPEN 1
-#define DISPLAY_WRITE 2
+#define DISPLAY_CLOSE 2
 #define DISPLAY_READ 3
-#define DISPLAY_UPDATE 4
-#define DISPLAY_CLOSE 5
+#define DISPLAY_WRITE 4
+#define DISPLAY_UPDATE 5
 #define DISPLAY_TIME 6
 #define DISPLAY_DATE 7
 #define DISPLAY_THERMAL 8
 #define DISPLAY_SENSOR 9
+
+extern uint8_t display_count;
+extern uint8_t page;
+extern char display_time[];
+extern char display_date[];
+extern ssd1681_handle_t ssd1681_handle;
+extern ssd1306_handle_t ssd1306_handle;
+extern ssh1107_handle_t ssh1107_handle;
+extern st7789_handle_t st7789_handle;
 
 uint8_t fontoi(char *);
 

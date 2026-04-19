@@ -32,11 +32,6 @@ int16_t set_tty_attributes(int16_t, int32_t, bool);
 void sleep_ms(int32_t);
 static void sig_handler(int);
 
-extern ssd1681_handle_t ssd1681_handle;
-extern ssd1306_handle_t ssd1306_handle;
-extern ssh1107_handle_t ssh1107_handle;
-extern st7789_handle_t st7789_handle;
-
 extern uint8_t ssd1681(struct display *, uint8_t, uint8_t);
 extern uint8_t ssd1306(struct display *, uint8_t, uint8_t);
 extern uint8_t ssh1107(struct display *, uint8_t, uint8_t);
