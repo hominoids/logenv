@@ -30,7 +30,7 @@
             "xloc": 55,
             "yloc": 40,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_16",
             "label": "",
             "unit": ""
             },
@@ -54,7 +54,7 @@
             "xloc": 115,
             "yloc": 62,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": "",
             "unit": "c"
             },
@@ -66,7 +66,7 @@
             "xloc": 5,
             "yloc": 90,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": "Humd: ",
             "unit": "%"
             },
@@ -78,7 +78,7 @@
             "xloc": 5,
             "yloc": 115,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": "Pres: ",
             "unit": "hPa"
             },
@@ -90,7 +90,7 @@
             "xloc": 5,
             "yloc": 140,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": " CO2: ",
             "unit": " ppm"
             },
@@ -102,7 +102,7 @@
             "xloc": 5,
             "yloc": 165,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": " VOC: ",
             "unit": " ppb"
             }
@@ -138,7 +138,7 @@
             "xloc": 55,
             "yloc": 40,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_16",
             "label": "",
             "unit": ""
             },
@@ -150,7 +150,7 @@
             "xloc": 3,
             "yloc": 60,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_16",
             "label": "",
             "unit": "c "
             }
@@ -186,7 +186,7 @@
             "xloc": 5,
             "yloc": 45,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_16",
             "label": "",
             "unit": "%"
             },
@@ -198,7 +198,7 @@
             "xloc": 125,
             "yloc": 45,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_16",
             "label": "",
             "unit": "%"
             },
@@ -210,7 +210,7 @@
             "xloc": 125,
             "yloc": 60,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_16",
             "label": "",
             "unit": " GHz"
             }
@@ -234,7 +234,7 @@
             "xloc": 30,
             "yloc": 5,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": "",
             "unit": ""
             },
@@ -258,7 +258,7 @@
             "xloc": 5,
             "yloc": 50,
             "color": 0,
-            "font": "MONOSPACE_12",
+            "font": "DEFAULT_12",
             "label": "",
             "unit": "c"
             },
@@ -270,7 +270,7 @@
             "xloc": 45,
             "yloc": 50,
             "color": 0,
-            "font": "MONOSPACE_12",
+            "font": "DEFAULT_12",
             "label": " ",
             "unit": " hPa"
             }
@@ -306,7 +306,7 @@
             "xloc": 35,
             "yloc": 30,
             "color": 0,
-            "font": "MONOSPACE_12",
+            "font": "DEFAULT_12",
             "label": "",
             "unit": ""
             },
@@ -318,7 +318,7 @@
             "xloc": 0,
             "yloc": 65,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": "",
             "unit": ""
             },
@@ -330,12 +330,13 @@
             "xloc": 80,
             "yloc": 70,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_16",
             "label": "",
             "unit": "c"
             }
         ]
     }
+
    ]
 }
 

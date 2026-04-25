@@ -398,6 +398,7 @@ int main(uint8_t argc, char **argv) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     SSD1681_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") && dp[DISPLAY_ENABLE].page == 0) {
@@ -411,6 +412,7 @@ int main(uint8_t argc, char **argv) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     SSD1306_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssh1107") && dp[DISPLAY_ENABLE].page == 0) {
@@ -424,6 +426,7 @@ int main(uint8_t argc, char **argv) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     SSH1107_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "st7789") && dp[DISPLAY_ENABLE].page == 0) {
@@ -432,6 +435,7 @@ int main(uint8_t argc, char **argv) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     ST7789_ENABLE = 1;
                 }
                 DISPLAY_ENABLE++;
@@ -943,6 +947,8 @@ int main(uint8_t argc, char **argv) {
         double i = 0;
         int8_t c = OPTIONS_COUNT;
 
+        if(VERBOSE_DEBUG) printf("Primary Polling Loop\n", &dp[DISPLAY_ENABLE].name);
+
         while(i >= 0 && go != -1) {
             int8_t udp_count = 0;
             /*
@@ -1447,7 +1453,7 @@ int main(uint8_t argc, char **argv) {
 
                                 if(dp[d].page == page) {
                                     if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
                                     }
                                 }
                             }
@@ -2681,7 +2687,7 @@ int main(uint8_t argc, char **argv) {
                                     dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
                                     if(dp[d].page == page) {
-                                        if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                       if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                             printf("%s usage cmd %d failed\n", &dp[d].name, i);
                                         }
                                     }
@@ -3369,8 +3375,7 @@ void sleep_ms(int32_t milliseconds) {
 }
 
 
-static void sig_handler(int _)
-{
+static void sig_handler(int _) {
     (void)_;
     go = -1;
 }

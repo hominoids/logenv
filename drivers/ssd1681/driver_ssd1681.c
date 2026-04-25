@@ -34,7 +34,7 @@
  * </table>
  */
 
-#include "../fonts/monospace_font.h"
+#include "../fonts/fonts.h"
 #include "driver_ssd1681.h"
 
 /**
@@ -2177,21 +2177,24 @@ static uint8_t a_ssd1681_gram_show_char(ssd1681_handle_t *handle, ssd1681_color_
     uint8_t temp, t, t1;
     uint8_t y0 = y;
     uint8_t csize = (size / 8 + ((size % 8) ? 1 : 0)) * (size / 2);                 /* get size */
-//printf("csize=%d\n",csize);    
     chr = chr - ' ';                                                                /* get index */
     for (t = 0; t < csize; t++)                                                     /* write size */
     {   
         if (size == 12)                                                             /* if size 12 */
         {
-            temp = monospace_12[chr][t];                                  /* get ascii 1206 */
+            temp = default_12[chr][t];                                            /* get ascii 1206 */
         }
         else if (size == 16)                                                        /* if size 16 */
         {
-            temp = monospace_16[chr][t];                                  /* get ascii 1608 */
+            temp = default_16[chr][t];                                            /* get ascii 1608 */
         }
         else if(size == 24)                                                         /* if size 24 */
         {
-            temp = monospace_24[chr][t];                                  /* get ascii 2412 */
+            temp = default_24[chr][t];                                            /* get ascii 2412 */
+        }
+        else if(size == 38)                                                         /* if size 28 */
+        {
+            temp = monospace_24[chr][t];
         }
         else if(size == 32)                                                         /* if size 28 */
         {

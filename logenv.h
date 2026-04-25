@@ -46,7 +46,7 @@ bool VERBOSE_DEBUG = 0;
 
 static uint8_t zi = 0;
 
-//uint8_t (*dptr)(struct display *, uint8_t, uint8_t) = NULL;
+uint8_t (*dptr)(struct display *, uint8_t, uint8_t) = NULL;
 uint8_t display_count = 0;
 uint8_t page = 0;
 uint8_t pg_count = 0;

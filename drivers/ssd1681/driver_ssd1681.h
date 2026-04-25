@@ -40,7 +40,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "../fonts/monospace_font.h"
+#include "../fonts/fonts.h"
 
 #ifdef __cplusplus
 extern "C"{

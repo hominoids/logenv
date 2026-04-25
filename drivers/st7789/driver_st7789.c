@@ -35,7 +35,7 @@
  */
 
 #include "driver_st7789.h"
-#include "../fonts/monospace_font.h"
+#include "../fonts/fonts.h"
 
 /**
  * @brief chip information definition
@@ -4470,15 +4470,15 @@ static uint8_t a_st7789_show_char(st7789_handle_t *handle, uint16_t x, uint16_t 
     {
         if (size == 12)                                                             /* if size 12 */
         {
-            temp = monospace_12[chr][t];                                  /* get ascii 1206 */
+            temp = default_12[chr][t];                                  /* get ascii 1206 */
         }
         else if (size == 16)                                                        /* if size 16 */
         {
-            temp = monospace_16[chr][t];                                  /* get ascii 1608 */
+            temp = default_16[chr][t];                                  /* get ascii 1608 */
         }
         else if(size == 24)                                                         /* if size 24 */
         {
-            temp = monospace_24[chr][t];                                  /* get ascii 2412 */
+            temp = default_24[chr][t];                                  /* get ascii 2412 */
         }
         else if(size == 32)                                                         /* if size 28 */
         {
