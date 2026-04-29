@@ -1,0 +1,342 @@
+{
+"displays": [
+    {
+        "name": "ssd1681",
+        "device": "/dev/spidev0.0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
+        "rotation": 0,
+        "page": 0,
+        "seconds": 30,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 35,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 55,
+            "yloc": 40,
+            "color": 0,
+            "font": "DEFAULT_16",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "F",
+            "xloc": 5,
+            "yloc": 65,
+            "color": 0,
+            "font": "MONOSPACE_28",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "C",
+            "xloc": 115,
+            "yloc": 62,
+            "color": 0,
+            "font": "DEFAULT_24",
+            "label": "",
+            "unit": "c"
+            },
+            {
+            "name": "scd41",
+            "device": "/dev/i2c-0",
+            "address": 98,
+            "type": "H",
+            "xloc": 5,
+            "yloc": 90,
+            "color": 0,
+            "font": "DEFAULT_24",
+            "label": "Humd: ",
+            "unit": "%"
+            },
+            {
+            "name": "bmp390",
+            "device": "/dev/i2c-0",
+            "address": 119,
+            "type": "P",
+            "xloc": 5,
+            "yloc": 115,
+            "color": 0,
+            "font": "DEFAULT_24",
+            "label": "Pres: ",
+            "unit": "hPa"
+            },
+            {
+            "name": "scd41",
+            "device": "/dev/i2c-0",
+            "address": 98,
+            "type": "G",
+            "xloc": 5,
+            "yloc": 140,
+            "color": 0,
+            "font": "DEFAULT_24",
+            "label": " CO2: ",
+            "unit": " ppm"
+            },
+            {
+            "name": "sgp30",
+            "device": "/dev/i2c-0",
+            "address": 88,
+            "type": "V",
+            "xloc": 5,
+            "yloc": 165,
+            "color": 0,
+            "font": "DEFAULT_24",
+            "label": " VOC: ",
+            "unit": " ppb"
+            }
+        ]
+    },
+    {
+        "name": "ssd1681",
+        "device": "/dev/spidev0.0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
+        "rotation": 0,
+        "page": 1,
+        "seconds": 10,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 35,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 55,
+            "yloc": 40,
+            "color": 0,
+            "font": "DEFAULT_16",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "thermal",
+            "device": "",
+            "address": 0,
+            "type": "TN",
+            "xloc": 3,
+            "yloc": 60,
+            "color": 0,
+            "font": "DEFAULT_16",
+            "label": "",
+            "unit": "c "
+            }
+        ]
+    },
+    {
+        "name": "ssd1681",
+        "device": "/dev/spidev0.0",
+        "address": 0,
+        "xsize": 200,
+        "ysize": 200,
+        "rotation": 0,
+        "page": 2,
+        "seconds": 10,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 35,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_48",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "usage",
+            "device": "",
+            "address": 0,
+            "type": "NT",
+            "xloc": 5,
+            "yloc": 45,
+            "color": 0,
+            "font": "DEFAULT_16",
+            "label": "",
+            "unit": "%"
+            },
+            {
+            "name": "memory",
+            "device": "",
+            "address": 0,
+            "type": "NT",
+            "xloc": 125,
+            "yloc": 45,
+            "color": 0,
+            "font": "DEFAULT_16",
+            "label": "",
+            "unit": "%"
+            },
+            {
+            "name": "frequency",
+            "device": "",
+            "address": 0,
+            "type": "T",
+            "xloc": 125,
+            "yloc": 60,
+            "color": 0,
+            "font": "DEFAULT_16",
+            "label": "",
+            "unit": " GHz"
+            }
+        ]
+      },
+    {
+        "name": "ssd1306",
+        "device": "/dev/i2c-1",
+        "address": 61,
+        "xsize": 128,
+        "ysize": 64,
+        "rotation": 0,
+        "page": 0,
+        "seconds": 0,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 30,
+            "yloc": 5,
+            "color": 0,
+            "font": "DEFAULT_24",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 30,
+            "yloc": 30,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "bme680",
+            "device": "/dev/i2c-1",
+            "address": 119,
+            "type": "C",
+            "xloc": 5,
+            "yloc": 50,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": "c"
+            },
+            {
+            "name": "bme680",
+            "device": "/dev/i2c-1",
+            "address": 119,
+            "type": "P",
+            "xloc": 45,
+            "yloc": 50,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": " ",
+            "unit": " hPa"
+            }
+        ]
+    },
+    {
+        "name": "ssh1107",
+        "device": "/dev/i2c-0",
+        "address": 61,
+        "xsize": 128,
+        "ysize": 128,
+        "rotation": 0,
+        "page": 0,
+        "seconds": 0,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 17,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_36",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 35,
+            "yloc": 30,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "F",
+            "xloc": 0,
+            "yloc": 65,
+            "color": 0,
+            "font": "MONOSPACE_24",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "C",
+            "xloc": 80,
+            "yloc": 70,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": "c"
+            }
+        ]
+    }
+
+   ]
+}
+
