@@ -44,8 +44,6 @@ FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
 
 bool VERBOSE_DEBUG = 0;
 
-static uint8_t zi = 0;
-
 uint8_t (*dptr)(struct display *, uint8_t, uint8_t) = NULL;
 uint8_t display_count = 0;
 uint8_t page = 0;

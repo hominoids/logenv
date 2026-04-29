@@ -246,7 +246,7 @@
             "xloc": 30,
             "yloc": 30,
             "color": 0,
-            "font": "MONOSPACE_12",
+            "font": "DEFAULT_12",
             "label": "",
             "unit": ""
             },
@@ -306,7 +306,7 @@
             "xloc": 35,
             "yloc": 30,
             "color": 0,
-            "font": "DEFAULT_12",
+            "font": "MONOSPACE_12",
             "label": "",
             "unit": ""
             },
@@ -318,7 +318,7 @@
             "xloc": 0,
             "yloc": 65,
             "color": 0,
-            "font": "DEFAULT_24",
+            "font": "MONOSPACE_24",
             "label": "",
             "unit": ""
             },
@@ -330,7 +330,7 @@
             "xloc": 80,
             "yloc": 70,
             "color": 0,
-            "font": "DEFAULT_16",
+            "font": "MONOSPACE_16",
             "label": "",
             "unit": "c"
             }

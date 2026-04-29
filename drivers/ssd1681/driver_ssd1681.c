@@ -2192,7 +2192,19 @@ static uint8_t a_ssd1681_gram_show_char(ssd1681_handle_t *handle, ssd1681_color_
         {
             temp = default_24[chr][t];                                            /* get ascii 2412 */
         }
-        else if(size == 38)                                                         /* if size 28 */
+        else if(size == 14)                                                         /* if size 14 */
+        {
+            temp = monospace_12[chr][t];
+        }
+        else if(size == 17)                                                         /* if size 16 */
+        {
+            temp = monospace_16[chr][t];
+        }
+        else if(size == 26)                                                         /* if size 20 */
+        {
+            temp = monospace_20[chr][t];
+        }
+        else if(size == 28)                                                         /* if size 24 */
         {
             temp = monospace_24[chr][t];
         }
@@ -2207,10 +2219,6 @@ static uint8_t a_ssd1681_gram_show_char(ssd1681_handle_t *handle, ssd1681_color_
         else if(size == 50)                                                         /* if size 48 */
         {
             temp = monospace_48[chr][t];
-        }
-        else if(size == 74)                                                         /* if size 72 */
-        {
-            temp = monospace_72[chr][t];
         }
         else
         {

@@ -1,8 +1,9 @@
 # logenv
 
+This is a development branch and a work in progress.  The original Logenv is available on the classic branch or as release v1.x. 
 
 ## Introduction
-logenv is a Linux command-line utility for the aggregating, logging and charting of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage and volts, amps and watts from a HardKernel SmartPower2 or SmartPower3 as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set as well as a UDP network stream . Local display of data on small oled and eInk displays is supported for the SSD1306 and SSD1681 controllers. 
+logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set as well as a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
 
 ![Image](./example/ocl-m2_g610-a76_1.png)
 
@@ -100,6 +101,29 @@ gnuplot -c ocl-m2_g610-a76_1.gpl ocl-m2_g610-a76_1.png ocl-m2_g610-a76_1.csv
 ## SmartPower Settings
 Settings for the Hard Kernel SmartPower3 and SmartPower2 are baud rate 115200,8N1 with no HW or SW control.
 
+## Sensor Support
+Many types of sensors are directly supported using built in drivers and require no other setup.  At this time only I2C access is available for those that also have a SPI interface.
+
+AHT20 - Temperature & Humidity I2C ADD 0x38 - libdriver
+HTU31 - Temperature & Humidity I2C ADD 0x40 - libdriver
+SHT40,SHT41,SHT43,SHT45 - Temperature & Humidity I2C ADD 0x44 - libdriver
+SHTC3 - Temperature & Humidity I2C ADD 0x70 - libdriver
+MCP9808 - High Accuracy Temperature Sensor I2C ADD 0x18 - libdriver
+
+BME280 - Barometric Pressure, Altitude, Temperature & Relative Humidity, ADD 0x76 or 0x77 - libdriver
+BME680 - Barometric Pressure, Altitude, Temperature, Relative Humidity & VOC ADD 0x76 or 0x77 - libdriver
+
+BMP180 - Barometric Pressure, Altitude and Temperature ADD 0xEF (read) and 0xEE (write) - libdriver
+BMP388 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77 - libdriver
+BMP390 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77 - libdriver
+>BMP580 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x47 - LINUX
+
+SCD30 - NDIR True CO2, 400 ppm – 10,000 ppm, Temperature and Humidity Sensor I2C ADD 0x61 - libdriver
+SCD40,SCD41,SCD43 - True CO2 Temperature and Humidity Sensor ADD 0x62 - libdriver
+SGP30 - VOC and eCO2 I2C ADD 0x58 - libdriver
+
+
+
 
 ## GNUPlot Charts
 Single or stacked charts are created based on the type and number of datum that are contained in the data set.  Core Frequency, Thermal Zone Temperatures, CPU core usage and SmartPower data can all be charted with the addition of Ambient Temperature when Thermal Zone Temperatures are also charted.  When a GNUPlot Script file is generated, part of it's contents is based on the number of CPU cores and the number and name of thermal Zones.  For this reason the GNUPlot script needs to be generated on the machine the data was collected from if any of those datum are included.  The GNUPlot Scripts or .gpl files can be reused and don't need to be regenerated if the type of data being collected and the machine are the same.
@@ -110,6 +134,19 @@ The UDP client -n option is followed by the server host and port <host:port>. Th
 ```
 netcat -l -u -p <port>
 ```
+
+## Display Configuration
+The display configuration file logenv.json is a JSON formatted file that describes the display, pages and items for each page.  The current working directory ./logenv.json is searched for first and then /etc/logenv/logenv.json.
+Multple diplays is supported with each capable of multiple pages containing time, date, system information or sensor data. 
+
+###Display Content Codes
+date
+time
+frequency
+thermal
+memory
+usage
+sensors
 
 ## Compatibility
 logenv has been tested with both a HardKernel SmartPower2 and SmartPower3, including MCP9808 and BME280 sensors.  Several architectures have been test including Armv7, Armv8, Armv9 and different generations of INTEL and AMD processor up to 32 cores.  There is no limitation on the number of cores or thermal zones with the exception of the usage option which supports up to 256 cores.  It has also been used on several Linux distributions including Ubuntu, Debian, Manjaro and Arch.  It should run on just about anything that runs Linux.

@@ -447,6 +447,18 @@ uint8_t fontoi(char *font_name) {
     if(!strcmp(font_name, "DEFAULT_24")) {
         return(DEFAULT_24);
     }
+    if(!strcmp(font_name, "MONOSPACE_12")) {
+        return(MONOSPACE_12);
+    }
+    if(!strcmp(font_name, "MONOSPACE_16")) {
+        return(MONOSPACE_16);
+    }
+    if(!strcmp(font_name, "MONOSPACE_20")) {
+        return(MONOSPACE_20);
+    }
+    if(!strcmp(font_name, "MONOSPACE_24")) {
+        return(MONOSPACE_24);
+    }
     if(!strcmp(font_name, "MONOSPACE_28")) {
         return(MONOSPACE_28);
     }
@@ -455,9 +467,6 @@ uint8_t fontoi(char *font_name) {
     }
     if(!strcmp(font_name, "MONOSPACE_48")) {
         return(MONOSPACE_48);
-    }
-    if(!strcmp(font_name, "MONOSPACE_72")) {
-        return(MONOSPACE_72);
     }
     return(DEFAULT_12);
 }
