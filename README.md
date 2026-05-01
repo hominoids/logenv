@@ -219,12 +219,15 @@ Multiple displays are supported with each capable of multiple pages containing t
 ```
 
 
-### Display Page Commands
-**date**
+### Page Content Commands
+***date***
 ```
     COMMAND: date
 DESCRIPTION: displays date at xloc, yloc using font.
-       TYPE: default, short, long
+       TYPE: default mm/dd/yyyy
+        		 short  Fri 01-May-26
+			 long   Friday 01 May 2026
+
 	{
 	"name": "date",
 	"device": "",
@@ -240,11 +243,14 @@ DESCRIPTION: displays date at xloc, yloc using font.
 	
 ```
 
-**time**
+***time***
 ```
     COMMAND: time
 DESCRIPTION: displays time at xloc, yloc using font.
-       TYPE: default, 12, 24
+       TYPE: default 4:00 PM
+        		12		04:00
+			24		16:00
+       
 	{
 	"name": "time",
 	"device": "",
@@ -261,11 +267,11 @@ DESCRIPTION: displays time at xloc, yloc using font.
 
 
 
-**frequency**
+***frequency***
 ```
     COMMAND: frequency
 DESCRIPTION: displays core frequencies at xloc, yloc using font.
-       TYPE: default, 12, 24
+
 	{
 	"name": "frequency",
 	"device": "",

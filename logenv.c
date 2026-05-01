@@ -213,6 +213,9 @@ int main(uint8_t argc, char **argv) {
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"thermal")) {
                         DP_THERMAL++;
                     }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"governor")) {
+                        DP_GOVERNOR++;
+                    }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"memory")) {
                         DP_MEMORY++;
                     }
@@ -1312,6 +1315,28 @@ int main(uint8_t argc, char **argv) {
                                     }
                                 }
                                 dp[d].dc[i].yloc = yloc_reset;
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * open and read governor setting
+             */
+            if(DP_GOVERNOR != 0) {
+                if((governor_file = fopen(governorloc, "r")) == NULL) {
+                    break;
+                }
+                fscanf(governor_file, "%s", &governor);
+                fclose(governor_file);
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "governor")) {
+                            strcpy(dp[d].dc[i].type, governor);
+                            if(dp[d].page == page) {
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s cmd %d failed\n", &dp[d].name, i);
+                                }
                             }
                         }
                     }
@@ -2877,6 +2902,20 @@ int main(uint8_t argc, char **argv) {
                             return 1;
                         }
                     }
+/*                    if(SSD1306_ENABLE != 0) {
+                        if (ssd1306_clear(&ssd1306_handle)) {
+                            ssd1306_interface_debug_print("ssd1306: gram clear failed.\n");
+                            (void)ssd1306_deinit(&ssd1306_handle);
+                            return 1;
+                        }
+                    }
+                    if(SSH1107_ENABLE != 0) {
+                        if (ssh1107_clear(&ssh1107_handle)) {
+                            ssh1107_interface_debug_print("ssh1107: gram clear failed.\n");
+                            (void)ssh1107_deinit(&ssh1107_handle);
+                            return 1;
+                        }
+                    } */
                 }
             }
             else {

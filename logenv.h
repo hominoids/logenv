@@ -40,7 +40,7 @@ extern uint8_t st7789(struct display *, uint8_t, uint8_t);
 static volatile sig_atomic_t go = 1;
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
-     *log_file, *gnuplot_file, *json_file;
+     *governor_file, *log_file, *gnuplot_file, *json_file;
 
 bool VERBOSE_DEBUG = 0;
 
@@ -162,6 +162,9 @@ char thermaltype[255];
 char *thermaltype1 = "/type";
 char thermalname[255];
 
+char governor[25];
+char *governorloc = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
+
 char spfile[255];
 char spline[5];
 char spline1[5];
@@ -207,6 +210,7 @@ static int8_t DP_TIME = 0;
 static int8_t DP_DATE = 0;
 static int8_t DP_FREQ = 0;
 static int8_t DP_THERMAL = 0;
+static int8_t DP_GOVERNOR = 0;
 static int8_t DP_MEMORY = 0;
 static int8_t DP_USAGE = 0;
 static int8_t DP_SP2 = 0;

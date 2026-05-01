@@ -74,6 +74,9 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].type,"TN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
+        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+            strcat(buffer, ptr->dc[dcidx].type);
+        }
         if(ssd1681_gram_write_string(&ssd1681_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1681_interface_debug_print("ssd1681: string write failed.\n");
@@ -179,6 +182,9 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         }
         if(!strcmp(ptr->dc[dcidx].type,"TN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+            strcat(buffer, ptr->dc[dcidx].type);
         }
         if(ssd1306_gram_write_string(&ssd1306_handle, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, \
@@ -287,6 +293,9 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].type,"TN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
+        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+            strcat(buffer, ptr->dc[dcidx].type);
+        }
         if(ssh1107_gram_write_string(&ssh1107_handle, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
@@ -385,6 +394,9 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         }
         if(!strcmp(ptr->dc[dcidx].type,"TN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+            strcat(buffer, ptr->dc[dcidx].type);
         }
         if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
             buffer, (uint16_t)strlen(buffer), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
