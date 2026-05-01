@@ -105,20 +105,33 @@ Settings for the Hard Kernel SmartPower3 and SmartPower2 are baud rate 115200,8N
 Many types of sensors are directly supported using built in drivers and require no other setup.  At this time only I2C access is available for those that also have a SPI interface.
 
 AHT20 - Temperature & Humidity I2C ADD 0x38
+
 HTU31 - Temperature & Humidity I2C ADD 0x40
+
 SHT40,SHT41,SHT43,SHT45 - Temperature & Humidity I2C ADD 0x44
+
 SHTC3 - Temperature & Humidity I2C ADD 0x70
+
 MCP9808 - High Accuracy Temperature Sensor I2C ADD 0x18
 
+
+
 BME280 - Barometric Pressure, Altitude, Temperature & Relative Humidity, ADD 0x76 or 0x77
+
 BME680 - Barometric Pressure, Altitude, Temperature, Relative Humidity & VOC ADD 0x76 or 0x77
 
+
 BMP180 - Barometric Pressure, Altitude and Temperature
+
 BMP388 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
+
 BMP390 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
 
+
 SCD30 - NDIR True CO2 (400ppm – 10,000ppm), Temperature and Humidity Sensor ADD 0x61
+
 SCD40,SCD41,SCD43 - True CO2, Temperature and Humidity Sensor ADD 0x62
+
 SGP30 - VOC and eCO2 I2C ADD 0x58
 
 
@@ -133,14 +146,141 @@ netcat -l -u -p <port>
 ```
 
 ## Display Configuration
-The display configuration file logenv.json is a JSON formatted file that describes the display, pages and items for each page.  The current working directory ./logenv.json is searched first and then /etc/logenv/logenv.json.
+The display configuration file logenv.json is a JSON formatted file that describes a display, its pages and items for each page.  The current working directory is searched first (./logenv.json) and then /etc/logenv/logenv.json.
 Multiple displays are supported with each capable of multiple pages containing time, date, system information or sensor data. 
 
-###-Display Commands-
-date - completed
-time - completed
-day - wip
-frequency - completed
+### JSON Format
+
+```
+{
+"displays": [
+    {
+        "name": "ssh1107",
+        "device": "/dev/i2c-0",
+        "address": 61,
+        "xsize": 128,
+        "ysize": 128,
+        "rotation": 0,
+        "page": 0,
+        "seconds": 60,
+        "content": [
+            {
+            "name": "time",
+            "device": "",
+            "address": 0,
+            "type": "12",
+            "xloc": 25,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_36",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "date",
+            "device": "",
+            "address": 0,
+            "type": "short",
+            "xloc": 20,
+            "yloc": 30,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "F",
+            "xloc": 0,
+            "yloc": 99,
+            "color": 0,
+            "font": "MONOSPACE_24",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "type": "C",
+            "xloc": 80,
+            "yloc": 100,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": "c"
+            }
+        ]
+    }
+  ]
+}
+```
+
+
+### Display Page Commands
+**date**
+```
+    COMMAND: date
+DESCRIPTION: displays date at xloc, yloc using font.
+       TYPE: default, short, long
+	{
+	"name": "date",
+	"device": "",
+	"address": 0,
+	"type": "long",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "DEFAULT_16",
+	"label": "",
+	"unit": ""
+	},
+	
+```
+
+**time**
+```
+    COMMAND: time
+DESCRIPTION: displays time at xloc, yloc using font.
+       TYPE: default, 12, 24
+	{
+	"name": "time",
+	"device": "",
+	"address": 0,
+	"type": "24",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_36",
+	"label": "",
+	"unit": ""
+	},
+```
+
+
+
+**frequency**
+```
+    COMMAND: frequency
+DESCRIPTION: displays core frequencies at xloc, yloc using font.
+       TYPE: default, 12, 24
+	{
+	"name": "frequency",
+	"device": "",
+	"address": 0,
+	"type": "",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
+
+
 thermal - partially completed
 memory - partially completed
 usage - partially completed
@@ -157,25 +297,51 @@ point - wip
 background - wip
 image - wip
 
-###-Sensor Devices-
-AHT20,HTU31,SHT40,SHT41,SHT43,SHT45,SHTC3,MCP9808,BME280,BME680,BMP180,BMP388,BMP390,SCD30,SCD40,SCD41,SCD43,SGP30 - completed
+### -Builtin Sensor Drivers-
+AHT20,HTU31,SHT40,SHT41,SHT43,SHT45,SHTC3,MCP9808,BME280,BME680,BMP180,BMP388,BMP390,SCD30,SCD40,SCD41,SCD43,SGP30
 
-###-Sensor Data Types-
-C Celsius
-F Fahrenheit
-H Humidity
-P Pressure
-G Gas
-V VOC
+7-bits I2C address in decimal e.g. 119 = 0x77
 
-###Tested Displays
+***sensor***
+```
+    COMMAND: *sensor name*
+DESCRIPTION: displays sensor datum at xloc, yloc using font.
+       TYPE: C
+       
+     		C = Celsius
+			F = Fahrenheit
+			H = Humidity
+			P = Pressure
+			G = Gas
+			V = VOC
+        {
+        "name": "bme680",
+        "device": "/dev/i2c-1",
+        "address": 119,
+        "type": "C",
+        "xloc": 5,
+        "yloc": 50,
+        "color": 0,
+        "font": "DEFAULT_12",
+        "label": "",
+        "unit": "c"
+        },
+```
+
+
+### Tested Displays
 Basic display capability has not been fully implemented so only limited display tests have been performed.  More testing will occur as development proceeds.
 
  ssd1681 AdaFruit 4196 1.54" Monochrome 200x200 eInk / ePaper Display
+ 
  ssd1306 Odroid-HC4 Monochrome 128x64 OLED graphic display
+ 
  ssd1306 AdaFruit 938 Monochrome 1.3" 128x64 OLED graphic display
+ 
  sh1107 AdaFruit 5297 Monochrome 1.12" 128x128 OLED graphic display
+ 
  st7789 AdaFruit 3787 Color 1.54" 240x240 Wide Angle TFT LCD display
+ 
  
 ## Compatibility
 logenv has been tested with both a HardKernel SmartPower2 and SmartPower3, including MCP9808 and BME280 sensors.  Several architectures have been test including Armv7, Armv8, Armv9 and different generations of INTEL and AMD processor up to 32 cores.  There is no limitation on the number of cores or thermal zones with the exception of the usage option which supports up to 256 cores.  It has also been used on several Linux distributions including Ubuntu, Debian, Manjaro and Arch.  It should run on just about anything that runs Linux.

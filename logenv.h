@@ -52,7 +52,7 @@ uint8_t pg_count = 0;
 time_t now;
 struct tm *t;
 char display_time[10];
-char display_date[12];
+char display_date[36];
 
 int16_t udp_socket;
 int16_t sin_size;

@@ -947,7 +947,7 @@ int main(uint8_t argc, char **argv) {
         double i = 0;
         int8_t c = OPTIONS_COUNT;
 
-        if(VERBOSE_DEBUG) printf("Primary Polling Loop\n", &dp[DISPLAY_ENABLE].name);
+        if(VERBOSE_DEBUG) printf("Primary Polling Loop\n");
 
         while(i >= 0 && go != -1) {
             int8_t udp_count = 0;
@@ -980,12 +980,20 @@ int main(uint8_t argc, char **argv) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                         if(DISPLAY_ENABLE != 0 && DP_TIME != 0 && !strcmp(dp[d].dc[i].name, "time")) {
+
                             uint16_t count = 0;
-                            uint16_t result = 0;
                             now = time((time_t *)NULL);
                             t = localtime(&now);
-                            count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min);
 
+                            if(!strcmp(dp[d].dc[i].type, "24")) {
+                                count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min);
+                            }
+                            else if(!strcmp(dp[d].dc[i].type, "12")) {
+                                count = strftime(display_time,sizeof(display_time),"%-I:%M",t);
+                            }
+                            else {
+                                count = strftime(display_time,sizeof(display_time),"%-I:%M %p",t);
+                            }
                             if(dp[d].page == page) {
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_TIME)){
                                     printf("%s time failed\n", &dp[d].name);
@@ -993,12 +1001,20 @@ int main(uint8_t argc, char **argv) {
                             }
                         }
                         if(DISPLAY_ENABLE  != 0 && DP_DATE  != 0 && !strcmp(dp[d].dc[i].name, "date")) {
+
                             uint16_t count = 0;
-                            uint16_t result = 0;
                             now = time((time_t *)NULL);
                             t = localtime(&now);
-                            count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
 
+                            if(!strcmp(dp[d].dc[i].type, "short")) {
+                                count = strftime(display_date,sizeof(display_date),"%a %d-%b-%y",t);
+                            }
+                            else if(!strcmp(dp[d].dc[i].type, "long")) {
+                                count = strftime(display_date,sizeof(display_date),"%A %d %B %Y",t);
+                            }
+                            else {
+                                count = sprintf(display_date,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
+                            }
                             if(dp[d].page == page) {
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_DATE)){
                                     printf("%s date failed\n", i, &dp[d].name);
