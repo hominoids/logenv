@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <linux/i2c-dev.h>
+#include <math.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
@@ -44,6 +45,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/vfs.h>
 #include <termios.h>
 #include <threads.h>
 #include <time.h>
@@ -221,6 +223,9 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"usage")) {
                         DP_USAGE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"disk")) {
+                        DP_DISK++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp2")) {
                         DP_SP2++;
@@ -982,7 +987,7 @@ int main(uint8_t argc, char **argv) {
             if(DP_TIME  != 0 || DP_DATE  != 0){
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(DISPLAY_ENABLE != 0 && DP_TIME != 0 && !strcmp(dp[d].dc[i].name, "time")) {
+                        if(DISPLAY_ENABLE != 0 && DP_TIME != 0 && !strcmp(dp[d].dc[i].name, "time") && dp[d].page == page) {
 
                             uint16_t count = 0;
                             now = time((time_t *)NULL);
@@ -992,15 +997,13 @@ int main(uint8_t argc, char **argv) {
                                 count = sprintf(display_time,"%02d:%02d",t->tm_hour, t->tm_min);
                             }
                             else if(!strcmp(dp[d].dc[i].type, "12")) {
-                                count = strftime(display_time,sizeof(display_time),"%-I:%M",t);
+                                count = strftime(display_time,sizeof(display_time),"%I:%M",t);
                             }
                             else {
                                 count = strftime(display_time,sizeof(display_time),"%-I:%M %p",t);
                             }
-                            if(dp[d].page == page) {
-                                if(dp[d].dptr(&dp[d], i, DISPLAY_TIME)){
-                                    printf("%s time failed\n", &dp[d].name);
-                                }
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_TIME)){
+                                printf("%s time failed\n", &dp[d].name);
                             }
                         }
                         if(DISPLAY_ENABLE  != 0 && DP_DATE  != 0 && !strcmp(dp[d].dc[i].name, "date")) {
@@ -1168,19 +1171,19 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "frequency")) {
+                            if(!strcmp(dp[d].dc[i].name, "frequency") && dp[d].page == page) {
+
                                 uint16_t yloc_reset = dp[d].dc[i].yloc;
                                 char buffer[25];
+
                                 sprintf(buffer, "core%d ", c);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", (double)freq/1000000);
                                 strcpy(dp[d].dc[i].data2, buffer);
                                 dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                 }
                                 dp[d].dc[i].yloc = yloc_reset;
                             }
@@ -1300,19 +1303,19 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "thermal")) {
+                            if(!strcmp(dp[d].dc[i].name, "thermal") && dp[d].page == page) {
+
                                 uint16_t yloc_reset = dp[d].dc[i].yloc;
                                 char buffer[25];
+
                                 sprintf(buffer, "%s", thermalname);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", coretemp/1000);
                                 strcpy(dp[d].dc[i].data2, buffer);
                                 dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s thermal cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                 }
                                 dp[d].dc[i].yloc = yloc_reset;
                             }
@@ -1329,14 +1332,57 @@ int main(uint8_t argc, char **argv) {
                 }
                 fscanf(governor_file, "%s", &governor);
                 fclose(governor_file);
+
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "governor")) {
+                        if(!strcmp(dp[d].dc[i].name, "governor") && dp[d].page == page) {
                             strcpy(dp[d].dc[i].type, governor);
-                            if(dp[d].page == page) {
-                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s cmd %d failed\n", &dp[d].name, i);
-                                }
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                printf("%s cmd %d failed\n", &dp[d].name, i);
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * open and read disk info
+             */
+            if(DP_DISK != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "disk") && dp[d].page == page) {
+
+                            struct statfs stat;
+                            char buffer[25] = {0};
+
+                            if(statfs(dp[d].dc[i].device, &stat) != 0) {
+                                printf("%s cmd %d failed, path %s not found.\n", &dp[d].name, i, dp[d].dc[i].device);
+                                break;;
+                            }
+
+                            uint64_t dsize = (stat.f_bsize * stat.f_blocks)/1000000000;
+                            uint64_t davail = (stat.f_bsize * stat.f_bavail)/1000000000;
+                            uint64_t dused = (stat.f_bsize * (stat.f_blocks-stat.f_bavail))/1000000000;
+                            float pused = (float) ((dused/dsize) * 100);
+//printf("dsize=%d\n", dsize);
+//printf("davail=%d\n", davail);
+//printf("dused=%d\n", dused);
+//printf("pused=%.2f\n", pused);
+
+                            if(!strcmp(dp[d].dc[i].type, "free")) {
+                                sprintf(buffer, "%d", davail);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            else if(!strcmp(dp[d].dc[i].type, "used")) {
+                                sprintf(buffer, "%d", dused);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            else if(!strcmp(dp[d].dc[i].type, "percent")) {
+                                sprintf(buffer, "%.0f", pused);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                printf("%s cmd %d failed\n", &dp[d].name, i);
                             }
                         }
                     }
@@ -1405,17 +1451,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bmp180")) {
+                            if(!strcmp(dp[d].dc[i].name, "bmp180") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.0lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1485,17 +1531,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bmp388")) {
+                            if(!strcmp(dp[d].dc[i].name, "bmp388") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1565,17 +1611,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bmp390")) {
+                            if(!strcmp(dp[d].dc[i].name, "bmp390") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", (double) pressure/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bmp390 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s bmp390 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1653,8 +1699,10 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bme280")) {
+                            if(!strcmp(dp[d].dc[i].name, "bme280") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.0lf", humidity_f);
@@ -1662,10 +1710,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.2lf", pressure_f/100);
                                 strcpy(dp[d].dc[i].data3, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1749,8 +1795,10 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bme680")) {
+                            if(!strcmp(dp[d].dc[i].name, "bme680") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.0lf", humidity_f);
@@ -1760,10 +1808,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%d", index);
                                 strcpy(dp[d].dc[i].data5, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1819,15 +1865,15 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "mcp9808")) {
+                            if(!strcmp(dp[d].dc[i].name, "mcp9808") && dp[d].page == page) {
+
                                 char buffer[6];
+
                                 sprintf(buffer, "%.1lf", temperature);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1903,17 +1949,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "sht4x")) {
+                            if(!strcmp(dp[d].dc[i].name, "sht4x") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -1988,17 +2034,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "shtc3")) {
+                            if(!strcmp(dp[d].dc[i].name, "shtc3") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2073,17 +2119,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "aht20")) {
+                            if(!strcmp(dp[d].dc[i].name, "aht20") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%d", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2158,17 +2204,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "htu31d")) {
+                            if(!strcmp(dp[d].dc[i].name, "htu31d") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "%.1lf", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.0lf", humidity_f);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2240,8 +2286,10 @@ int main(uint8_t argc, char **argv) {
                 if(DP_SCD30 != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "scd30")) {
+                            if(!strcmp(dp[d].dc[i].name, "scd30") && dp[d].page == page) {
+
                                 char buffer[6];
+
                                 sprintf(buffer, "%.1f", data.temperature_deg);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
@@ -2251,10 +2299,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%.0f", data.co2_ppm);
                                 strcpy(dp[d].dc[i].data4, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2328,10 +2374,12 @@ int main(uint8_t argc, char **argv) {
                 if(DP_SCD4X != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "scd40") || \
+                            if((!strcmp(dp[d].dc[i].name, "scd40") || \
                                 !strcmp(dp[d].dc[i].name, "scd41") || \
-                                    !strcmp(dp[d].dc[i].name, "scd43")) {
+                                    !strcmp(dp[d].dc[i].name, "scd43")) && dp[d].page == page) {
+
                                 char buffer[6];
+
                                 sprintf(buffer, "%.1f", temperature_f);
                                 strcpy(dp[d].dc[i].data1, buffer);
 
@@ -2341,10 +2389,8 @@ int main(uint8_t argc, char **argv) {
                                 sprintf(buffer, "%d", co2_ppm);
                                 strcpy(dp[d].dc[i].data4, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2418,17 +2464,17 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "sgp30")) {
+                            if(!strcmp(dp[d].dc[i].name, "sgp30") && dp[d].page == page) {
+
                                 char buffer[10];
+
                                 sprintf(buffer, "%d", co2_eq_ppm);
                                 strcpy(dp[d].dc[i].data4, buffer);
                                 sprintf(buffer, "%d", tvoc_ppb);
                                 strcpy(dp[d].dc[i].data5, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                        printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2712,9 +2758,11 @@ int main(uint8_t argc, char **argv) {
                     if(DP_USAGE != 0) {
                         for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                             for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                                if(!strcmp(dp[d].dc[i].name, "usage")) {
+                                if(!strcmp(dp[d].dc[i].name, "usage") && dp[d].page == page) {
+
                                     uint16_t yloc_reset = dp[d].dc[i].yloc;
                                     char buffer[25];
+
                                     if(c == 0) {
                                         sprintf(buffer, "CPU ");
                                         strcpy(dp[d].dc[i].data1, buffer);
@@ -2727,10 +2775,8 @@ int main(uint8_t argc, char **argv) {
                                     strcpy(dp[d].dc[i].data2, buffer);
                                     dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
 
-                                    if(dp[d].page == page) {
-                                       if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                            printf("%s usage cmd %d failed\n", &dp[d].name, i);
-                                        }
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                        printf("%s usage cmd %d failed\n", &dp[d].name, i);
                                     }
                                     dp[d].dc[i].yloc = yloc_reset;
                                 }
@@ -2829,17 +2875,17 @@ int main(uint8_t argc, char **argv) {
                 if(DP_MEMORY != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "memory")) {
+                            if(!strcmp(dp[d].dc[i].name, "memory") && dp[d].page == page) {
+
                                 char buffer[25];
+
                                 sprintf(buffer, "RAM ");
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.3g", r);
                                 strcpy(dp[d].dc[i].data2, buffer);
 
-                                if(dp[d].page == page) {
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s memory cmd %d failed\n", &dp[d].name, i);
-                                    }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s memory cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }

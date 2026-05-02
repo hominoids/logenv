@@ -265,8 +265,6 @@ DESCRIPTION: displays time at xloc, yloc using font.
 	},
 ```
 
-
-
 ***frequency***
 ```
     COMMAND: frequency
@@ -286,11 +284,48 @@ DESCRIPTION: displays core frequencies at xloc, yloc using font.
 	},
 ```
 
-
 thermal - partially completed
 memory - partially completed
 usage - partially completed
-governor - wip
+
+***governor***
+```
+    COMMAND: governor
+DESCRIPTION: displays governor at xloc, yloc using font.
+
+	{
+	"name": "governor",
+	"device": "",
+	"address": 0,
+	"type": "",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
+
+***disk***
+```
+    COMMAND: disk
+DESCRIPTION: displays mounted disk info at xloc, yloc using font.
+	 DEVICE: path
+	{
+	"name": "disk",
+	"device": "/tmp",
+	"address": 0,
+	"type": "",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
+
 disk - wip
 host - wip
 ip - wip

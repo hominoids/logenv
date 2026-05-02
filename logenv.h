@@ -213,6 +213,7 @@ static int8_t DP_THERMAL = 0;
 static int8_t DP_GOVERNOR = 0;
 static int8_t DP_MEMORY = 0;
 static int8_t DP_USAGE = 0;
+static int8_t DP_DISK = 0;
 static int8_t DP_SP2 = 0;
 static int8_t DP_SP3CH1 = 0;
 static int8_t DP_SP3CH2 = 0;

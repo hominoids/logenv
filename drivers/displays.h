@@ -76,12 +76,12 @@ struct display_content {
     uint32_t color;
     char font[30];
     char label[20];
-    char unit[5];
-    char data1[20];  // Temperature c
-    char data2[20];  // Humidity %
-    char data3[20];  // Pressure hPa
-    char data4[20];  // CO2 as ppm
-    char data5[20];  // TVOC as ppb
+    char unit[20];
+    char data1[30];  // Temperature c
+    char data2[30];  // Humidity %
+    char data3[30];  // Pressure hPa
+    char data4[30];  // CO2 as ppm
+    char data5[30];  // TVOC as ppb
     uint8_t read;
 };
 
