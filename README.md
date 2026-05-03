@@ -10,7 +10,7 @@ logenv is a Linux command-line utility for the aggregating, logging, charting an
 License: GPLv3.
 
 
-### prerequisite
+### Prerequisite
 Any OS repository version of cjson should work but gpiod version 2.x is not supported at this time.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
 
 gnuplot
@@ -225,7 +225,7 @@ Multiple displays are supported with each capable of multiple pages containing t
     COMMAND: date
 DESCRIPTION: displays date at xloc, yloc using font.
        TYPE: default mm/dd/yyyy
-        		 short  Fri 01-May-26
+			 short  Fri 01-May-26
 			 long   Friday 01 May 2026
 
 	{
@@ -248,8 +248,8 @@ DESCRIPTION: displays date at xloc, yloc using font.
     COMMAND: time
 DESCRIPTION: displays time at xloc, yloc using font.
        TYPE: default 4:00 PM
-        		12		04:00
-			24		16:00
+			 12		04:00
+			 24		16:00
        
 	{
 	"name": "time",
@@ -284,9 +284,62 @@ DESCRIPTION: displays core frequencies at xloc, yloc using font.
 	},
 ```
 
-thermal - partially completed
-memory - partially completed
-usage - partially completed
+***thermal***
+```
+    COMMAND: thermal
+DESCRIPTION: displays thermal temps at xloc, yloc using font.
+
+	{
+	"name": "thermal",
+	"device": "",
+	"address": 0,
+	"type": "",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
+
+***memory***
+```
+    COMMAND: memory
+DESCRIPTION: displays memory usage at xloc, yloc using font.
+
+	{
+	"name": "memory",
+	"device": "",
+	"address": 0,
+	"type": "",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
+
+***usage***
+```
+    COMMAND: usage
+DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
+
+	{
+	"name": "usage",
+	"device": "",
+	"address": 0,
+	"type": "",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
 
 ***governor***
 ```
@@ -368,27 +421,16 @@ DESCRIPTION: displays sysload info at xloc, yloc using font.
 	},
 ```
 
-host - wip
-ip - wip
+***sensor***
 
-text - wip
-line - wip
-circle - wip
-rectangle - wip
-point - wip
-image - wip
-
-### -Builtin Sensor Drivers-
 AHT20,HTU31,SHT40,SHT41,SHT43,SHT45,SHTC3,MCP9808,BME280,BME680,BMP180,BMP388,BMP390,SCD30,SCD40,SCD41,SCD43,SGP30
 
 7-bits I2C address in decimal e.g. 119 = 0x77
 
-***sensor***
 ```
     COMMAND: *sensor name*
 DESCRIPTION: displays sensor datum at xloc, yloc using font.
-       TYPE: C
-       
+       TYPE:
      		C = Celsius
 			F = Fahrenheit
 			H = Humidity
