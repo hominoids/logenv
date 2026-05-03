@@ -291,18 +291,19 @@ usage - partially completed
 ***governor***
 ```
     COMMAND: governor
-DESCRIPTION: displays governor at xloc, yloc using font.
+DESCRIPTION: displays governor from device at xloc, yloc using font.
+     DEVICE: path
 
 	{
 	"name": "governor",
-	"device": "",
+	"device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
 	"address": 0,
 	"type": "",
 	"xloc": 10,
 	"yloc": 40,
 	"color": 0,
 	"font": "MONOSPACE_16",
-	"label": "",
+	"label": "CPU: ",
 	"unit": ""
 	},
 ```
@@ -312,11 +313,32 @@ DESCRIPTION: displays governor at xloc, yloc using font.
     COMMAND: disk
 DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 	 DEVICE: path
+	   TYPE: free, used
 	{
 	"name": "disk",
-	"device": "/tmp",
+	"device": "/",
 	"address": 0,
-	"type": "",
+	"type": "free",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "/ ",
+	"unit": "G free"
+	},
+```
+
+***uptime***
+```
+    COMMAND: uptime
+DESCRIPTION: displays uptime at xloc, yloc using font.
+	   TYPE: short %d days HH:MM
+	   		 long  %ddays, %dhours, %dminutes
+	{
+	"name": "uptime",
+	"device": "",
+	"address": 0,
+	"type": "short",
 	"xloc": 10,
 	"yloc": 40,
 	"color": 0,
@@ -326,16 +348,34 @@ DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 	},
 ```
 
-disk - wip
+***sysload***
+```
+    COMMAND: sysload
+DESCRIPTION: displays sysload info at xloc, yloc using font.
+	   TYPE: short [%d] [%d] [%d]
+	   		 long  1min(%d) 5min(%d) 15min(%d)
+	{
+	"name": "sysload",
+	"device": "",
+	"address": 0,
+	"type": "short",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
+
 host - wip
 ip - wip
-uptime - wip
+
 text - wip
 line - wip
 circle - wip
 rectangle - wip
 point - wip
-background - wip
 image - wip
 
 ### -Builtin Sensor Drivers-
@@ -385,4 +425,4 @@ Basic display capability has not been fully implemented so only limited display 
  
  
 ## Compatibility
-logenv has been tested with both a HardKernel SmartPower2 and SmartPower3, including MCP9808 and BME280 sensors.  Several architectures have been test including Armv7, Armv8, Armv9 and different generations of INTEL and AMD processor up to 32 cores.  There is no limitation on the number of cores or thermal zones with the exception of the usage option which supports up to 256 cores.  It has also been used on several Linux distributions including Ubuntu, Debian, Manjaro and Arch.  It should run on just about anything that runs Linux.
+logenv has been tested with both a HardKernel SmartPower2 and SmartPower3, including MCP9808 and BME280 sensors.  Several architectures have been test including Armv7, Armv8, Armv9 and different generations of INTEL and AMD processor up to 32 cores.  The current limitation is 256 cores.  It has also been used on several Linux distributions including Ubuntu, Debian, Manjaro and Arch.  It should run on just about anything that runs Linux.

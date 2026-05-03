@@ -56,7 +56,7 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[48] = {0};
+        char buffer[128] = {0};
 
         strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
@@ -69,9 +69,15 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
         if(!strcmp(ptr->dc[dcidx].name,"governor")) {
-            strcat(buffer, ptr->dc[dcidx].type);
+            strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {
@@ -168,7 +174,7 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[48];
+        char buffer[128];
 
         strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
@@ -181,9 +187,15 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
         if(!strcmp(ptr->dc[dcidx].name,"governor")) {
-            strcat(buffer, ptr->dc[dcidx].type);
+            strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {
@@ -281,7 +293,7 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[48];
+        char buffer[128];
 
         strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
@@ -294,9 +306,15 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
         if(!strcmp(ptr->dc[dcidx].name,"governor")) {
-            strcat(buffer, ptr->dc[dcidx].type);
+            strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {
@@ -386,7 +404,7 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[48];
+        char buffer[128];
 
         strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
@@ -399,9 +417,15 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
         if(!strcmp(ptr->dc[dcidx].name,"governor")) {
-            strcat(buffer, ptr->dc[dcidx].type);
+            strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {

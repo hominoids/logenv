@@ -119,27 +119,15 @@
         "seconds": 10,
         "content": [
             {
-            "name": "time",
+            "name": "uptime",
             "device": "",
             "address": 0,
-            "type": "24",
-            "xloc": 35,
-            "yloc": 5,
+            "type": "short",
+            "xloc": 0,
+            "yloc": 10,
             "color": 0,
-            "font": "MONOSPACE_48",
-            "label": "",
-            "unit": ""
-            },
-            {
-            "name": "governor",
-            "device": "",
-            "address": 0,
-            "type": "",
-            "xloc": 5,
-            "yloc": 45,
-            "color": 0,
-            "font": "DEFAULT_16",
-            "label": "",
+            "font": "MONOSPACE_16",
+            "label": "uptime ",
             "unit": ""
             },
             {
@@ -148,10 +136,10 @@
             "address": 0,
             "type": "free",
             "xloc": 0,
-            "yloc": 65,
+            "yloc": 40,
             "color": 0,
-            "font": "DEFAULT_16",
-            "label": "/ ",
+            "font": "MONOSPACE_20",
+            "label": "/     ",
             "unit": "G free"
             },
             {
@@ -159,12 +147,12 @@
             "device": "/home",
             "address": 0,
             "type": "free",
-            "xloc": 85,
-            "yloc": 65,
+            "xloc":0,
+            "yloc": 60,
             "color": 0,
-            "font": "DEFAULT_16",
+            "font": "MONOSPACE_20",
             "label": "/home ",
-            "unit": "G Free"
+            "unit": "G free"
             },
             {
             "name": "thermal",
@@ -191,15 +179,27 @@
         "seconds": 10,
         "content": [
             {
-            "name": "time",
-            "device": "",
+            "name": "governor",
+            "device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
             "address": 0,
-            "type": "24",
-            "xloc": 35,
-            "yloc": 5,
+            "type": "",
+            "xloc": 0,
+            "yloc": 0,
             "color": 0,
-            "font": "MONOSPACE_48",
-            "label": "",
+            "font": "MONOSPACE_20",
+            "label": "CPU:",
+            "unit": ""
+            },
+            {
+            "name": "governor",
+            "device": "/sys/devices/platform/fb000000.gpu/devfreq/fb000000.gpu/governor",
+            "address": 0,
+            "type": "",
+            "xloc": 0,
+            "yloc": 20,
+            "color": 0,
+            "font": "MONOSPACE_20",
+            "label": "GPU:",
             "unit": ""
             },
             {

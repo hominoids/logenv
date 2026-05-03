@@ -68,7 +68,7 @@ uint8_t fontoi(char *);
 
 struct display_content {
     char name[15];
-    char device[30];
+    char device[255];
     uint8_t address;
     char type[15];
     uint16_t xloc;
@@ -77,7 +77,7 @@ struct display_content {
     char font[30];
     char label[20];
     char unit[20];
-    char data1[30];  // Temperature c
+    char data1[128];  // Temperature c
     char data2[30];  // Humidity %
     char data3[30];  // Pressure hPa
     char data4[30];  // CO2 as ppm

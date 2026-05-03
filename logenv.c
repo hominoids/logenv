@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/sysinfo.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -226,6 +227,12 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"disk")) {
                         DP_DISK++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"uptime")) {
+                        DP_UPTIME++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sysload")) {
+                        DP_SYSLOAD++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp2")) {
                         DP_SP2++;
@@ -1327,18 +1334,21 @@ int main(uint8_t argc, char **argv) {
              * open and read governor setting
              */
             if(DP_GOVERNOR != 0) {
-                if((governor_file = fopen(governorloc, "r")) == NULL) {
-                    break;
-                }
-                fscanf(governor_file, "%s", &governor);
-                fclose(governor_file);
-
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                         if(!strcmp(dp[d].dc[i].name, "governor") && dp[d].page == page) {
-                            strcpy(dp[d].dc[i].type, governor);
+
+                            strcpy(governorloc, dp[d].dc[i].device);
+                            if((governor_file = fopen(governorloc, "r")) == NULL) {
+                                printf("\nERROR: Cannot open governor at %s\n", governorloc);
+                                break;
+                            }
+                            fscanf(governor_file, "%s", &governor);
+                            fclose(governor_file);
+
+                            strcpy(dp[d].dc[i].data1, governor);
                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s cmd %d failed\n", &dp[d].name, i);
+                                printf("%s governor cmd %d failed\n", &dp[d].name, i);
                             }
                         }
                     }
@@ -1382,7 +1392,73 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s cmd %d failed\n", &dp[d].name, i);
+                                printf("%s disk cmd %d failed\n", &dp[d].name, i);
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * sysinfo uptime
+             */
+            if(DP_UPTIME != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "uptime") && dp[d].page == page) {
+
+                            struct sysinfo sys_info;
+                            char buffer[128] = {0};
+
+                            if(sysinfo(&sys_info) != 0) {
+                                printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
+                                break;;
+                            }
+
+                            int16_t days = sys_info.uptime / 86400;
+                            int16_t hours = (sys_info.uptime / 3600) - (days * 24);
+                            int16_t mins = (sys_info.uptime / 60) - (days * 1440) - (hours * 60);
+
+                            if(!strcmp(dp[d].dc[i].type, "short")) {
+                                sprintf(buffer, "%d days %d:%d", days, hours, mins);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            else if(!strcmp(dp[d].dc[i].type, "long")) {
+                                sprintf(buffer, "%ddays, %dhours, %dminutes", days, hours, mins);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                printf("%s uptime cmd %d failed\n", &dp[d].name, i);
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * sysinfo system load
+             */
+            if(DP_SYSLOAD != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "sysload") && dp[d].page == page) {
+
+                            struct sysinfo sys_info;
+                            char buffer[128] = {0};
+
+                            if(sysinfo(&sys_info) != 0) {
+                                printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
+                                break;;
+                            }
+
+                            if(!strcmp(dp[d].dc[i].type, "short")) {
+                                sprintf(buffer, "[%ld] [%ld] [%ld]", sys_info.loads[0], sys_info.loads[1], sys_info.loads[2]);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            else if(!strcmp(dp[d].dc[i].type, "long")) {
+                                sprintf(buffer, "1min(%ld) 5min(%ld) 15min(%ld)", sys_info.loads[0], sys_info.loads[1], sys_info.loads[2]);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                printf("%s sysload cmd %d failed\n", &dp[d].name, i);
                             }
                         }
                     }

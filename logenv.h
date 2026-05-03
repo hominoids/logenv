@@ -163,7 +163,7 @@ char *thermaltype1 = "/type";
 char thermalname[255];
 
 char governor[25];
-char *governorloc = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
+char governorloc[255] = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
 
 char spfile[255];
 char spline[5];
@@ -214,6 +214,8 @@ static int8_t DP_GOVERNOR = 0;
 static int8_t DP_MEMORY = 0;
 static int8_t DP_USAGE = 0;
 static int8_t DP_DISK = 0;
+static int8_t DP_UPTIME = 0;
+static int8_t DP_SYSLOAD = 0;
 static int8_t DP_SP2 = 0;
 static int8_t DP_SP3CH1 = 0;
 static int8_t DP_SP3CH2 = 0;
