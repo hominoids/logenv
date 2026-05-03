@@ -21,7 +21,7 @@ typedef enum
     DEFAULT_16 = 0x10,             /* libdriver default font 16 */
     DEFAULT_24 = 0x18,             /* libdriver default font 24 */
     MONOSPACE_12 = 0x0E,           /* monospace font 12 */
-    MONOSPACE_16 = 0x11,           /* monospace font 16 */
+    MONOSPACE_16 = 0x14,           /* monospace font 16 */
     MONOSPACE_20 = 0x1A,           /* monospace font 20 */
     MONOSPACE_24 = 0x1C,           /* monospace font 24 */
     MONOSPACE_28 = 0x20,           /* monospace font 28 */

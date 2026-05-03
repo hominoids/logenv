@@ -77,7 +77,7 @@ struct display_content {
     char font[30];
     char label[20];
     char unit[20];
-    char data1[128];  // Temperature c
+    char data1[127];  // Temperature c
     char data2[30];  // Humidity %
     char data3[30];  // Pressure hPa
     char data4[30];  // CO2 as ppm

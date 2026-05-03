@@ -280,7 +280,7 @@ static uint8_t a_ssh1107_gram_show_char(ssh1107_handle_t *handle, uint8_t x, uin
         {
             temp = monospace_12[chr][t];
         }
-        else if(size == 17)                                                         /* if size 28 */
+        else if(size == 20)                                                         /* if size 28 */
         {
             temp = monospace_16[chr][t];
         }

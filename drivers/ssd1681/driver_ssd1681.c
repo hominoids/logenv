@@ -2196,7 +2196,7 @@ static uint8_t a_ssd1681_gram_show_char(ssd1681_handle_t *handle, ssd1681_color_
         {
             temp = monospace_12[chr][t];
         }
-        else if(size == 17)                                                         /* if size 16 */
+        else if(size == 20)                                                         /* if size 16 */
         {
             temp = monospace_16[chr][t];
         }

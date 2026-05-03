@@ -46,6 +46,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/utsname.h>
 #include <sys/vfs.h>
 #include <termios.h>
 #include <threads.h>
@@ -233,6 +234,9 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sysload")) {
                         DP_SYSLOAD++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"hostname")) {
+                        DP_HOSTNAME++;
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp2")) {
                         DP_SP2++;
@@ -1407,7 +1411,7 @@ int main(uint8_t argc, char **argv) {
                         if(!strcmp(dp[d].dc[i].name, "uptime") && dp[d].page == page) {
 
                             struct sysinfo sys_info;
-                            char buffer[128] = {0};
+                            char buffer[127] = "\0";
 
                             if(sysinfo(&sys_info) != 0) {
                                 printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
@@ -1442,7 +1446,7 @@ int main(uint8_t argc, char **argv) {
                         if(!strcmp(dp[d].dc[i].name, "sysload") && dp[d].page == page) {
 
                             struct sysinfo sys_info;
-                            char buffer[128] = {0};
+                            char buffer[127] = "\0";
 
                             if(sysinfo(&sys_info) != 0) {
                                 printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
@@ -1459,6 +1463,32 @@ int main(uint8_t argc, char **argv) {
                             }
                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                 printf("%s sysload cmd %d failed\n", &dp[d].name, i);
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * host name from uname()
+             */
+            if(DP_HOSTNAME != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].name, "hostname") && dp[d].page == page) {
+
+                            struct utsname uname_info;
+
+                            if(uname(&uname_info) != 0) {
+                                printf("%s cmd %d uname failed\n", &dp[d].name, i);
+                                break;;
+                            }
+
+                            char buffer[sizeof(uname_info.nodename)] = "\0";
+                            sprintf(buffer, "%s", uname_info.nodename);
+                            strcpy(dp[d].dc[i].data1, buffer);
+
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                printf("%s hostname cmd %d failed\n", &dp[d].name, i);
                             }
                         }
                     }

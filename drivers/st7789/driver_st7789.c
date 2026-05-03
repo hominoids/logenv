@@ -4484,7 +4484,7 @@ static uint8_t a_st7789_show_char(st7789_handle_t *handle, uint16_t x, uint16_t 
         {
             temp = monospace_12[chr][t];
         }
-        else if(size == 17)                                                         /* if size 28 */
+        else if(size == 20)                                                         /* if size 28 */
         {
             temp = monospace_16[chr][t];
         }

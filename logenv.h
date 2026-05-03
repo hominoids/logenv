@@ -216,6 +216,7 @@ static int8_t DP_USAGE = 0;
 static int8_t DP_DISK = 0;
 static int8_t DP_UPTIME = 0;
 static int8_t DP_SYSLOAD = 0;
+static int8_t DP_HOSTNAME = 0;
 static int8_t DP_SP2 = 0;
 static int8_t DP_SP3CH1 = 0;
 static int8_t DP_SP3CH2 = 0;

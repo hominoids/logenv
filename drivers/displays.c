@@ -56,9 +56,8 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[128] = {0};
+        char buffer[127] = "\0";
 
-        strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
@@ -80,6 +79,9 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
+        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
@@ -95,11 +97,10 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_SENSOR) {
 
-        char buffer[25];
-        char buffer2[7];
+        char buffer[25] = "\0";
+        char buffer2[7] = "\0";
         float temp_f = 0;
 
-        strcpy(buffer,"\0");
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
@@ -174,9 +175,8 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[128];
+        char buffer[127] = "\0";
 
-        strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
@@ -198,6 +198,9 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
+        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
@@ -214,11 +217,11 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_SENSOR) {
 
-        char buffer[25];
-        char buffer2[7];
+        char buffer[25] = "\0";
+        char buffer2[7] = "\0";
         float temp_f = 0;
 
-        strcpy(buffer,"\0");
+
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
@@ -293,7 +296,7 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[128];
+        char buffer[127] = "\0";
 
         strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
@@ -317,6 +320,9 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
+        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
@@ -333,8 +339,8 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_SENSOR) {
 
-        char buffer[25];
-        char buffer2[7];
+        char buffer[25] = "\0";
+        char buffer2[7] = "\0";
         float temp_f = 0;
 
         strcpy(buffer,"\0");
@@ -404,7 +410,7 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_WRITE) {
 
-        char buffer[128];
+        char buffer[127] = "\0";
 
         strcpy(buffer, "\0");
         if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"NT")) {
@@ -428,6 +434,9 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
+        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
@@ -443,8 +452,8 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_SENSOR) {
 
-        char buffer[25];
-        char buffer2[7];
+        char buffer[25] = "\0";
+        char buffer2[7] = "\0";
         float temp_f = 0;
 
         strcpy(buffer,"\0");

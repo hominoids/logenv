@@ -367,6 +367,7 @@ DESCRIPTION: displays governor from device at xloc, yloc using font.
 DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 	 DEVICE: path
 	   TYPE: free, used
+	   
 	{
 	"name": "disk",
 	"device": "/",
@@ -387,6 +388,7 @@ DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 DESCRIPTION: displays uptime at xloc, yloc using font.
 	   TYPE: short %d days HH:MM
 	   		 long  %ddays, %dhours, %dminutes
+	   		 
 	{
 	"name": "uptime",
 	"device": "",
@@ -407,8 +409,28 @@ DESCRIPTION: displays uptime at xloc, yloc using font.
 DESCRIPTION: displays sysload info at xloc, yloc using font.
 	   TYPE: short [%d] [%d] [%d]
 	   		 long  1min(%d) 5min(%d) 15min(%d)
+	   		 
 	{
 	"name": "sysload",
+	"device": "",
+	"address": 0,
+	"type": "short",
+	"xloc": 10,
+	"yloc": 40,
+	"color": 0,
+	"font": "MONOSPACE_16",
+	"label": "",
+	"unit": ""
+	},
+```
+
+***hostname***
+```
+    COMMAND: hostname
+DESCRIPTION: displays hostname at xloc, yloc using font.
+
+	{
+	"name": "hostname",
 	"device": "",
 	"address": 0,
 	"type": "short",
@@ -437,6 +459,7 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
 			P = Pressure
 			G = Gas
 			V = VOC
+			
         {
         "name": "bme680",
         "device": "/dev/i2c-1",
