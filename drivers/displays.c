@@ -40,7 +40,7 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_TIME) {
         if(ssd1681_gram_write_string(&ssd1681_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
-            ptr->dc[dcidx].yloc, display_time, (uint16_t)strlen(display_time), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
+            ptr->dc[dcidx].yloc, ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1681_interface_debug_print("ssd1681: time string write failed.\n");
             return(1);
         }
@@ -48,7 +48,7 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_DATE) {
         if(ssd1681_gram_write_string(&ssd1681_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
-            ptr->dc[dcidx].yloc, display_date, (uint16_t)strlen(display_date), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
+            ptr->dc[dcidx].yloc, ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 1, fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1681_interface_debug_print("ssd1681: date string write failed.\n");
             return(1);
         }
@@ -157,7 +157,7 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_TIME) {
         if(ssd1306_gram_write_string(&ssd1306_handle, ptr->dc[dcidx].xloc, \
-            ptr->dc[dcidx].yloc, display_time, (uint16_t)strlen(display_time), 1, \
+            ptr->dc[dcidx].yloc, ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1306_interface_debug_print("ssd1306: time string write failed.\n");
             return(1);
@@ -166,7 +166,7 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_DATE) {
         if(ssd1306_gram_write_string(&ssd1306_handle, ptr->dc[dcidx].xloc, \
-            ptr->dc[dcidx].yloc, display_date, (uint16_t)strlen(display_date), 1, \
+            ptr->dc[dcidx].yloc, ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
             ssd1306_interface_debug_print("ssd1306: date string write failed.\n");
             return(1);
@@ -278,7 +278,7 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_TIME) {
         if(ssh1107_gram_write_string(&ssh1107_handle, ptr->dc[dcidx].xloc, \
-            ptr->dc[dcidx].yloc, display_time, (uint16_t)strlen(display_time), 1, \
+            ptr->dc[dcidx].yloc, ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
             ssh1107_interface_debug_print("ssh1107: time string write failed.\n");
             return(1);
@@ -287,7 +287,7 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_DATE) {
         if(ssh1107_gram_write_string(&ssh1107_handle, ptr->dc[dcidx].xloc, \
-            ptr->dc[dcidx].yloc, display_date, (uint16_t)strlen(display_date), 1, \
+            ptr->dc[dcidx].yloc, ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
             ssh1107_interface_debug_print("ssh1107: date string write failed.\n");
             return(1);
@@ -394,7 +394,7 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_TIME) {
         if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
-            display_time, (uint16_t)strlen(display_time), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
+            ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
             st7789_interface_debug_print("st7789: time string write failed.\n");
             return(1);
         }
@@ -402,7 +402,7 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
     }
     if(cmd == DISPLAY_DATE) {
         if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
-            display_date, (uint16_t)strlen(display_date), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
+            ptr->dc[dcidx].data1, (uint16_t)strlen(ptr->dc[dcidx].data1), 0xFFFFU, fontoi(ptr->dc[dcidx].font)) != 0) {
             st7789_interface_debug_print("st7789: date string write failed.\n");
             return(1);
         }

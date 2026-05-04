@@ -55,10 +55,6 @@ extern "C"{
 #define DISPLAY_THERMAL 8
 #define DISPLAY_SENSOR 9
 
-extern uint8_t display_count;
-extern uint8_t page;
-extern char display_time[];
-extern char display_date[];
 extern ssd1681_handle_t ssd1681_handle;
 extern ssd1306_handle_t ssd1306_handle;
 extern ssh1107_handle_t ssh1107_handle;

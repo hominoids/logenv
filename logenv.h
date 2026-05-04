@@ -44,15 +44,11 @@ FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
 
 bool VERBOSE_DEBUG = 0;
 
-uint8_t (*dptr)(struct display *, uint8_t, uint8_t) = NULL;
-uint8_t display_count = 0;
 uint8_t page = 0;
 uint8_t pg_count = 0;
 
 time_t now;
 struct tm *t;
-char display_time[10];
-char display_date[36];
 
 int16_t udp_socket;
 int16_t sin_size;
