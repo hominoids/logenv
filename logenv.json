@@ -335,24 +335,12 @@
             "unit": ""
             },
             {
-            "name": "hostname",
-            "device": "",
-            "address": 0,
-            "type": "",
-            "xloc": 0,
-            "yloc": 50,
-            "color": 0,
-            "font": "MONOSPACE_16",
-            "label": "",
-            "unit": ""
-            },
-            {
             "name": "mcp9808",
             "device": "/dev/i2c-0",
             "address": 24,
             "type": "F",
             "xloc": 0,
-            "yloc": 99,
+            "yloc": 50,
             "color": 0,
             "font": "MONOSPACE_24",
             "label": "",
@@ -364,11 +352,47 @@
             "address": 24,
             "type": "C",
             "xloc": 75,
-            "yloc": 100,
+            "yloc": 51,
             "color": 0,
             "font": "MONOSPACE_16",
             "label": "",
             "unit": "c"
+            },
+            {
+            "name": "hostname",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 20,
+            "yloc": 75,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "name": "disk",
+            "device": "/",
+            "address": 0,
+            "type": "percent",
+            "xloc":0,
+            "yloc": 102,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "/     ",
+            "unit": "%"
+            },
+            {
+            "name": "disk",
+            "device": "/home",
+            "address": 0,
+            "type": "percent",
+            "xloc":0,
+            "yloc": 113,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "/home ",
+            "unit": "%"
             }
         ]
     }

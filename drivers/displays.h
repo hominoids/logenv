@@ -79,6 +79,7 @@ struct display_content {
     char data4[30];  // CO2 as ppm
     char data5[30];  // TVOC as ppb
     uint8_t read;
+    uint16_t prevlen;
 };
 
 struct display {

@@ -1381,11 +1381,7 @@ int main(uint8_t argc, char **argv) {
                             uint64_t dsize = (stat.f_bsize * stat.f_blocks)/1000000000;
                             uint64_t davail = (stat.f_bsize * stat.f_bavail)/1000000000;
                             uint64_t dused = (stat.f_bsize * (stat.f_blocks-stat.f_bavail))/1000000000;
-                            float pused = (float) ((dused/dsize) * 100);
-//printf("dsize=%d\n", dsize);
-//printf("davail=%d\n", davail);
-//printf("dused=%d\n", dused);
-//printf("pused=%.2f\n", pused);
+                            float pused = ((float)dused/(float)dsize) * 100;
 
                             if(!strcmp(dp[d].dc[i].type, "free")) {
                                 sprintf(buffer, "%d", davail);
