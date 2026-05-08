@@ -92,6 +92,11 @@ struct display {
     uint16_t color;
     uint8_t page;
     uint16_t seconds;
+    uint8_t contrast;
+    uint8_t segment_column_address;
+    uint8_t scan_direction_start;
+    uint8_t left_right_remap;
+    uint8_t pin_config_alt;
     uint8_t init;
     uint8_t (*dptr)(struct display *, uint8_t, uint8_t);
     uint8_t dc_count;

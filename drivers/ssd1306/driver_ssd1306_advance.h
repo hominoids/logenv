@@ -53,18 +53,18 @@ extern "C"{
  * @brief ssd1306 advance example default definition
  */
 #define SSD1306_ADVANCE_DEFAULT_DESELECT_LEVEL                   SSD1306_DESELECT_LEVEL_0P77                /**< set deselect level 0.77 */
-#define SSD1306_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP                 SSD1306_LEFT_RIGHT_REMAP_DISABLE           /**< disable remap */
-#define SSD1306_ADVANCE_DEFAULT_PIN_CONF                         SSD1306_PIN_CONF_ALTERNATIVE               /**< set alternative */
+extern uint8_t SSD1306_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP;                                                    /**< disable remap */
+extern uint8_t SSD1306_ADVANCE_DEFAULT_PIN_CONF;                                                            /**< set alternative */
 #define SSD1306_ADVANCE_DEFAULT_PHASE1_PERIOD                    0x01                                       /**< set phase 1 */
 #define SSD1306_ADVANCE_DEFAULT_PHASE2_PERIOD                    0x0F                                       /**< set phase F */
 #define SSD1306_ADVANCE_DEFAULT_OSCILLATOR_FREQUENCY             0x08                                       /**< set 8 */
 #define SSD1306_ADVANCE_DEFAULT_CLOCK_DIVIDE                     0x00                                       /**< set clock div 0 */
 #define SSD1306_ADVANCE_DEFAULT_DISPLAY_OFFSET                   0x00                                       /**< set display offset */
-#define SSD1306_ADVANCE_DEFAULT_MULTIPLEX_RATIO                  0x3F                                       /**< set ratio */
+extern uint8_t SSD1306_ADVANCE_DEFAULT_MULTIPLEX_RATIO;                                                     /**< set ratio */
 #define SSD1306_ADVANCE_DEFAULT_DISPLAY_MODE                     SSD1306_DISPLAY_MODE_NORMAL                /**< set normal mode */
-#define SSD1306_ADVANCE_DEFAULT_SCAN_DIRECTION                   SSD1306_SCAN_DIRECTION_COMN_1_START        /**< set scan 1 */
-#define SSD1306_ADVANCE_DEFAULT_SEGMENT                          SSD1306_SEGMENT_COLUMN_ADDRESS_127         /**< set column 127 */
-#define SSD1306_ADVANCE_DEFAULT_CONTRAST                         0xCF                                       /**< set contrast CF */
+extern uint8_t SSD1306_ADVANCE_DEFAULT_SCAN_DIRECTION;                                                      /**< set scan 1 */
+extern uint8_t SSD1306_ADVANCE_DEFAULT_SEGMENT;                                                             /**< set column 127 */
+extern uint8_t SSD1306_ADVANCE_DEFAULT_CONTRAST;                                                            /**< set contrast CF */
 #define SSD1306_ADVANCE_DEFAULT_ZOOM_IN                          SSD1306_ZOOM_IN_DISABLE                    /**< disable zoom in */
 #define SSD1306_ADVANCE_DEFAULT_FADE_BLINKING_MODE               SSD1306_FADE_BLINKING_MODE_DISABLE         /**< disable fade */
 #define SSD1306_ADVANCE_DEFAULT_FADE_FRAMES                      0x00                                       /**< set frame 0 */

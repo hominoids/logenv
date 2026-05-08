@@ -164,6 +164,14 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
+
+        SSD1306_ADVANCE_DEFAULT_CONTRAST = ptr->contrast;
+        SSD1306_ADVANCE_DEFAULT_SEGMENT = ptr->segment_column_address;
+        SSD1306_ADVANCE_DEFAULT_SCAN_DIRECTION = ptr->scan_direction_start;
+        SSD1306_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
+        SSD1306_ADVANCE_DEFAULT_PIN_CONF = ptr->pin_config_alt;
+        SSD1306_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
+
         if(ssd1306_advance_init(SSD1306_INTERFACE_IIC, ptr->address)) {
             printf("\nERROR: Cannot open ssd1306 %d %d\n", SSD1306_INTERFACE_IIC, ptr->address);
             return(1);
@@ -307,6 +315,13 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
+
+        SSH1107_ADVANCE_DEFAULT_CONTRAST = ptr->contrast;
+        SSH1107_ADVANCE_DEFAULT_SEGMENT = ptr->segment_column_address;
+        SSH1107_ADVANCE_DEFAULT_SCAN_DIRECTION = ptr->scan_direction_start;
+        SSH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
+        SSH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
+
         if(ssh1107_advance_init(SSD1306_INTERFACE_IIC, ptr->address)) {
             printf("\nERROR: Cannot open ssh1107 %d %d\n", SSD1306_INTERFACE_IIC, ptr->address);
             return(1);

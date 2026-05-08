@@ -52,17 +52,17 @@ extern "C"{
  * @brief ssh1107 advance example default definition
  */
 #define SSH1107_ADVANCE_DEFAULT_DESELECT_LEVEL                   SSH1107_DESELECT_LEVEL_0P83                /**< set deselect level 0.77 */
-#define SSH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP                 SSH1107_LEFT_RIGHT_REMAP_DISABLE           /**< disable remap */
+extern uint8_t SSH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP;                                                    /**< disable remap */
 #define SSH1107_ADVANCE_DEFAULT_PHASE1_PERIOD                    0x01                                       /**< set phase 1 */
 #define SSH1107_ADVANCE_DEFAULT_PHASE2_PERIOD                    0x0F                                       /**< set phase F */
 #define SSH1107_ADVANCE_DEFAULT_OSCILLATOR_FREQUENCY             0x08                                       /**< set 8 */
 #define SSH1107_ADVANCE_DEFAULT_CLOCK_DIVIDE                     0x00                                       /**< set clock div 0 */
 #define SSH1107_ADVANCE_DEFAULT_DISPLAY_OFFSET                   0x00                                       /**< set display offset */
-#define SSH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO                  0x7F                                       /**< set ratio */
+extern uint8_t SSH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO;                                                     /**< set ratio */
 #define SSH1107_ADVANCE_DEFAULT_DISPLAY_MODE                     SSH1107_DISPLAY_MODE_NORMAL                /**< set normal mode */
-#define SSH1107_ADVANCE_DEFAULT_SCAN_DIRECTION                   SSH1107_SCAN_DIRECTION_COM0_START        /**< set scan 1 */
-#define SSH1107_ADVANCE_DEFAULT_SEGMENT                          SSH1107_SEGMENT_COLUMN_ADDRESS_0         /**< set column 127 */
-#define SSH1107_ADVANCE_DEFAULT_CONTRAST                         0xCF                                       /**< set contrast CF */
+extern uint8_t SSH1107_ADVANCE_DEFAULT_SCAN_DIRECTION;                                                      /**< set scan 1 */
+extern uint8_t SSH1107_ADVANCE_DEFAULT_SEGMENT;                                                             /**< set column 127 */
+extern uint8_t SSH1107_ADVANCE_DEFAULT_CONTRAST;                                                            /**< set contrast CF */
 #define SSH1107_ADVANCE_DEFAULT_DISPLAY_START_LINE               0x00                                       /**< set start line 0 */
 #define SSH1107_ADVANCE_DEFAULT_HIGH_COLUMN_START_ADDRESS        0x00                                       /**< set high start 0 */
 #define SSH1107_ADVANCE_DEFAULT_LOW_COLUMN_START_ADDRESS         0x00                                       /**< set low start 0 */

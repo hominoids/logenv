@@ -154,25 +154,29 @@ Multiple displays are supported with each capable of multiple pages containing t
 ```
 {
 "displays": [
-    {
-        "name": "ssh1107",
-        "device": "/dev/i2c-0",
+        "name": "ssd1306",
+        "device": "/dev/i2c-1",
         "address": 61,
         "xsize": 128,
-        "ysize": 128,
+        "ysize": 64,
         "rotation": 0,
         "page": 0,
-        "seconds": 60,
+        "seconds": 0,
+        "contrast": 207,
+        "segment_column_address": 1,
+        "scan_direction_start": 1,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
         "content": [
             {
             "name": "time",
             "device": "",
             "address": 0,
-            "type": "12",
-            "xloc": 25,
+            "type": "",
+            "xloc": 15,
             "yloc": 5,
             "color": 0,
-            "font": "MONOSPACE_36",
+            "font": "DEFAULT_24",
             "label": "",
             "unit": ""
             },
@@ -180,23 +184,11 @@ Multiple displays are supported with each capable of multiple pages containing t
             "name": "date",
             "device": "",
             "address": 0,
-            "type": "short",
-            "xloc": 20,
+            "type": "",
+            "xloc": 35,
             "yloc": 30,
             "color": 0,
-            "font": "MONOSPACE_12",
-            "label": "",
-            "unit": ""
-            },
-            {
-            "name": "mcp9808",
-            "device": "/dev/i2c-0",
-            "address": 24,
-            "type": "F",
-            "xloc": 0,
-            "yloc": 99,
-            "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_12",
             "label": "",
             "unit": ""
             },
@@ -205,12 +197,24 @@ Multiple displays are supported with each capable of multiple pages containing t
             "device": "/dev/i2c-0",
             "address": 24,
             "type": "C",
-            "xloc": 80,
-            "yloc": 100,
+            "xloc": 5,
+            "yloc": 50,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "DEFAULT_12",
             "label": "",
             "unit": "c"
+            },
+            {
+            "name": "bme680",
+            "device": "/dev/i2c-1",
+            "address": 119,
+            "type": "P",
+            "xloc": 45,
+            "yloc": 50,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": " ",
+            "unit": " hPa"
             }
         ]
     }
@@ -218,7 +222,8 @@ Multiple displays are supported with each capable of multiple pages containing t
 }
 ```
 
-
+Most entries in the json file are self explanatory with the possible exception of the initialization variables *segment_column_address*, *scan_direction_start*, *left_right_remap* and *pin_config_alt*.  They are set to a 0 or 1 value to enable or disable the configuration command.  The first two control the direction and starting column address.  If the oled is displaying upside down, change the *segment_column_address* and *scan_direction_start* values to the opposite.  If they are 0 change them to 1 and retest.
+ 
 ### Page Content Commands
 ***date***
 ```

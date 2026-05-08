@@ -160,7 +160,32 @@ int main(uint8_t argc, char **argv) {
                 cJSON *seconds = cJSON_GetObjectItemCaseSensitive(item, "seconds");
                 if (cJSON_IsNumber(seconds)) {
                     dp[DISPLAY_ENABLE].seconds = seconds->valueint;
-                    if(VERBOSE_DEBUG) printf("%d\n", dp[DISPLAY_ENABLE].seconds);
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].seconds);
+                }
+                cJSON *contrast = cJSON_GetObjectItemCaseSensitive(item, "contrast");
+                if (cJSON_IsNumber(contrast)) {
+                    dp[DISPLAY_ENABLE].contrast = contrast->valueint;
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].contrast);
+                }
+                cJSON *segment_column_address = cJSON_GetObjectItemCaseSensitive(item, "segment_column_address");
+                if (cJSON_IsNumber(segment_column_address)) {
+                    dp[DISPLAY_ENABLE].segment_column_address = segment_column_address->valueint;
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].segment_column_address);
+                }
+                cJSON *scan_direction_start = cJSON_GetObjectItemCaseSensitive(item, "scan_direction_start");
+                if (cJSON_IsNumber(scan_direction_start)) {
+                    dp[DISPLAY_ENABLE].scan_direction_start = scan_direction_start->valueint;
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].scan_direction_start);
+                }
+                cJSON *left_right_remap = cJSON_GetObjectItemCaseSensitive(item, "left_right_remap");
+                if (cJSON_IsNumber(left_right_remap)) {
+                    dp[DISPLAY_ENABLE].left_right_remap = left_right_remap->valueint;
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].left_right_remap);
+                }
+                cJSON *pin_config_alt = cJSON_GetObjectItemCaseSensitive(item, "pin_config_alt");
+                if (cJSON_IsNumber(pin_config_alt)) {
+                    dp[DISPLAY_ENABLE].pin_config_alt = pin_config_alt->valueint;
+                    if(VERBOSE_DEBUG) printf("%d\n", dp[DISPLAY_ENABLE].pin_config_alt);
                 }
                 /*
                  * Read display content array entries

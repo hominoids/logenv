@@ -1454,7 +1454,7 @@ uint8_t ssh1107_set_contrast(ssh1107_handle_t *handle, uint8_t contrast)
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_segment_remap(ssh1107_handle_t *handle, ssh1107_segment_column_remap_t remap)
+uint8_t ssh1107_set_segment_remap(ssh1107_handle_t *handle, uint8_t remap)
 {
     if (handle == NULL)                                                                                /* check handle */
     {
@@ -1658,7 +1658,7 @@ uint8_t ssh1107_set_page_address(ssh1107_handle_t *handle, uint8_t addr)
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_scan_direction(ssh1107_handle_t *handle, ssh1107_scan_direction_t dir)
+uint8_t ssh1107_set_scan_direction(ssh1107_handle_t *handle, uint8_t dir)
 {
     if (handle == NULL)                                                                                  /* check handle */
     {

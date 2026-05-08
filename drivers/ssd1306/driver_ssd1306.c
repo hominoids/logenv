@@ -2067,7 +2067,7 @@ uint8_t ssd1306_set_page_address(ssd1306_handle_t *handle, uint8_t addr)
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssd1306_set_scan_direction(ssd1306_handle_t *handle, ssd1306_scan_direction_t dir)
+uint8_t ssd1306_set_scan_direction(ssd1306_handle_t *handle, uint8_t dir)
 {
     if (handle == NULL)                                                                                  /* check handle */
     {
@@ -2257,7 +2257,7 @@ uint8_t ssd1306_set_precharge_period(ssd1306_handle_t *handle, uint8_t phase1_pe
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssd1306_set_com_pins_hardware_conf(ssd1306_handle_t *handle, ssd1306_pin_conf_t conf, ssd1306_left_right_remap_t remap)
+uint8_t ssd1306_set_com_pins_hardware_conf(ssd1306_handle_t *handle, uint8_t conf, uint8_t remap)
 {
     uint8_t buf[2];
     

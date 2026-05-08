@@ -9,6 +9,11 @@
         "rotation": 0,
         "page": 0,
         "seconds": 30,
+        "contrast": 207,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 0,
         "content": [
             {
             "name": "time",
@@ -117,6 +122,11 @@
         "rotation": 0,
         "page": 1,
         "seconds": 10,
+        "contrast": 207,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 0,
         "content": [
             {
             "name": "uptime",
@@ -177,6 +187,11 @@
         "rotation": 0,
         "page": 2,
         "seconds": 10,
+        "contrast": 207,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 0,
         "content": [
             {
             "name": "governor",
@@ -249,6 +264,11 @@
         "rotation": 0,
         "page": 0,
         "seconds": 0,
+        "contrast": 125,
+        "segment_column_address": 1,
+        "scan_direction_start": 1,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
         "content": [
             {
             "name": "time",
@@ -309,6 +329,11 @@
         "rotation": 0,
         "page": 0,
         "seconds": 0,
+        "contrast": 125,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
         "content": [
             {
             "name": "time",
