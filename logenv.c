@@ -3079,7 +3079,7 @@ int main(uint8_t argc, char **argv) {
                             return 1;
                         }
                     }
-/*                    if(SSD1306_ENABLE != 0) {
+                    if(SSD1306_ENABLE != 0) {
                         if (ssd1306_clear(&ssd1306_handle)) {
                             ssd1306_interface_debug_print("ssd1306: gram clear failed.\n");
                             (void)ssd1306_deinit(&ssd1306_handle);
@@ -3092,7 +3092,7 @@ int main(uint8_t argc, char **argv) {
                             (void)ssh1107_deinit(&ssh1107_handle);
                             return 1;
                         }
-                    } */
+                    }
                 }
             }
             else {

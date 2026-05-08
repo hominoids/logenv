@@ -3,7 +3,7 @@
 This is a development branch and a work in progress that is not fully documented yet.  The original Logenv is available on the classic branch or as release v1.0. 
 
 ## Introduction
-logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set as well as a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107, SSD1681 and ST7789 controllers. 
+logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set as well as a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
 
 ![Image](./example/ocl-m2_g610-a76_1.png)
 
@@ -28,7 +28,7 @@ cd ./libgpiod-1.6.4/
 ./configure --enable-tools
 make
 sudo make install
-sudo ldconfig /usr/local/lib
+sudo ldconfig /usr/local/lib/
 ````
 
 ### Install
@@ -147,7 +147,7 @@ netcat -l -u -p <port>
 
 ## Display Configuration
 The display configuration file logenv.json is a JSON formatted file that describes a display, its pages and items for each page.  The current working directory is searched first (./logenv.json) and then /etc/logenv/logenv.json.
-Multiple displays are supported with each capable of multiple pages containing time, date, system information or sensor data. 
+Multiple displays are supported with each capable of multiple pages containing time, date, system information or sensor data.  Each display must contain at least one *page* - page 0. Subsquent page entries are identified by increasing the page number and setting the *seconds* to be displayed.
 
 ### JSON Format
 
@@ -155,14 +155,14 @@ Multiple displays are supported with each capable of multiple pages containing t
 {
 "displays": [
         "name": "ssd1306",
-        "device": "/dev/i2c-1",
+        "device": "/dev/i2c-0",
         "address": 61,
         "xsize": 128,
         "ysize": 64,
         "rotation": 0,
         "page": 0,
-        "seconds": 0,
-        "contrast": 207,
+        "seconds": 60,
+        "contrast": 125,
         "segment_column_address": 1,
         "scan_direction_start": 1,
         "left_right_remap": 0,
@@ -176,7 +176,7 @@ Multiple displays are supported with each capable of multiple pages containing t
             "xloc": 15,
             "yloc": 5,
             "color": 0,
-            "font": "DEFAULT_24",
+            "font": "MONOSPACE_24",
             "label": "",
             "unit": ""
             },
@@ -184,11 +184,11 @@ Multiple displays are supported with each capable of multiple pages containing t
             "name": "date",
             "device": "",
             "address": 0,
-            "type": "",
-            "xloc": 35,
+            "type": "short",
+            "xloc": 20,
             "yloc": 30,
             "color": 0,
-            "font": "DEFAULT_12",
+            "font": "MONOSPACE_12",
             "label": "",
             "unit": ""
             },
@@ -229,45 +229,47 @@ Most entries in the json file are self explanatory with the possible exception o
 ```
     COMMAND: date
 DESCRIPTION: displays date at xloc, yloc using font.
+
        TYPE: default mm/dd/yyyy
 			 short  Fri 01-May-26
 			 long   Friday 01 May 2026
-
-	{
-	"name": "date",
-	"device": "",
-	"address": 0,
-	"type": "long",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "DEFAULT_16",
-	"label": "",
-	"unit": ""
-	},
-	
+	EXAMPLE:
+			{
+			"name": "date",
+			"device": "",
+			"address": 0,
+			"type": "long",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "DEFAULT_16",
+			"label": "",
+			"unit": ""
+			},
+			
 ```
 
 ***time***
 ```
     COMMAND: time
 DESCRIPTION: displays time at xloc, yloc using font.
+
        TYPE: default 4:00 PM
 			 12		04:00
 			 24		16:00
-       
-	{
-	"name": "time",
-	"device": "",
-	"address": 0,
-	"type": "24",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_36",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "time",
+			"device": "",
+			"address": 0,
+			"type": "24",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_36",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***frequency***
@@ -275,18 +277,19 @@ DESCRIPTION: displays time at xloc, yloc using font.
     COMMAND: frequency
 DESCRIPTION: displays core frequencies at xloc, yloc using font.
 
-	{
-	"name": "frequency",
-	"device": "",
-	"address": 0,
-	"type": "",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "frequency",
+			"device": "",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***thermal***
@@ -294,18 +297,19 @@ DESCRIPTION: displays core frequencies at xloc, yloc using font.
     COMMAND: thermal
 DESCRIPTION: displays thermal temps at xloc, yloc using font.
 
-	{
-	"name": "thermal",
-	"device": "",
-	"address": 0,
-	"type": "",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "thermal",
+			"device": "",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***memory***
@@ -313,18 +317,19 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
     COMMAND: memory
 DESCRIPTION: displays memory usage at xloc, yloc using font.
 
-	{
-	"name": "memory",
-	"device": "",
-	"address": 0,
-	"type": "",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "memory",
+			"device": "",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***usage***
@@ -332,101 +337,110 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
     COMMAND: usage
 DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
-	{
-	"name": "usage",
-	"device": "",
-	"address": 0,
-	"type": "",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "usage",
+			"device": "",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***governor***
 ```
     COMMAND: governor
 DESCRIPTION: displays governor from device at xloc, yloc using font.
+
      DEVICE: path
 
-	{
-	"name": "governor",
-	"device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
-	"address": 0,
-	"type": "",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "CPU: ",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "governor",
+			"device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "CPU: ",
+			"unit": ""
+			},
 ```
 
 ***disk***
 ```
     COMMAND: disk
 DESCRIPTION: displays mounted disk info at xloc, yloc using font.
+
 	 DEVICE: path
-	   TYPE: free, used
+	   TYPE: free, used, percent
 	   
-	{
-	"name": "disk",
-	"device": "/",
-	"address": 0,
-	"type": "free",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "/ ",
-	"unit": "G free"
-	},
+	EXAMPLE:       
+			{
+			"name": "disk",
+			"device": "/",
+			"address": 0,
+			"type": "free",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "/ ",
+			"unit": "G free"
+			},
 ```
 
 ***uptime***
 ```
     COMMAND: uptime
 DESCRIPTION: displays uptime at xloc, yloc using font.
+
 	   TYPE: short %d days HH:MM
 	   		 long  %ddays, %dhours, %dminutes
 	   		 
-	{
-	"name": "uptime",
-	"device": "",
-	"address": 0,
-	"type": "short",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "uptime",
+			"device": "",
+			"address": 0,
+			"type": "short",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***sysload***
 ```
     COMMAND: sysload
 DESCRIPTION: displays sysload info at xloc, yloc using font.
+
 	   TYPE: short [%d] [%d] [%d]
 	   		 long  1min(%d) 5min(%d) 15min(%d)
 	   		 
-	{
-	"name": "sysload",
-	"device": "",
-	"address": 0,
-	"type": "short",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "sysload",
+			"device": "",
+			"address": 0,
+			"type": "short",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***hostname***
@@ -434,18 +448,19 @@ DESCRIPTION: displays sysload info at xloc, yloc using font.
     COMMAND: hostname
 DESCRIPTION: displays hostname at xloc, yloc using font.
 
-	{
-	"name": "hostname",
-	"device": "",
-	"address": 0,
-	"type": "short",
-	"xloc": 10,
-	"yloc": 40,
-	"color": 0,
-	"font": "MONOSPACE_16",
-	"label": "",
-	"unit": ""
-	},
+	EXAMPLE:       
+			{
+			"name": "hostname",
+			"device": "",
+			"address": 0,
+			"type": "short",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 ***sensor***
@@ -455,8 +470,9 @@ AHT20,HTU31,SHT40,SHT41,SHT43,SHT45,SHTC3,MCP9808,BME280,BME680,BMP180,BMP388,BM
 7-bits I2C address in decimal e.g. 119 = 0x77
 
 ```
-    COMMAND: *sensor name*
+    COMMAND: *sensor* name
 DESCRIPTION: displays sensor datum at xloc, yloc using font.
+
        TYPE:
      		C = Celsius
 			F = Fahrenheit
@@ -465,18 +481,19 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
 			G = Gas
 			V = VOC
 			
-        {
-        "name": "bme680",
-        "device": "/dev/i2c-1",
-        "address": 119,
-        "type": "C",
-        "xloc": 5,
-        "yloc": 50,
-        "color": 0,
-        "font": "DEFAULT_12",
-        "label": "",
-        "unit": "c"
-        },
+	EXAMPLE:       
+	        {
+	        "name": "bme680",
+	        "device": "/dev/i2c-1",
+	        "address": 119,
+	        "type": "C",
+	        "xloc": 5,
+	        "yloc": 50,
+	        "color": 0,
+	        "font": "DEFAULT_12",
+	        "label": "",
+	        "unit": "c"
+	        },
 ```
 
 
