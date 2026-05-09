@@ -123,7 +123,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 dp[DISPLAY_ENABLE].dptr = !strcmp(dp[DISPLAY_ENABLE].name,"ssd1681") ? ssd1681 :
                     !strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") ? ssd1306 :
-                    !strcmp(dp[DISPLAY_ENABLE].name, "ssh1107") ? ssh1107 :
+                    !strcmp(dp[DISPLAY_ENABLE].name, "sh1107") ? sh1107 :
                     !strcmp(dp[DISPLAY_ENABLE].name, "st7789") ? st7789 : NULL;
 
                 cJSON *device = cJSON_GetObjectItemCaseSensitive(item, "device");
@@ -459,19 +459,19 @@ int main(uint8_t argc, char **argv) {
                     if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     SSD1306_ENABLE = 1;
                 }
-                if(!strcmp(dp[DISPLAY_ENABLE].name, "ssh1107") && dp[DISPLAY_ENABLE].page == 0) {
+                if(!strcmp(dp[DISPLAY_ENABLE].name, "sh1107") && dp[DISPLAY_ENABLE].page == 0) {
                     if(strchr(dp[DISPLAY_ENABLE].device, 's')) {
-                        strcpy(ssh1107_spi_dev, dp[DISPLAY_ENABLE].device);
+                        strcpy(sh1107_spi_dev, dp[DISPLAY_ENABLE].device);
                     }
                     if(strchr(dp[DISPLAY_ENABLE].device, 'c')) {
-                        strcpy(ssh1107_iic_dev, dp[DISPLAY_ENABLE].device);
+                        strcpy(sh1107_iic_dev, dp[DISPLAY_ENABLE].device);
                     }
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
                         exit(0);
                     }
                     if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
-                    SSH1107_ENABLE = 1;
+                    SH1107_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "st7789") && dp[DISPLAY_ENABLE].page == 0) {
                     strcpy(st7789_spi_dev, dp[DISPLAY_ENABLE].device);
@@ -3051,47 +3051,43 @@ int main(uint8_t argc, char **argv) {
             /*
              * break if one and done or sleep
              */
-            if(INTERACTIVE_ENABLE == 0) {
-                if(DISPLAY_ENABLE == 0 ) {
-                    break;
+            if(INTERACTIVE_ENABLE == 0 && DISPLAY_ENABLE != 0) {
+
+                sleep_ms(1000 * dp[page].seconds);
+
+                if(page < pg_count-1) {
+                    page++;
                 }
                 else {
-                    sleep_ms(1000 * dp[page].seconds);
-                    if(page < pg_count-1) {
-                        page++;     
-//                        sleep_ms(1000 * dp[page].seconds);
+                    page = 0;
+                }
+
+                if(SSD1681_ENABLE != 0) {
+                    if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
+                        ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
+                        (void)ssd1681_deinit(&ssd1681_handle);
+                        return 1;
                     }
-                    else {
-//                        sleep_ms(1000 * dp[page].seconds);
-                        page = 0;
+                }
+                if(ST7789_ENABLE != 0) {
+                    if (st7789_clear(&st7789_handle)) {
+                        st7789_interface_debug_print("st7789: clear failed.\n");
+                        (void)st7789_deinit(&st7789_handle);
+                        return 1;
                     }
-                    if(SSD1681_ENABLE != 0) {
-                        if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
-                            ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
-                            (void)ssd1681_deinit(&ssd1681_handle);
-                            return 1;
-                        }
+                }
+                if(SSD1306_ENABLE != 0) {
+                    if (ssd1306_gram_clear(&ssd1306_handle)) {
+                        ssd1306_interface_debug_print("ssd1306: gram clear failed.\n");
+                        (void)ssd1306_deinit(&ssd1306_handle);
+                        return 1;
                     }
-                    if(ST7789_ENABLE != 0) {
-                        if (st7789_clear(&st7789_handle)) {
-                            st7789_interface_debug_print("st7789: clear failed.\n");
-                            (void)st7789_deinit(&st7789_handle);
-                            return 1;
-                        }
-                    }
-                    if(SSD1306_ENABLE != 0) {
-                        if (ssd1306_clear(&ssd1306_handle)) {
-                            ssd1306_interface_debug_print("ssd1306: gram clear failed.\n");
-                            (void)ssd1306_deinit(&ssd1306_handle);
-                            return 1;
-                        }
-                    }
-                    if(SSH1107_ENABLE != 0) {
-                        if (ssh1107_clear(&ssh1107_handle)) {
-                            ssh1107_interface_debug_print("ssh1107: gram clear failed.\n");
-                            (void)ssh1107_deinit(&ssh1107_handle);
-                            return 1;
-                        }
+                }
+                if(SH1107_ENABLE != 0) {
+                    if (sh1107_gram_clear(&sh1107_handle)) {
+                        sh1107_interface_debug_print("sh1107: gram clear failed.\n");
+                        (void)sh1107_deinit(&sh1107_handle);
+                        return 1;
                     }
                 }
             }
@@ -3448,8 +3444,8 @@ int main(uint8_t argc, char **argv) {
         if(SSD1306_ENABLE != 0) {
             (void)ssd1306_deinit(&ssd1306_handle);
         }
-        if(SSH1107_ENABLE != 0) {
-            (void)ssh1107_deinit(&ssh1107_handle);
+        if(SH1107_ENABLE != 0) {
+            (void)sh1107_deinit(&sh1107_handle);
         }
         if(ST7789_ENABLE != 0) {
             (void)st7789_deinit(&st7789_handle);

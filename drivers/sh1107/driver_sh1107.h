@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. 
  *
- * @file      driver_ssh1107.h
- * @brief     driver ssh1107 header file
+ * @file      driver_sh1107.h
+ * @brief     driver sh1107 header file
  * @version   1.0.0
  * @author    Edward Kisiel based on ssd1306 by Shifeng Li
  * @date      2026-04-15
@@ -34,8 +34,8 @@
  * </table>
  */
 
-#ifndef DRIVER_SSH1107_H
-#define DRIVER_SSH1107_H
+#ifndef DRIVER_SH1107_H
+#define DRIVER_SH1107_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -47,112 +47,112 @@ extern "C"{
 #endif
 
 /**
- * @defgroup ssh1107_driver ssh1107 driver function
- * @brief    ssh1107 driver modules
+ * @defgroup sh1107_driver sh1107 driver function
+ * @brief    sh1107 driver modules
  * @{
  */
 
 /**
- * @addtogroup ssh1107_base_driver
+ * @addtogroup sh1107_base_driver
  * @{
  */
 
 /**
- * @brief ssh1107 interface enumeration definition
+ * @brief sh1107 interface enumeration definition
  */
 typedef enum
 {
-    SSH1107_INTERFACE_IIC = 0x00,        /**< interface iic */
-    SSH1107_INTERFACE_SPI = 0x01,        /**< interface spi */
-} ssh1107_interface_t;
+    SH1107_INTERFACE_IIC = 0x00,        /**< interface iic */
+    SH1107_INTERFACE_SPI = 0x01,        /**< interface spi */
+} sh1107_interface_t;
 
 /**
- * @brief ssh1107 address pin enumeration definition
+ * @brief sh1107 address pin enumeration definition
  */
 typedef enum  
 {
-    SSH1107_ADDR_SA0_0 = 0x78,        /**< address pin GND */
-    SSH1107_ADDR_SA0_1 = 0x7A,        /**< address pin VCC */
-} ssh1107_address_t;
+    SH1107_ADDR_SA0_0 = 0x78,        /**< address pin GND */
+    SH1107_ADDR_SA0_1 = 0x7A,        /**< address pin VCC */
+} sh1107_address_t;
 
 /**
- * @brief ssh1107 memory addressing mode enumeration definition
+ * @brief sh1107 memory addressing mode enumeration definition
  */
 typedef enum  
 {
-    SSH1107_MEMORY_ADDRESSING_MODE_PAGE       = 0x00,        /**< page addressing mode */
-    SSH1107_MEMORY_ADDRESSING_MODE_VERTICAL   = 0x01,        /**< vertical addressing mode */
-} ssh1107_memory_addressing_mode_t;
+    SH1107_MEMORY_ADDRESSING_MODE_PAGE       = 0x00,        /**< page addressing mode */
+    SH1107_MEMORY_ADDRESSING_MODE_VERTICAL   = 0x01,        /**< vertical addressing mode */
+} sh1107_memory_addressing_mode_t;
 
 
 /**
- * @brief ssh1107 segment column remap enumeration definition
+ * @brief sh1107 segment column remap enumeration definition
  */
 typedef enum  
 {
-    SSH1107_SEGMENT_COLUMN_ADDRESS_0   = 0x00,        /**< segment column remap address 0 */
-    SSH1107_SEGMENT_COLUMN_ADDRESS_127 = 0x01,        /**< segment column remap address 127 */
-} ssh1107_segment_column_remap_t;
+    SH1107_SEGMENT_COLUMN_ADDRESS_0   = 0x00,        /**< segment column remap address 0 */
+    SH1107_SEGMENT_COLUMN_ADDRESS_127 = 0x01,        /**< segment column remap address 127 */
+} sh1107_segment_column_remap_t;
 
 /**
- * @brief ssh1107 entire display enumeration definition
+ * @brief sh1107 entire display enumeration definition
  */
 typedef enum  
 {
-    SSH1107_ENTIRE_DISPLAY_OFF = 0x00,        /**< entire display off */
-    SSH1107_ENTIRE_DISPLAY_ON  = 0x01,        /**< entire display on */
-} ssh1107_entire_display_t;
+    SH1107_ENTIRE_DISPLAY_OFF = 0x00,        /**< entire display off */
+    SH1107_ENTIRE_DISPLAY_ON  = 0x01,        /**< entire display on */
+} sh1107_entire_display_t;
 
 /**
- * @brief ssh1107 display mode enumeration definition
+ * @brief sh1107 display mode enumeration definition
  */
 typedef enum  
 {
-    SSH1107_DISPLAY_MODE_NORMAL  = 0x00,        /**< display mode normal */
-    SSH1107_DISPLAY_MODE_INVERSE = 0x01,        /**< display mode inverse */
-} ssh1107_display_mode_t;
+    SH1107_DISPLAY_MODE_NORMAL  = 0x00,        /**< display mode normal */
+    SH1107_DISPLAY_MODE_INVERSE = 0x01,        /**< display mode inverse */
+} sh1107_display_mode_t;
 
 /**
- * @brief ssh1107 display enumeration definition
+ * @brief sh1107 display enumeration definition
  */
 typedef enum  
 {
-    SSH1107_DISPLAY_OFF = 0x00,        /**< close display */
-    SSH1107_DISPLAY_ON  = 0x01,        /**< open display */
-} ssh1107_display_t;
+    SH1107_DISPLAY_OFF = 0x00,        /**< close display */
+    SH1107_DISPLAY_ON  = 0x01,        /**< open display */
+} sh1107_display_t;
 
 /**
- * @brief ssh1107 scan direction enumeration definition
+ * @brief sh1107 scan direction enumeration definition
  */
 typedef enum  
 {
-    SSH1107_SCAN_DIRECTION_COM0_START   = 0x00,        /**< scan direction com 0 start */
-    SSH1107_SCAN_DIRECTION_COMN_1_START = 0x01,        /**< scan direction com N-1 start */
-} ssh1107_scan_direction_t;
+    SH1107_SCAN_DIRECTION_COM0_START   = 0x00,        /**< scan direction com 0 start */
+    SH1107_SCAN_DIRECTION_COMN_1_START = 0x01,        /**< scan direction com N-1 start */
+} sh1107_scan_direction_t;
 
 /**
- * @brief ssh1107 left right remap enumeration definition
+ * @brief sh1107 left right remap enumeration definition
  */
 typedef enum  
 {
-    SSH1107_LEFT_RIGHT_REMAP_DISABLE = 0x00,        /**< disable left right remap */
-    SSH1107_LEFT_RIGHT_REMAP_ENABLE  = 0x01,        /**< enable left right remap */
-} ssh1107_left_right_remap_t;
+    SH1107_LEFT_RIGHT_REMAP_DISABLE = 0x00,        /**< disable left right remap */
+    SH1107_LEFT_RIGHT_REMAP_ENABLE  = 0x01,        /**< enable left right remap */
+} sh1107_left_right_remap_t;
 
 /**
- * @brief ssh1107 deselect level enumeration definition
+ * @brief sh1107 deselect level enumeration definition
  */
 typedef enum  
 {
-    SSH1107_DESELECT_LEVEL_0P65 = 0x00,        /**< deselect level 0.65 */
-    SSH1107_DESELECT_LEVEL_0P77 = 0x02,        /**< deselect level 0.77 */
-    SSH1107_DESELECT_LEVEL_0P83 = 0x03,        /**< deselect level 0.83 */
-} ssh1107_deselect_level_t;
+    SH1107_DESELECT_LEVEL_0P65 = 0x00,        /**< deselect level 0.65 */
+    SH1107_DESELECT_LEVEL_0P77 = 0x02,        /**< deselect level 0.77 */
+    SH1107_DESELECT_LEVEL_0P83 = 0x03,        /**< deselect level 0.83 */
+} sh1107_deselect_level_t;
 
 /**
- * @brief ssh1107 handle structure definition
+ * @brief sh1107 handle structure definition
  */
-typedef struct ssh1107_handle_s
+typedef struct sh1107_handle_s
 {
     uint8_t (*iic_init)(void);                                                          /**< point to an iic_init function address */
     uint8_t (*iic_deinit)(void);                                                        /**< point to an iic_deinit function address */
@@ -172,12 +172,12 @@ typedef struct ssh1107_handle_s
     uint8_t iic_addr;                                                                   /**< iic address */
     uint8_t iic_spi;                                                                    /**< iic spi type */
     uint8_t gram[128][16];                                                               /**< gram buffer */
-} ssh1107_handle_t;
+} sh1107_handle_t;
 
 /**
- * @brief ssh1107 information structure definition
+ * @brief sh1107 information structure definition
  */
-typedef struct ssh1107_info_s
+typedef struct sh1107_info_s
 {
     char chip_name[32];                /**< chip name */
     char manufacturer_name[32];        /**< manufacturer name */
@@ -188,207 +188,207 @@ typedef struct ssh1107_info_s
     float temperature_min;             /**< chip min operating temperature */
     float temperature_max;             /**< chip max operating temperature */
     uint32_t driver_version;           /**< driver version */
-} ssh1107_info_t;
+} sh1107_info_t;
 
 /**
  * @}
  */
 
 /**
- * @defgroup ssh1107_link_driver ssh1107 link driver function
- * @brief    ssh1107 link driver modules
- * @ingroup  ssh1107_driver
+ * @defgroup sh1107_link_driver sh1107 link driver function
+ * @brief    sh1107 link driver modules
+ * @ingroup  sh1107_driver
  * @{
  */
 
 /**
- * @brief     initialize ssh1107_handle_t structure
- * @param[in] HANDLE pointer to an ssh1107 handle structure
- * @param[in] STRUCTURE ssh1107_handle_t
+ * @brief     initialize sh1107_handle_t structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
+ * @param[in] STRUCTURE sh1107_handle_t
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_INIT(HANDLE, STRUCTURE)                     memset(HANDLE, 0, sizeof(STRUCTURE))
+#define DRIVER_SH1107_LINK_INIT(HANDLE, STRUCTURE)                     memset(HANDLE, 0, sizeof(STRUCTURE))
 
 /**
  * @brief     link iic_init function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to an iic_init function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_IIC_INIT(HANDLE, FUC)                      (HANDLE)->iic_init = FUC
+#define DRIVER_SH1107_LINK_IIC_INIT(HANDLE, FUC)                      (HANDLE)->iic_init = FUC
 
 /**
  * @brief     link iic_deinit function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to an iic_deinit function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_IIC_DEINIT(HANDLE, FUC)                    (HANDLE)->iic_deinit = FUC
+#define DRIVER_SH1107_LINK_IIC_DEINIT(HANDLE, FUC)                    (HANDLE)->iic_deinit = FUC
 
 /**
  * @brief     link iic_write function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to an iic_write function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_IIC_WRITE(HANDLE, FUC)                     (HANDLE)->iic_write = FUC
+#define DRIVER_SH1107_LINK_IIC_WRITE(HANDLE, FUC)                     (HANDLE)->iic_write = FUC
 
 /**
  * @brief     link spi_init function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a spi_init function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_SPI_INIT(HANDLE, FUC)                      (HANDLE)->spi_init = FUC
+#define DRIVER_SH1107_LINK_SPI_INIT(HANDLE, FUC)                      (HANDLE)->spi_init = FUC
 
 /**
  * @brief     link spi_deinit function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a spi_deinit function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_SPI_DEINIT(HANDLE, FUC)                    (HANDLE)->spi_deinit = FUC
+#define DRIVER_SH1107_LINK_SPI_DEINIT(HANDLE, FUC)                    (HANDLE)->spi_deinit = FUC
 
 /**
  * @brief     link spi_write_cmd function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a spi_write_cmd function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_SPI_WRITE_COMMAND(HANDLE, FUC)             (HANDLE)->spi_write_cmd = FUC
+#define DRIVER_SH1107_LINK_SPI_WRITE_COMMAND(HANDLE, FUC)             (HANDLE)->spi_write_cmd = FUC
 
 /**
  * @brief     link spi_cmd_data_gpio_init function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a spi_cmd_data_gpio_init function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_SPI_COMMAND_DATA_GPIO_INIT(HANDLE, FUC)    (HANDLE)->spi_cmd_data_gpio_init = FUC
+#define DRIVER_SH1107_LINK_SPI_COMMAND_DATA_GPIO_INIT(HANDLE, FUC)    (HANDLE)->spi_cmd_data_gpio_init = FUC
 
 /**
  * @brief     link spi_cmd_data_gpio_deinit function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a spi_cmd_data_gpio_deinit function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_SPI_COMMAND_DATA_GPIO_DEINIT(HANDLE, FUC)  (HANDLE)->spi_cmd_data_gpio_deinit = FUC
+#define DRIVER_SH1107_LINK_SPI_COMMAND_DATA_GPIO_DEINIT(HANDLE, FUC)  (HANDLE)->spi_cmd_data_gpio_deinit = FUC
 
 /**
  * @brief     link spi_cmd_data_gpio_write function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a spi_cmd_data_gpio_write function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_SPI_COMMAND_DATA_GPIO_WRITE(HANDLE, FUC)   (HANDLE)->spi_cmd_data_gpio_write = FUC
+#define DRIVER_SH1107_LINK_SPI_COMMAND_DATA_GPIO_WRITE(HANDLE, FUC)   (HANDLE)->spi_cmd_data_gpio_write = FUC
 
 /**
  * @brief     link reset_gpio_init function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a reset_gpio_init function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_RESET_GPIO_INIT(HANDLE, FUC)               (HANDLE)->reset_gpio_init = FUC
+#define DRIVER_SH1107_LINK_RESET_GPIO_INIT(HANDLE, FUC)               (HANDLE)->reset_gpio_init = FUC
 
 /**
  * @brief     link reset_gpio_deinit function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a reset_gpio_deinit function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_RESET_GPIO_DEINIT(HANDLE, FUC)             (HANDLE)->reset_gpio_deinit = FUC
+#define DRIVER_SH1107_LINK_RESET_GPIO_DEINIT(HANDLE, FUC)             (HANDLE)->reset_gpio_deinit = FUC
 
 /**
  * @brief     link reset_gpio_write function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a reset_gpio_write function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_RESET_GPIO_WRITE(HANDLE, FUC)              (HANDLE)->reset_gpio_write = FUC
+#define DRIVER_SH1107_LINK_RESET_GPIO_WRITE(HANDLE, FUC)              (HANDLE)->reset_gpio_write = FUC
 
 /**
  * @brief     link delay_ms function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a delay_ms function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_DELAY_MS(HANDLE, FUC)                      (HANDLE)->delay_ms = FUC
+#define DRIVER_SH1107_LINK_DELAY_MS(HANDLE, FUC)                      (HANDLE)->delay_ms = FUC
 
 /**
  * @brief     link debug_print function
- * @param[in] HANDLE pointer to an ssh1107 handle structure
+ * @param[in] HANDLE pointer to an sh1107 handle structure
  * @param[in] FUC pointer to a debug_print function address
  * @note      none
  */
-#define DRIVER_SSH1107_LINK_DEBUG_PRINT(HANDLE, FUC)                   (HANDLE)->debug_print = FUC
+#define DRIVER_SH1107_LINK_DEBUG_PRINT(HANDLE, FUC)                   (HANDLE)->debug_print = FUC
 
 /**
  * @}
  */
 
 /**
- * @defgroup ssh1107_base_driver ssh1107 base driver function
- * @brief    ssh1107 base driver modules
- * @ingroup  ssh1107_driver
+ * @defgroup sh1107_base_driver sh1107 base driver function
+ * @brief    sh1107 base driver modules
+ * @ingroup  sh1107_driver
  * @{
  */
 
 /**
  * @brief      get chip's information
- * @param[out] *info pointer to an ssh1107 info structure
+ * @param[out] *info pointer to an sh1107 info structure
  * @return     status code
  *             - 0 success
  *             - 2 handle is NULL
  * @note       none
  */
-uint8_t ssh1107_info(ssh1107_info_t *info);
+uint8_t sh1107_info(sh1107_info_t *info);
 
 /**
  * @brief     set the chip interface
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] interface chip interface
  * @return    status code
  *            - 0 success
  *            - 2 handle is NULL
  * @note      none
  */
-uint8_t ssh1107_set_interface(ssh1107_handle_t *handle, ssh1107_interface_t interface);
+uint8_t sh1107_set_interface(sh1107_handle_t *handle, sh1107_interface_t interface);
 
 /**
  * @brief      get the chip interface
- * @param[in]  *handle pointer to an ssh1107 handle structure
+ * @param[in]  *handle pointer to an sh1107 handle structure
  * @param[out] *interface pointer to a chip interface buffer
  * @return     status code
  *             - 0 success
  *             - 2 handle is NULL
  * @note       none
  */
-uint8_t ssh1107_get_interface(ssh1107_handle_t *handle, ssh1107_interface_t *interface);
+uint8_t sh1107_get_interface(sh1107_handle_t *handle, sh1107_interface_t *interface);
 
 /**
  * @brief     set the chip iic address
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] addr_pin iic address
  * @return    status code
  *            - 0 success
  *            - 2 handle is NULL
  * @note      none
  */
-uint8_t ssh1107_set_addr_pin(ssh1107_handle_t *handle, ssh1107_address_t addr_pin);
+uint8_t sh1107_set_addr_pin(sh1107_handle_t *handle, sh1107_address_t addr_pin);
 
 /**
  * @brief      get the chip iic address
- * @param[in]  *handle pointer to an ssh1107 handle structure
+ * @param[in]  *handle pointer to an sh1107 handle structure
  * @param[out] *addr_pin pointer to an iic address buffer
  * @return     status code
  *             - 0 success
  *             - 2 handle is NULL
  * @note       none
  */
-uint8_t ssh1107_get_addr_pin(ssh1107_handle_t *handle, ssh1107_address_t *addr_pin);
+uint8_t sh1107_get_addr_pin(sh1107_handle_t *handle, sh1107_address_t *addr_pin);
 
 /**
  * @brief     initialize the chip
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @return    status code
  *            - 0 success
  *            - 1 iic or spi initialization failed
@@ -399,11 +399,11 @@ uint8_t ssh1107_get_addr_pin(ssh1107_handle_t *handle, ssh1107_address_t *addr_p
  *            - 6 interface param is invalid
  * @note      none
  */
-uint8_t ssh1107_init(ssh1107_handle_t *handle);
+uint8_t sh1107_init(sh1107_handle_t *handle);
 
 /**
  * @brief     close the chip
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @return    status code
  *            - 0 success
  *            - 1 iic or spi deinit failed
@@ -415,11 +415,12 @@ uint8_t ssh1107_init(ssh1107_handle_t *handle);
  *            - 7 interface param is invalid
  * @note      none
  */
-uint8_t ssh1107_deinit(ssh1107_handle_t *handle);
+uint8_t sh1107_deinit(sh1107_handle_t *handle);
 
 /**
- * @brief     clear the screen
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @brief     clear the screen in the gram
+ * @param[in] *handle pointer to an sh1107 handle structure
+ * @param[in] color color type
  * @return    status code
  *            - 0 success
  *            - 1 clear failed
@@ -427,11 +428,23 @@ uint8_t ssh1107_deinit(ssh1107_handle_t *handle);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_clear(ssh1107_handle_t *handle);
+uint8_t sh1107_gram_clear(sh1107_handle_t *handle);
+
+/**
+ * @brief     clear the screen
+ * @param[in] *handle pointer to an sh1107 handle structure
+ * @return    status code
+ *            - 0 success
+ *            - 1 clear failed
+ *            - 2 handle is NULL
+ *            - 3 handle is not initialized
+ * @note      none
+ */
+uint8_t sh1107_clear(sh1107_handle_t *handle);
 
 /**
  * @brief     update the gram data
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @return    status code
  *            - 0 success
  *            - 1 gram update failed
@@ -439,11 +452,11 @@ uint8_t ssh1107_clear(ssh1107_handle_t *handle);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_gram_update(ssh1107_handle_t *handle);
+uint8_t sh1107_gram_update(sh1107_handle_t *handle);
 
 /**
  * @brief     write a point
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] x coordinate x
  * @param[in] y coordinate y
  * @param[in] data written data
@@ -455,11 +468,11 @@ uint8_t ssh1107_gram_update(ssh1107_handle_t *handle);
  *            - 4 x or y is invalid
  * @note      none
  */
-uint8_t ssh1107_write_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t data);
+uint8_t sh1107_write_point(sh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t data);
 
 /**
  * @brief      read a point
- * @param[in]  *handle pointer to an ssh1107 handle structure
+ * @param[in]  *handle pointer to an sh1107 handle structure
  * @param[in]  x coordinate x
  * @param[in]  y coordinate y
  * @param[out] *data pointer to a data buffer
@@ -471,11 +484,11 @@ uint8_t ssh1107_write_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y, uint
  *             - 4 x or y is invalid
  * @note       none
  */
-uint8_t ssh1107_read_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t *data);
+uint8_t sh1107_read_point(sh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t *data);
 
 /**
  * @brief     write a point in the gram
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] x coordinate x
  * @param[in] y coordinate y
  * @param[in] data written data
@@ -487,11 +500,11 @@ uint8_t ssh1107_read_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y, uint8
  *            - 4 x or y is invalid
  * @note      none
  */
-uint8_t ssh1107_gram_write_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t data);
+uint8_t sh1107_gram_write_point(sh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t data);
 
 /**
  * @brief      read a point from the gram
- * @param[in]  *handle pointer to an ssh1107 handle structure
+ * @param[in]  *handle pointer to an sh1107 handle structure
  * @param[in]  x coordinate x
  * @param[in]  y coordinate y
  * @param[out] *data pointer to a data buffer
@@ -503,11 +516,11 @@ uint8_t ssh1107_gram_write_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y,
  *             - 4 x or y is invalid
  * @note       none
  */
-uint8_t ssh1107_gram_read_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t *data);
+uint8_t sh1107_gram_read_point(sh1107_handle_t *handle, uint8_t x, uint8_t y, uint8_t *data);
 
 /**
  * @brief     draw a string in the gram
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] x coordinate x
  * @param[in] y coordinate y
  * @param[in] *str pointer to a write string address
@@ -522,11 +535,11 @@ uint8_t ssh1107_gram_read_point(ssh1107_handle_t *handle, uint8_t x, uint8_t y, 
  *            - 4 x or y is invalid
  * @note      none
  */
-uint8_t ssh1107_gram_write_string(ssh1107_handle_t *handle, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t color, font_t font);
+uint8_t sh1107_gram_write_string(sh1107_handle_t *handle, uint8_t x, uint8_t y, char *str, uint16_t len, uint8_t color, font_t font);
 
 /**
  * @brief     fill a rectangle in the gram
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] left left coordinate x
  * @param[in] top top coordinate y
  * @param[in] right right coordinate x
@@ -542,11 +555,11 @@ uint8_t ssh1107_gram_write_string(ssh1107_handle_t *handle, uint8_t x, uint8_t y
  *            - 6 left > right or top > bottom
  * @note      none
  */
-uint8_t ssh1107_gram_fill_rect(ssh1107_handle_t *handle, uint8_t left, uint8_t top, uint8_t right, uint8_t bottom, uint8_t color);
+uint8_t sh1107_gram_fill_rect(sh1107_handle_t *handle, uint8_t left, uint8_t top, uint8_t right, uint8_t bottom, uint8_t color);
 
 /**
  * @brief     draw a picture in the gram
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] left left coordinate x
  * @param[in] top top coordinate y
  * @param[in] right right coordinate x
@@ -562,11 +575,11 @@ uint8_t ssh1107_gram_fill_rect(ssh1107_handle_t *handle, uint8_t left, uint8_t t
  *            - 6 left > right or top > bottom
  * @note      none
  */
-uint8_t ssh1107_gram_draw_picture(ssh1107_handle_t *handle, uint8_t left, uint8_t top, uint8_t right, uint8_t bottom, uint8_t *img);
+uint8_t sh1107_gram_draw_picture(sh1107_handle_t *handle, uint8_t left, uint8_t top, uint8_t right, uint8_t bottom, uint8_t *img);
 
 /**
  * @brief     set the low column start address
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] addr low column start address
  * @return    status code
  *            - 0 success
@@ -576,11 +589,11 @@ uint8_t ssh1107_gram_draw_picture(ssh1107_handle_t *handle, uint8_t left, uint8_
  *            - 4 addr is invalid
  * @note      addr <= 0xF
  */
-uint8_t ssh1107_set_low_column_start_address(ssh1107_handle_t *handle, uint8_t addr);
+uint8_t sh1107_set_low_column_start_address(sh1107_handle_t *handle, uint8_t addr);
 
 /**
  * @brief     set the high column start address
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] addr high column start address
  * @return    status code
  *            - 0 success
@@ -590,11 +603,11 @@ uint8_t ssh1107_set_low_column_start_address(ssh1107_handle_t *handle, uint8_t a
  *            - 4 addr is invalid
  * @note      addr <= 0xF
  */
-uint8_t ssh1107_set_high_column_start_address(ssh1107_handle_t *handle, uint8_t addr);
+uint8_t sh1107_set_high_column_start_address(sh1107_handle_t *handle, uint8_t addr);
 
 /**
  * @brief     set the memory addressing mode
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] mode memory addressing mode
  * @return    status code
  *            - 0 success
@@ -603,11 +616,11 @@ uint8_t ssh1107_set_high_column_start_address(ssh1107_handle_t *handle, uint8_t 
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_memory_addressing_mode(ssh1107_handle_t *handle, ssh1107_memory_addressing_mode_t mode);
+uint8_t sh1107_set_memory_addressing_mode(sh1107_handle_t *handle, sh1107_memory_addressing_mode_t mode);
 
 /**
  * @brief     set the column address range
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] start_addr column start address
  * @param[in] end_addr column end address
  * @return    status code
@@ -619,11 +632,11 @@ uint8_t ssh1107_set_memory_addressing_mode(ssh1107_handle_t *handle, ssh1107_mem
  *            - 5 end addr is invalid
  * @note      start addr and end addr can't be over 0x7F
  */
-uint8_t ssh1107_set_column_address_range(ssh1107_handle_t *handle, uint8_t start_addr, uint8_t end_addr);
+uint8_t sh1107_set_column_address_range(sh1107_handle_t *handle, uint8_t start_addr, uint8_t end_addr);
 
 /**
  * @brief     set the page address range
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] start_addr page start address
  * @param[in] end_addr page end address
  * @return    status code
@@ -635,11 +648,11 @@ uint8_t ssh1107_set_column_address_range(ssh1107_handle_t *handle, uint8_t start
  *            - 5 end addr is invalid
  * @note      start addr and end addr can't be over 0x0F
  */
-uint8_t ssh1107_set_page_address_range(ssh1107_handle_t *handle, uint8_t start_addr, uint8_t end_addr);
+uint8_t sh1107_set_page_address_range(sh1107_handle_t *handle, uint8_t start_addr, uint8_t end_addr);
 
 /**
  * @brief     set the display start line
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] l start line
  * @return    status code
  *            - 0 success
@@ -649,11 +662,11 @@ uint8_t ssh1107_set_page_address_range(ssh1107_handle_t *handle, uint8_t start_a
  *            - 4 line is invalid
  * @note      line <= 0x7F
  */
-uint8_t ssh1107_set_display_start_line(ssh1107_handle_t *handle, uint8_t l);
+uint8_t sh1107_set_display_start_line(sh1107_handle_t *handle, uint8_t l);
 
 /**
  * @brief     set the display contrast
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] contrast display contrast
  * @return    status code
  *            - 0 success
@@ -662,11 +675,11 @@ uint8_t ssh1107_set_display_start_line(ssh1107_handle_t *handle, uint8_t l);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_contrast(ssh1107_handle_t *handle, uint8_t contrast);
+uint8_t sh1107_set_contrast(sh1107_handle_t *handle, uint8_t contrast);
 
 /**
  * @brief     set the segment remap
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] remap segment remap param
  * @return    status code
  *            - 0 success
@@ -675,11 +688,11 @@ uint8_t ssh1107_set_contrast(ssh1107_handle_t *handle, uint8_t contrast);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_segment_remap(ssh1107_handle_t *handle, uint8_t remap);
+uint8_t sh1107_set_segment_remap(sh1107_handle_t *handle, uint8_t remap);
 
 /**
  * @brief     enable or disable the entire display
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] enable bool value
  * @return    status code
  *            - 0 success
@@ -688,11 +701,11 @@ uint8_t ssh1107_set_segment_remap(ssh1107_handle_t *handle, uint8_t remap);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_entire_display(ssh1107_handle_t *handle, ssh1107_entire_display_t enable);
+uint8_t sh1107_set_entire_display(sh1107_handle_t *handle, sh1107_entire_display_t enable);
 
 /**
  * @brief     set the display mode
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] mode display mode
  * @return    status code
  *            - 0 success
@@ -701,11 +714,11 @@ uint8_t ssh1107_set_entire_display(ssh1107_handle_t *handle, ssh1107_entire_disp
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_display_mode(ssh1107_handle_t *handle, ssh1107_display_mode_t mode);
+uint8_t sh1107_set_display_mode(sh1107_handle_t *handle, sh1107_display_mode_t mode);
 
 /**
  * @brief     set the multiplex ratio
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] multiplex multiplex ratio
  * @return    status code
  *            - 0 success
@@ -716,11 +729,11 @@ uint8_t ssh1107_set_display_mode(ssh1107_handle_t *handle, ssh1107_display_mode_
  *            - 5 multiplex is too large
  * @note      multiplex must be over 0x0E and less than 0x40
  */
-uint8_t ssh1107_set_multiplex_ratio(ssh1107_handle_t *handle, uint8_t multiplex);
+uint8_t sh1107_set_multiplex_ratio(sh1107_handle_t *handle, uint8_t multiplex);
 
 /**
  * @brief     enable or disable the display
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] on_off bool value
  * @return    status code
  *            - 0 success
@@ -729,11 +742,11 @@ uint8_t ssh1107_set_multiplex_ratio(ssh1107_handle_t *handle, uint8_t multiplex)
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_display(ssh1107_handle_t *handle, ssh1107_display_t on_off);
+uint8_t sh1107_set_display(sh1107_handle_t *handle, sh1107_display_t on_off);
 
 /**
  * @brief     set the page address
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] addr page address
  * @return    status code
  *            - 0 success
@@ -743,11 +756,11 @@ uint8_t ssh1107_set_display(ssh1107_handle_t *handle, ssh1107_display_t on_off);
  *            - 4 addr is invalid
  * @note      addr <= 0x0F
  */
-uint8_t ssh1107_set_page_address(ssh1107_handle_t *handle, uint8_t addr);
+uint8_t sh1107_set_page_address(sh1107_handle_t *handle, uint8_t addr);
 
 /**
  * @brief     set the scan direction
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] dir scan direction
  * @return    status code
  *            - 0 success
@@ -756,11 +769,11 @@ uint8_t ssh1107_set_page_address(ssh1107_handle_t *handle, uint8_t addr);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_scan_direction(ssh1107_handle_t *handle, uint8_t dir);
+uint8_t sh1107_set_scan_direction(sh1107_handle_t *handle, uint8_t dir);
 
 /**
  * @brief     set the display offset
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] offset display offset
  * @return    status code
  *            - 0 success
@@ -770,11 +783,11 @@ uint8_t ssh1107_set_scan_direction(ssh1107_handle_t *handle, uint8_t dir);
  *            - 4 offset is invalid
  * @note      offset <= 0x7F
  */
-uint8_t ssh1107_set_display_offset(ssh1107_handle_t *handle, uint8_t offset);
+uint8_t sh1107_set_display_offset(sh1107_handle_t *handle, uint8_t offset);
 
 /**
  * @brief     set the display clock
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] oscillator_frequency oscillator frequency
  * @param[in] clock_divide clock divide
  * @return    status code
@@ -786,11 +799,11 @@ uint8_t ssh1107_set_display_offset(ssh1107_handle_t *handle, uint8_t offset);
  *            - 5 clock divide is invalid
  * @note      oscillator_frequency <= 0x0F, clock_divide <= 0x0F
  */
-uint8_t ssh1107_set_display_clock(ssh1107_handle_t *handle, uint8_t oscillator_frequency, uint8_t clock_divide);
+uint8_t sh1107_set_display_clock(sh1107_handle_t *handle, uint8_t oscillator_frequency, uint8_t clock_divide);
 
 /**
  * @brief     set the pre charge period
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] phase1_period phase1 period
  * @param[in] phase2_period phase2 period
  * @return    status code
@@ -802,11 +815,11 @@ uint8_t ssh1107_set_display_clock(ssh1107_handle_t *handle, uint8_t oscillator_f
  *            - 5 phase2 period is invalid
  * @note      phase1_period <= 0x0F, phase2_period <= 0x0F
  */
-uint8_t ssh1107_set_precharge_period(ssh1107_handle_t *handle, uint8_t phase1_period, uint8_t phase2_period);
+uint8_t sh1107_set_precharge_period(sh1107_handle_t *handle, uint8_t phase1_period, uint8_t phase2_period);
 
 /**
  * @brief     set the deselect level
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] level deselect level
  * @return    status code
  *            - 0 success
@@ -815,22 +828,22 @@ uint8_t ssh1107_set_precharge_period(ssh1107_handle_t *handle, uint8_t phase1_pe
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_set_deselect_level(ssh1107_handle_t *handle, ssh1107_deselect_level_t level);
+uint8_t sh1107_set_deselect_level(sh1107_handle_t *handle, sh1107_deselect_level_t level);
 
 /**
  * @}
  */
 
 /**
- * @defgroup ssh1107_extend_driver ssh1107 extend driver function
- * @brief    ssh1107 extend driver modules
- * @ingroup  ssh1107_driver
+ * @defgroup sh1107_extend_driver sh1107 extend driver function
+ * @brief    sh1107 extend driver modules
+ * @ingroup  sh1107_driver
  * @{
  */
 
 /**
  * @brief     write the register command
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] *buf pointer to a data buffer
  * @param[in] len data length
  * @return    status code
@@ -840,11 +853,11 @@ uint8_t ssh1107_set_deselect_level(ssh1107_handle_t *handle, ssh1107_deselect_le
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_write_cmd(ssh1107_handle_t *handle, uint8_t *buf, uint8_t len);
+uint8_t sh1107_write_cmd(sh1107_handle_t *handle, uint8_t *buf, uint8_t len);
 
 /**
  * @brief     write the register data
- * @param[in] *handle pointer to an ssh1107 handle structure
+ * @param[in] *handle pointer to an sh1107 handle structure
  * @param[in] *buf pointer to a data buffer
  * @param[in] len data length
  * @return    status code
@@ -854,7 +867,7 @@ uint8_t ssh1107_write_cmd(ssh1107_handle_t *handle, uint8_t *buf, uint8_t len);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t ssh1107_write_data(ssh1107_handle_t *handle, uint8_t *buf, uint8_t len);
+uint8_t sh1107_write_data(sh1107_handle_t *handle, uint8_t *buf, uint8_t len);
 
 /**
  * @}

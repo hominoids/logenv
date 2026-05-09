@@ -312,25 +312,25 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 }
 
 
-uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
+uint8_t sh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
     if(cmd == DISPLAY_OPEN) {
 
-        SSH1107_ADVANCE_DEFAULT_CONTRAST = ptr->contrast;
-        SSH1107_ADVANCE_DEFAULT_SEGMENT = ptr->segment_column_address;
-        SSH1107_ADVANCE_DEFAULT_SCAN_DIRECTION = ptr->scan_direction_start;
-        SSH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
-        SSH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
+        SH1107_ADVANCE_DEFAULT_CONTRAST = ptr->contrast;
+        SH1107_ADVANCE_DEFAULT_SEGMENT = ptr->segment_column_address;
+        SH1107_ADVANCE_DEFAULT_SCAN_DIRECTION = ptr->scan_direction_start;
+        SH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
+        SH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
 
-        if(ssh1107_advance_init(SSD1306_INTERFACE_IIC, ptr->address)) {
-            printf("\nERROR: Cannot open ssh1107 %d %d\n", SSD1306_INTERFACE_IIC, ptr->address);
+        if(sh1107_advance_init(SSD1306_INTERFACE_IIC, ptr->address)) {
+            printf("\nERROR: Cannot open sh1107 %d %d\n", SSD1306_INTERFACE_IIC, ptr->address);
             return(1);
         }
         return(0);
     }
     if(cmd == DISPLAY_UPDATE) {
-        if(ssh1107_gram_update(&ssh1107_handle) != 0) {
-            ssh1107_interface_debug_print("ssh1107: update failed.\n");
+        if(sh1107_gram_update(&sh1107_handle) != 0) {
+            sh1107_interface_debug_print("sh1107: update failed.\n");
             return(1);
         }
         return(0);
@@ -347,10 +347,10 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
                 strcat(buffer, " ");
             }
         }
-        if(ssh1107_gram_write_string(&ssh1107_handle, ptr->dc[dcidx].xloc, \
+        if(sh1107_gram_write_string(&sh1107_handle, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
-            ssh1107_interface_debug_print("ssh1107: time string write failed.\n");
+            sh1107_interface_debug_print("sh1107: time string write failed.\n");
             return(1);
         }
         return(0);
@@ -367,10 +367,10 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
                 strcat(buffer, " ");
             }
         }
-        if(ssh1107_gram_write_string(&ssh1107_handle, ptr->dc[dcidx].xloc, \
+        if(sh1107_gram_write_string(&sh1107_handle, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
-            ssh1107_interface_debug_print("ssh1107: date string write failed.\n");
+            sh1107_interface_debug_print("sh1107: date string write failed.\n");
             return(1);
         }
         return(0);
@@ -410,10 +410,10 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].type,"TN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(ssh1107_gram_write_string(&ssh1107_handle, ptr->dc[dcidx].xloc, \
+        if(sh1107_gram_write_string(&sh1107_handle, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
-            ssh1107_interface_debug_print("ssh1107: display string write failed.\n");
+            sh1107_interface_debug_print("sh1107: display string write failed.\n");
             return(1);
         }
         return(0);
@@ -452,10 +452,10 @@ uint8_t ssh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
-        if(ssh1107_gram_write_string(&ssh1107_handle, ptr->dc[dcidx].xloc, \
+        if(sh1107_gram_write_string(&sh1107_handle, ptr->dc[dcidx].xloc, \
             ptr->dc[dcidx].yloc, buffer, (uint16_t)strlen(buffer), 1, \
             fontoi(ptr->dc[dcidx].font)) != 0) {
-            ssh1107_interface_debug_print("ssh1107: date string write failed.\n");
+            sh1107_interface_debug_print("sh1107: date string write failed.\n");
             return(1);
         }
         return(0);

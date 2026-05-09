@@ -34,7 +34,7 @@ static void sig_handler(int);
 
 extern uint8_t ssd1681(struct display *, uint8_t, uint8_t);
 extern uint8_t ssd1306(struct display *, uint8_t, uint8_t);
-extern uint8_t ssh1107(struct display *, uint8_t, uint8_t);
+extern uint8_t sh1107(struct display *, uint8_t, uint8_t);
 extern uint8_t st7789(struct display *, uint8_t, uint8_t);
 
 uint8_t SSD1306_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = SSD1306_LEFT_RIGHT_REMAP_DISABLE;
@@ -44,11 +44,11 @@ uint8_t SSD1306_ADVANCE_DEFAULT_SEGMENT = SSD1306_SEGMENT_COLUMN_ADDRESS_0;
 uint8_t SSD1306_ADVANCE_DEFAULT_CONTRAST = 0xCF;
 uint8_t SSD1306_ADVANCE_DEFAULT_MULTIPLEX_RATIO = 63;
 
-uint8_t SSH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = SSH1107_LEFT_RIGHT_REMAP_DISABLE;
-uint8_t SSH1107_ADVANCE_DEFAULT_SCAN_DIRECTION = SSH1107_SCAN_DIRECTION_COM0_START;
-uint8_t SSH1107_ADVANCE_DEFAULT_SEGMENT = SSH1107_SEGMENT_COLUMN_ADDRESS_0;
-uint8_t SSH1107_ADVANCE_DEFAULT_CONTRAST = 0xCF;
-uint8_t SSH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = 127;
+uint8_t SH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = SH1107_LEFT_RIGHT_REMAP_DISABLE;
+uint8_t SH1107_ADVANCE_DEFAULT_SCAN_DIRECTION = SH1107_SCAN_DIRECTION_COM0_START;
+uint8_t SH1107_ADVANCE_DEFAULT_SEGMENT = SH1107_SEGMENT_COLUMN_ADDRESS_0;
+uint8_t SH1107_ADVANCE_DEFAULT_CONTRAST = 0xCF;
+uint8_t SH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = 127;
 
 static volatile sig_atomic_t go = 1;
 
@@ -79,10 +79,10 @@ char ssd1306_iic_dev[14] = "/dev/i2c-0";
 char ssd1306_spi_dev[14] = "/dev/spidev0.0";
 uint8_t ssd1306_iic_init = 0;
 
-uint16_t ssh1107_iic_addr = 0x3d << 1;
-char ssh1107_iic_dev[14] = "/dev/i2c-0";
-char ssh1107_spi_dev[14] = "/dev/spidev0.0";
-uint8_t ssh1107_iic_init = 0;
+uint16_t sh1107_iic_addr = 0x3d << 1;
+char sh1107_iic_dev[14] = "/dev/i2c-0";
+char sh1107_spi_dev[14] = "/dev/spidev0.0";
+uint8_t sh1107_iic_init = 0;
 
 int16_t pwr_in;
 uint16_t mcp9808_in;
@@ -213,7 +213,7 @@ static int8_t BME680_ENABLE = 0;
 static int8_t DISPLAY_ENABLE = 0;
 static int8_t SSD1681_ENABLE = 0;
 static int8_t SSD1306_ENABLE = 0;
-static int8_t SSH1107_ENABLE = 0;
+static int8_t SH1107_ENABLE = 0;
 static int8_t ST7789_ENABLE = 0;
 static int8_t DP_TIME = 0;
 static int8_t DP_DATE = 0;

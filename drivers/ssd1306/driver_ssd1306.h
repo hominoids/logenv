@@ -471,6 +471,18 @@ uint8_t ssd1306_init(ssd1306_handle_t *handle);
 uint8_t ssd1306_deinit(ssd1306_handle_t *handle);
 
 /**
+ * @brief     clear the screen in the gram
+ * @param[in] *handle pointer to an ssd1306 handle structure
+ * @return    status code
+ *            - 0 success
+ *            - 1 clear failed
+ *            - 2 handle is NULL
+ *            - 3 handle is not initialized
+ * @note      none
+ */
+uint8_t ssd1306_gram_clear(ssd1306_handle_t *handle);
+
+/**
  * @brief     clear the screen
  * @param[in] *handle pointer to an ssd1306 handle structure
  * @return    status code

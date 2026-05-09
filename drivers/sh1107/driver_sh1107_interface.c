@@ -19,10 +19,10 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE. 
+ * SOFTWARE.i 
  *
- * @file      driver_ssh1107_interface.h
- * @brief     driver ssh1107 interface header file
+ * @file      raspberrypi4b_driver_sh1107_interface.c
+ * @brief     raspberrypi4b driver sh1107 interface source file
  * @version   2.0.0
  * @author    Shifeng Li
  * @date      2021-03-30
@@ -35,21 +35,31 @@
  * </table>
  */
 
-#ifndef DRIVER_SSH1107_INTERFACE_H
-#define DRIVER_SSH1107_INTERFACE_H
-
-#include "driver_ssh1107.h"
-
-#ifdef __cplusplus
-extern "C"{
-#endif
+#include "driver_sh1107_interface.h"
+#include "../interface/iic.h"
+#include "../interface/spi.h"
+#include "../interface/wire.h"
+#include <stdarg.h>
 
 /**
- * @defgroup ssh1107_interface_driver ssh1107 interface driver function
- * @brief    ssh1107 interface driver modules
- * @ingroup  ssh1107_driver
- * @{
+ * @brief iic device name definition
  */
+extern char sh1107_iic_dev;
+
+/**
+ * @brief spi device name definition
+ */
+extern char sh1107_spi_dev;
+
+/**
+ * @brief iic device handle definition
+ */
+static int gs_iic_fd;                       /**< iic handle */
+
+/**
+ * @brief spi device handle definition
+ */
+static int gs_spi_fd;                       /**< spi handle */
 
 /**
  * @brief  interface iic bus init
@@ -58,7 +68,10 @@ extern "C"{
  *         - 1 iic init failed
  * @note   none
  */
-uint8_t ssh1107_interface_iic_init(void);
+uint8_t sh1107_interface_iic_init(void)
+{
+    return iic_init(&sh1107_iic_dev, &gs_iic_fd);
+}
 
 /**
  * @brief  interface iic bus deinit
@@ -67,7 +80,10 @@ uint8_t ssh1107_interface_iic_init(void);
  *         - 1 iic deinit failed
  * @note   none
  */
-uint8_t ssh1107_interface_iic_deinit(void);
+uint8_t sh1107_interface_iic_deinit(void)
+{
+    return iic_deinit(gs_iic_fd);
+}
 
 /**
  * @brief     interface iic bus write
@@ -80,7 +96,10 @@ uint8_t ssh1107_interface_iic_deinit(void);
  *            - 1 write failed
  * @note      none
  */
-uint8_t ssh1107_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uint16_t len);
+uint8_t sh1107_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uint16_t len)
+{
+    return iic_write(gs_iic_fd, addr, reg, buf, len);
+}
 
 /**
  * @brief  interface spi bus init
@@ -89,7 +108,10 @@ uint8_t ssh1107_interface_iic_write(uint8_t addr, uint8_t reg, uint8_t *buf, uin
  *         - 1 spi init failed
  * @note   none
  */
-uint8_t ssh1107_interface_spi_init(void);
+uint8_t sh1107_interface_spi_init(void)
+{
+    return spi_init(&sh1107_spi_dev, &gs_spi_fd, SPI_MODE_TYPE_3, 1000 * 1000);
+}
 
 /**
  * @brief  interface spi bus deinit
@@ -98,7 +120,10 @@ uint8_t ssh1107_interface_spi_init(void);
  *         - 1 spi deinit failed
  * @note   none
  */
-uint8_t ssh1107_interface_spi_deinit(void);
+uint8_t sh1107_interface_spi_deinit(void)
+{
+    return spi_deinit(gs_spi_fd);
+}
 
 /**
  * @brief     interface spi bus write
@@ -109,21 +134,40 @@ uint8_t ssh1107_interface_spi_deinit(void);
  *            - 1 write failed
  * @note      none
  */
-uint8_t ssh1107_interface_spi_write_cmd(uint8_t *buf, uint16_t len);
+uint8_t sh1107_interface_spi_write_cmd(uint8_t *buf, uint16_t len)
+{
+    return spi_write_cmd(gs_spi_fd, buf, len);
+}
 
 /**
  * @brief     interface delay ms
  * @param[in] ms time
  * @note      none
  */
-void ssh1107_interface_delay_ms(uint32_t ms);
+void sh1107_interface_delay_ms(uint32_t ms)
+{
+    usleep(1000 * ms);
+}
 
 /**
  * @brief     interface print format data
  * @param[in] fmt format data
  * @note      none
  */
-void ssh1107_interface_debug_print(const char *const fmt, ...);
+void sh1107_interface_debug_print(const char *const fmt, ...)
+{
+    char str[256];
+    uint16_t len;
+    va_list args;
+    
+    memset((char *)str, 0, sizeof(char) * 256); 
+    va_start(args, fmt);
+    vsnprintf((char *)str, 255, (char const *)fmt, args);
+    va_end(args);
+    
+    len = strlen((char *)str);
+    (void)printf((uint8_t *)str, len);
+}
 
 /**
  * @brief  interface command && data gpio init
@@ -132,7 +176,10 @@ void ssh1107_interface_debug_print(const char *const fmt, ...);
  *         - 1 gpio init failed
  * @note   none
  */
-uint8_t ssh1107_interface_spi_cmd_data_gpio_init(void);
+uint8_t sh1107_interface_spi_cmd_data_gpio_init(void)
+{
+    return wire_init();
+}
 
 /**
  * @brief  interface command && data gpio deinit
@@ -141,7 +188,10 @@ uint8_t ssh1107_interface_spi_cmd_data_gpio_init(void);
  *         - 1 gpio deinit failed
  * @note   none
  */
-uint8_t ssh1107_interface_spi_cmd_data_gpio_deinit(void);
+uint8_t sh1107_interface_spi_cmd_data_gpio_deinit(void)
+{
+    return wire_deinit();
+}
 
 /**
  * @brief     interface command && data gpio write
@@ -151,7 +201,10 @@ uint8_t ssh1107_interface_spi_cmd_data_gpio_deinit(void);
  *            - 1 gpio write failed
  * @note      none
  */
-uint8_t ssh1107_interface_spi_cmd_data_gpio_write(uint8_t value);
+uint8_t sh1107_interface_spi_cmd_data_gpio_write(uint8_t value)
+{
+    return wire_write(value);
+}
 
 /**
  * @brief  interface reset gpio init
@@ -160,7 +213,10 @@ uint8_t ssh1107_interface_spi_cmd_data_gpio_write(uint8_t value);
  *         - 1 gpio init failed
  * @note   none
  */
-uint8_t ssh1107_interface_reset_gpio_init(void);
+uint8_t sh1107_interface_reset_gpio_init(void)
+{
+    return wire_clock_init();
+}
 
 /**
  * @brief  interface reset gpio deinit
@@ -169,7 +225,10 @@ uint8_t ssh1107_interface_reset_gpio_init(void);
  *         - 1 gpio deinit failed
  * @note   none
  */
-uint8_t ssh1107_interface_reset_gpio_deinit(void);
+uint8_t sh1107_interface_reset_gpio_deinit(void)
+{
+    return wire_clock_deinit();
+}
 
 /**
  * @brief     interface reset gpio write
@@ -179,14 +238,7 @@ uint8_t ssh1107_interface_reset_gpio_deinit(void);
  *            - 1 gpio write failed
  * @note      none
  */
-uint8_t ssh1107_interface_reset_gpio_write(uint8_t value);
-
-/**
- * @}
- */
-
-#ifdef __cplusplus
+uint8_t sh1107_interface_reset_gpio_write(uint8_t value)
+{
+    return wire_clock_write(value);
 }
-#endif
-
-#endif

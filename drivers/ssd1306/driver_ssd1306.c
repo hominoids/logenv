@@ -350,6 +350,42 @@ static uint8_t a_ssd1306_gram_show_char(ssd1306_handle_t *handle, uint8_t x, uin
 }
 
 /**
+ * @brief     clear the screen in the gram
+ * @param[in] *handle pointer to an ssd1306 handle structure
+ * @param[in] color color type
+ * @return    status code
+ *            - 0 success
+ *            - 1 clear failed
+ *            - 2 handle is NULL
+ *            - 3 handle is not initialized
+ * @note      none
+ */
+uint8_t ssd1306_gram_clear(ssd1306_handle_t *handle)
+{
+    uint8_t i;
+    uint8_t j;
+
+    if (handle == NULL)                                 /* check handle */
+    {
+        return 2;                                       /* return error */
+    }
+    if (handle->inited != 1)                            /* check handle initialization */
+    {
+        return 3;                                       /* return error */
+    }
+
+    for (i = 0; i < 127; i++)                           /* x */
+    {
+        for (j = 0; j < 7; j++)                         /* y */
+        {
+            handle->gram[i][j] = 0x00;                  /* set 0x00 */
+        }
+    }
+
+    return 0;                                           /* success return 0 */
+}
+
+/**
  * @brief     clear the screen
  * @param[in] *handle pointer to an ssd1306 handle structure
  * @return    status code

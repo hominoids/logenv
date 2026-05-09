@@ -321,7 +321,7 @@
         ]
     },
     {
-        "name": "ssh1107",
+        "name": "sh1107",
         "device": "/dev/i2c-0",
         "address": 61,
         "xsize": 128,

@@ -24,7 +24,7 @@
 
 #include "./ssd1681/driver_ssd1681_basic.h"
 #include "./ssd1306/driver_ssd1306_advance.h"
-#include "./ssh1107/driver_ssh1107_advance.h"
+#include "./sh1107/driver_sh1107_advance.h"
 #include "./st7789/driver_st7789_basic.h"
 #include "./bmp180/driver_bmp180_basic.h"
 #include "./bmp388/driver_bmp388_basic.h"
@@ -57,7 +57,7 @@ extern "C"{
 
 extern ssd1681_handle_t ssd1681_handle;
 extern ssd1306_handle_t ssd1306_handle;
-extern ssh1107_handle_t ssh1107_handle;
+extern sh1107_handle_t sh1107_handle;
 extern st7789_handle_t st7789_handle;
 
 uint8_t fontoi(char *);
