@@ -275,14 +275,19 @@ DESCRIPTION: displays time at xloc, yloc using font.
 ***frequency***
 ```
     COMMAND: frequency
-DESCRIPTION: displays core frequencies at xloc, yloc using font.
+DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
+
+       TYPE: D = datum
+       		N = name
+       		DN = datum name
+       		ND = name datum
 
 	EXAMPLE:       
 			{
 			"name": "frequency",
 			"device": "",
 			"address": 0,
-			"type": "",
+			"type": "D",
 			"xloc": 10,
 			"yloc": 40,
 			"color": 0,
@@ -297,18 +302,23 @@ DESCRIPTION: displays core frequencies at xloc, yloc using font.
     COMMAND: thermal
 DESCRIPTION: displays thermal temps at xloc, yloc using font.
 
+       TYPE: D = datum
+       		N = name
+       		DN = datum name
+       		ND = name datum
+
 	EXAMPLE:       
 			{
 			"name": "thermal",
 			"device": "",
 			"address": 0,
-			"type": "",
+			"type": "ND",
 			"xloc": 10,
 			"yloc": 40,
 			"color": 0,
 			"font": "MONOSPACE_16",
 			"label": "",
-			"unit": ""
+			"unit": "c"
 			},
 ```
 
@@ -337,12 +347,17 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
     COMMAND: usage
 DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
+       TYPE: D = datum
+       		N = name
+       		DN = datum name
+       		ND = name datum
+
 	EXAMPLE:       
 			{
 			"name": "usage",
 			"device": "",
 			"address": 0,
-			"type": "",
+			"type": "ND",
 			"xloc": 10,
 			"yloc": 40,
 			"color": 0,
