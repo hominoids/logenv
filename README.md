@@ -277,6 +277,7 @@ DESCRIPTION: displays time at xloc, yloc using font.
     COMMAND: frequency
 DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
 
+     DEVICE: empty for all cores or core number
        TYPE: D = datum
        		N = name
        		DN = datum name
@@ -302,6 +303,7 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
     COMMAND: thermal
 DESCRIPTION: displays thermal temps at xloc, yloc using font.
 
+     DEVICE: empty for all zones or zone number
        TYPE: D = datum
        		N = name
        		DN = datum name
@@ -310,7 +312,7 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
 	EXAMPLE:       
 			{
 			"name": "thermal",
-			"device": "",
+			"device": "0",
 			"address": 0,
 			"type": "ND",
 			"xloc": 10,
@@ -347,6 +349,7 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
     COMMAND: usage
 DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
+     DEVICE: empty for all cores or core number, 0 is total usage
        TYPE: D = datum
        		N = name
        		DN = datum name

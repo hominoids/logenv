@@ -87,13 +87,13 @@ uint8_t sh1107_iic_init = 0;
 int16_t pwr_in;
 uint16_t mcp9808_in;
 
-uint16_t bme280_iic_addr = 0x77 << 1;
+uint16_t bme280_iic_addr = 0x76 << 1;
 char bme280_iic_dev[14] = "/dev/i2c-0";
 uint8_t bme280_iic_init = 0;
 char bme280_spi_dev[18] = "/dev/spidev0.0";
 
 uint16_t bme680_iic_addr = 0x77 << 1;
-char bme680_iic_dev[14] = "/dev/i2c-1";
+char bme680_iic_dev[14] = "/dev/i2c-0";
 char bme680_spi_dev[18] = "/dev/spidev0.0";
 uint8_t bme680_iic_init = 0;
 
@@ -181,7 +181,7 @@ char spline2[5];
 char logfile[255];
 char gplotfile[255];
 char jsonfile[255];
-char version[] = "1.0";
+char version[] = "2.0 alpha";
 char one2one[] = "1,1";
 char two2one[] = "2,1";
 char three2one[] = "3,1";

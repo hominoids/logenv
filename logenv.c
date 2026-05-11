@@ -1211,7 +1211,10 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "frequency") && dp[d].page == page) {
+
+                            int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, NULL, 0);
+
+                            if(!strcmp(dp[d].dc[i].name, "frequency") && dp[d].page == page && (r == -1 || r == c)) {
 
                                 uint16_t yloc_reset = dp[d].dc[i].yloc;
                                 char buffer[25];
@@ -1220,8 +1223,9 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", (double)freq/1000000);
                                 strcpy(dp[d].dc[i].data2, buffer);
-                                dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
-
+                                if(r == -1) {
+                                    dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
+                                }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                     printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                 }
@@ -1343,7 +1347,10 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "thermal") && dp[d].page == page) {
+
+                            int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, NULL, 0);
+
+                            if(!strcmp(dp[d].dc[i].name, "thermal") && dp[d].page == page && (r == -1 || r == c)) {
 
                                 uint16_t yloc_reset = dp[d].dc[i].yloc;
                                 char buffer[25];
@@ -1352,8 +1359,9 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", coretemp/1000);
                                 strcpy(dp[d].dc[i].data2, buffer);
-                                dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
-
+                                if(r == -1) {
+                                    dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
+                                }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                     printf("%s thermal cmd %d failed\n", &dp[d].name, i);
                                 }
@@ -2889,7 +2897,10 @@ int main(uint8_t argc, char **argv) {
                     if(DP_USAGE != 0) {
                         for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                             for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                                if(!strcmp(dp[d].dc[i].name, "usage") && dp[d].page == page) {
+
+                                int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, NULL, 0);
+
+                                if(!strcmp(dp[d].dc[i].name, "usage") && dp[d].page == page && (r == -1 || r == c)) {
 
                                     uint16_t yloc_reset = dp[d].dc[i].yloc;
                                     char buffer[25];
@@ -2904,8 +2915,9 @@ int main(uint8_t argc, char **argv) {
                                     }
                                     sprintf(buffer, "%.2f", r);
                                     strcpy(dp[d].dc[i].data2, buffer);
-                                    dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
-
+                                    if(r == -1) {
+                                        dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
+                                    }
                                     if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                         printf("%s usage cmd %d failed\n", &dp[d].name, i);
                                     }
@@ -3469,11 +3481,11 @@ int main(uint8_t argc, char **argv) {
     if (BMP390_ENABLE == 1 || DP_BMP390 != 0) {
         (void)bmp390_basic_deinit();
     }
+    if (SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
+        (void)bmp180_basic_deinit();
+    }
     if (SENSOR_ENABLE == 2 || DP_BME280 != 0) {
         (void)bme280_basic_deinit();
-    }
-    if (SENSOR_ENABLE == 8 || DP_BME680 != 0) {
-        (void)bme680_gas_deinit();
     }
     if (SENSOR_ENABLE == 3 || DP_MCP9808 != 0) {
         close(mcp9808_in);
@@ -3490,6 +3502,9 @@ int main(uint8_t argc, char **argv) {
     if (SENSOR_ENABLE == 7 || DP_HTU31D != 0) {
         (void)htu31d_basic_deinit();
     }
+    if (SENSOR_ENABLE == 8 || DP_BME680 != 0) {
+        (void)bme680_gas_deinit();
+    }
 }
 
 
@@ -3503,10 +3518,11 @@ void usage (void) {
         printf(" -i,  --milliseconds <number> Poll Interval <number> in milliseconds\n");
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -a,  --bme280 <device>       Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf(" -a,  --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
         printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
-        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77\n");
-        printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77\n");
+        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
         printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
         printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
         printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");

@@ -85,7 +85,7 @@
             "color": 0,
             "font": "DEFAULT_24",
             "label": "Pres: ",
-            "unit": " hPa"
+            "unit": "hPa"
             },
             {
             "name": "scd41",
