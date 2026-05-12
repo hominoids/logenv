@@ -134,10 +134,22 @@
             "address": 0,
             "type": "short",
             "xloc": 0,
-            "yloc": 10,
+            "yloc": 0,
             "color": 0,
             "font": "MONOSPACE_16",
             "label": "uptime ",
+            "unit": ""
+            },
+            {
+            "name": "kernel",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 0,
+            "yloc": 20,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "kernel ",
             "unit": ""
             },
             {
@@ -388,11 +400,23 @@
             "device": "",
             "address": 0,
             "type": "",
-            "xloc": 20,
-            "yloc": 75,
+            "xloc": 25,
+            "yloc": 72,
             "color": 0,
-            "font": "MONOSPACE_16",
+            "font": "MONOSPACE_12",
             "label": "",
+            "unit": ""
+            },
+            {
+            "name": "kernel",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 14,
+            "yloc": 85,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "kernel ",
             "unit": ""
             },
             {

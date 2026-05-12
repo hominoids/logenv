@@ -231,8 +231,8 @@ Most entries in the json file are self explanatory with the possible exception o
 DESCRIPTION: displays date at xloc, yloc using font.
 
        TYPE: default mm/dd/yyyy
-			 short  Fri 01-May-26
-			 long   Friday 01 May 2026
+			 short   Fri 01-May-26
+			 long    Friday 01 May 2026
 	EXAMPLE:
 			{
 			"name": "date",
@@ -249,26 +249,26 @@ DESCRIPTION: displays date at xloc, yloc using font.
 			
 ```
 
-***time***
+***disk***
 ```
-    COMMAND: time
-DESCRIPTION: displays time at xloc, yloc using font.
+    COMMAND: disk
+DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 
-       TYPE: default 4:00 PM
-			 12		04:00
-			 24		16:00
+	 DEVICE: path
+	   TYPE: free, used, percent
+	   
 	EXAMPLE:       
 			{
-			"name": "time",
-			"device": "",
+			"name": "disk",
+			"device": "/",
 			"address": 0,
-			"type": "24",
+			"type": "free",
 			"xloc": 10,
 			"yloc": 40,
 			"color": 0,
-			"font": "MONOSPACE_36",
-			"label": "",
-			"unit": ""
+			"font": "MONOSPACE_16",
+			"label": "/ ",
+			"unit": "G free"
 			},
 ```
 
@@ -279,9 +279,9 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
 
      DEVICE: empty for all cores or core number
        TYPE: D = datum
-       		N = name
-       		DN = datum name
-       		ND = name datum
+       		 N = name
+       		 DN = datum name
+       		 ND = name datum
 
 	EXAMPLE:       
 			{
@@ -289,78 +289,6 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
 			"device": "",
 			"address": 0,
 			"type": "D",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
-```
-
-***thermal***
-```
-    COMMAND: thermal
-DESCRIPTION: displays thermal temps at xloc, yloc using font.
-
-     DEVICE: empty for all zones or zone number
-       TYPE: D = datum
-       		N = name
-       		DN = datum name
-       		ND = name datum
-
-	EXAMPLE:       
-			{
-			"name": "thermal",
-			"device": "0",
-			"address": 0,
-			"type": "ND",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": "c"
-			},
-```
-
-***memory***
-```
-    COMMAND: memory
-DESCRIPTION: displays memory usage at xloc, yloc using font.
-
-	EXAMPLE:       
-			{
-			"name": "memory",
-			"device": "",
-			"address": 0,
-			"type": "",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
-```
-
-***usage***
-```
-    COMMAND: usage
-DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
-
-     DEVICE: empty for all cores or core number, 0 is total usage
-       TYPE: D = datum
-       		N = name
-       		DN = datum name
-       		ND = name datum
-
-	EXAMPLE:       
-			{
-			"name": "usage",
-			"device": "",
-			"address": 0,
-			"type": "ND",
 			"xloc": 10,
 			"yloc": 40,
 			"color": 0,
@@ -392,40 +320,14 @@ DESCRIPTION: displays governor from device at xloc, yloc using font.
 			},
 ```
 
-***disk***
+***hostname***
 ```
-    COMMAND: disk
-DESCRIPTION: displays mounted disk info at xloc, yloc using font.
+    COMMAND: hostname
+DESCRIPTION: displays hostname at xloc, yloc using font.
 
-	 DEVICE: path
-	   TYPE: free, used, percent
-	   
 	EXAMPLE:       
 			{
-			"name": "disk",
-			"device": "/",
-			"address": 0,
-			"type": "free",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "/ ",
-			"unit": "G free"
-			},
-```
-
-***uptime***
-```
-    COMMAND: uptime
-DESCRIPTION: displays uptime at xloc, yloc using font.
-
-	   TYPE: short %d days HH:MM
-	   		 long  %ddays, %dhours, %dminutes
-	   		 
-	EXAMPLE:       
-			{
-			"name": "uptime",
+			"name": "hostname",
 			"device": "",
 			"address": 0,
 			"type": "short",
@@ -436,6 +338,78 @@ DESCRIPTION: displays uptime at xloc, yloc using font.
 			"label": "",
 			"unit": ""
 			},
+```
+
+***kernel***
+```
+    COMMAND: kernel
+DESCRIPTION: displays kernel version at xloc, yloc using font.
+
+	EXAMPLE:       
+			{
+			"name": "kernel",
+			"device": "",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "DEFAULT_12",
+			"label": "kernel ",
+			"unit": ""
+			},
+```
+
+***memory***
+```
+    COMMAND: memory
+DESCRIPTION: displays memory usage at xloc, yloc using font.
+
+	EXAMPLE:       
+			{
+			"name": "memory",
+			"device": "",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
+```
+
+***sensor***
+
+AHT20,HTU31,SHT40,SHT41,SHT43,SHT45,SHTC3,MCP9808,BME280,BME680,BMP180,BMP388,BMP390,SCD30,SCD40,SCD41,SCD43,SGP30
+
+7-bits I2C address in decimal e.g. 119 = 0x77
+
+```
+    COMMAND: *sensor* name
+DESCRIPTION: displays sensor datum at xloc, yloc using font.
+
+       TYPE: C = Celsius
+			 F = Fahrenheit
+			 H = Humidity
+			 P = Pressure
+			 G = Gas
+			 V = VOC
+			
+	EXAMPLE:       
+	        {
+	        "name": "bme680",
+	        "device": "/dev/i2c-1",
+	        "address": 119,
+	        "type": "C",
+	        "xloc": 5,
+	        "yloc": 50,
+	        "color": 0,
+	        "font": "DEFAULT_12",
+	        "label": "",
+	        "unit": "c"
+	        },
 ```
 
 ***sysload***
@@ -461,14 +435,67 @@ DESCRIPTION: displays sysload info at xloc, yloc using font.
 			},
 ```
 
-***hostname***
+***thermal***
 ```
-    COMMAND: hostname
-DESCRIPTION: displays hostname at xloc, yloc using font.
+    COMMAND: thermal
+DESCRIPTION: displays thermal temps at xloc, yloc using font.
+
+     DEVICE: empty for all zones or zone number
+       TYPE: D = datum
+       		 N = name
+       		 DN = datum name
+       		 ND = name datum
 
 	EXAMPLE:       
 			{
-			"name": "hostname",
+			"name": "thermal",
+			"device": "0",
+			"address": 0,
+			"type": "ND",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": "c"
+			},
+```
+
+***time***
+```
+    COMMAND: time
+DESCRIPTION: displays time at xloc, yloc using font.
+
+       TYPE: default 4:00 PM
+			 12		 04:00
+			 24		 16:00
+	EXAMPLE:       
+			{
+			"name": "time",
+			"device": "",
+			"address": 0,
+			"type": "24",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_36",
+			"label": "",
+			"unit": ""
+			},
+```
+
+
+***uptime***
+```
+    COMMAND: uptime
+DESCRIPTION: displays uptime at xloc, yloc using font.
+
+	   TYPE: short %d days HH:MM
+	   		 long  %ddays, %dhours, %dminutes
+	   		 
+	EXAMPLE:       
+			{
+			"name": "uptime",
 			"device": "",
 			"address": 0,
 			"type": "short",
@@ -481,37 +508,30 @@ DESCRIPTION: displays hostname at xloc, yloc using font.
 			},
 ```
 
-***sensor***
-
-AHT20,HTU31,SHT40,SHT41,SHT43,SHT45,SHTC3,MCP9808,BME280,BME680,BMP180,BMP388,BMP390,SCD30,SCD40,SCD41,SCD43,SGP30
-
-7-bits I2C address in decimal e.g. 119 = 0x77
-
+***usage***
 ```
-    COMMAND: *sensor* name
-DESCRIPTION: displays sensor datum at xloc, yloc using font.
+    COMMAND: usage
+DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
-       TYPE:
-     		C = Celsius
-			F = Fahrenheit
-			H = Humidity
-			P = Pressure
-			G = Gas
-			V = VOC
-			
+     DEVICE: empty for all cores or core number, 0 is total usage
+       TYPE: D = datum
+       		 N = name
+       		 DN = datum name
+       		 ND = name datum
+
 	EXAMPLE:       
-	        {
-	        "name": "bme680",
-	        "device": "/dev/i2c-1",
-	        "address": 119,
-	        "type": "C",
-	        "xloc": 5,
-	        "yloc": 50,
-	        "color": 0,
-	        "font": "DEFAULT_12",
-	        "label": "",
-	        "unit": "c"
-	        },
+			{
+			"name": "usage",
+			"device": "",
+			"address": 0,
+			"type": "ND",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "",
+			"unit": ""
+			},
 ```
 
 
