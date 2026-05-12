@@ -2997,12 +2997,16 @@ int main(uint8_t argc, char **argv) {
                                 break;;
                             }
 
+                            float sysil1 = sys_info.loads[0];
+                            float sysil2 = sys_info.loads[1];
+                            float sysil3 = sys_info.loads[2];
+
                             if(!strcmp(dp[d].dc[i].type, "short")) {
-                                sprintf(buffer, "[%ld] [%ld] [%ld]", sys_info.loads[0], sys_info.loads[1], sys_info.loads[2]);
+                                sprintf(buffer, "[%.2f] [%.2f] [%.2f]", sysil1/100000, sysil2/100000, sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             else if(!strcmp(dp[d].dc[i].type, "long")) {
-                                sprintf(buffer, "1min(%ld) 5min(%ld) 15min(%ld)", sys_info.loads[0], sys_info.loads[1], sys_info.loads[2]);
+                                sprintf(buffer, "1min(%.2f) 5min(%.2f) 15min(%.2f)", sysil1/100000, sysil2/100000, sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){

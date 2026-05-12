@@ -307,28 +307,16 @@
             "unit": ""
             },
             {
-            "name": "bme680",
+            "name": "sysload",
             "device": "/dev/i2c-1",
             "address": 119,
-            "type": "C",
+            "type": "short",
             "xloc": 5,
             "yloc": 50,
             "color": 0,
             "font": "DEFAULT_12",
             "label": "",
-            "unit": "c"
-            },
-            {
-            "name": "bme680",
-            "device": "/dev/i2c-1",
-            "address": 119,
-            "type": "P",
-            "xloc": 45,
-            "yloc": 50,
-            "color": 0,
-            "font": "DEFAULT_12",
-            "label": " ",
-            "unit": " hPa"
+            "unit": ""
             }
         ]
     },
