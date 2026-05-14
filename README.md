@@ -102,7 +102,12 @@ gnuplot -c ocl-m2_g610-a76_1.gpl ocl-m2_g610-a76_1.png ocl-m2_g610-a76_1.csv
 Settings for the Hard Kernel SmartPower3 and SmartPower2 are baud rate 115200,8N1 with no HW or SW control.
 
 ## Sensor Support
-Many types of sensors are directly supported using built in drivers and require no other setup.  At this time only I2C access is available for those that also have a SPI interface.
+Many types of sensors are directly supported using built in drivers and require no other setup.  At this time only I2C access is available for those that also have a SPI interface.  The I2C device and or the address can follow any sensor argument while using the command line interface, otherwise the default values are used.  The I2C address follows standard C language notation for decimal, hex or octal e.g. 119, 0x77, 0167 
+```
+logenv --bme680 /dev/i2c-0
+or
+logenv --bme680 /dev/i2c-0@0x77.
+```
 
 AHT20 - Temperature & Humidity I2C ADD 0x38
 

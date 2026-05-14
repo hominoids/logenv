@@ -603,17 +603,32 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * ambient temperature bmp280 command line options
+         * ambient temperature option
          */
-        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280")) {
+        if(!strcmp(argv[i], "-a")) {
+            if(!strcmp(argv[i]+1, "--bmp180")) {
+                SENSOR_ENABLE = 1;
+            }
+            if(!strcmp(argv[i]+1, "--bme280")) {
+                SENSOR_ENABLE = 2;
+            }
+            if(!strcmp(argv[i]+1, "--mcp9808")) {
+                SENSOR_ENABLE = 3;
+            }
+        }
+        /*
+         * bmp280 command line options
+         */
+        if(!strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    strcpy(bme280_iic_dev, interface);
-                    interface = argv[i+1];
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(bme280_iic_dev, interface);
+                    if(!strncmp("@", argv[i+1], 1)) {
+
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bme280_iic_dev, interface);
+                    }
                 }
                 if(bme280_iic_init == 0) {
                     if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
@@ -623,7 +638,7 @@ int main(uint8_t argc, char **argv) {
                     bme280_iic_init == 1;
                 }
             }
-            SENSOR_ENABLE = 2;
+            BME280_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -632,12 +647,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--bme680")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    strcpy(bme680_iic_dev, interface);
-                    interface = argv[i+1];
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(bme680_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bme680_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bme680_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bme680_iic_dev, interface);
+                    }
                 }
                 if(bme680_iic_init == 0) {
                     if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
@@ -659,10 +678,6 @@ int main(uint8_t argc, char **argv) {
                     interface = argv[i+1];
                     strcpy(bmp180_iic_dev, interface);
                 }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(bmp180_iic_dev, interface);
-                }
                 if(bmp180_iic_init == 0) {
                     if(bmp180_basic_init() != 0) {
                         printf("\nERROR: Cannot open BMP180 at %s\n", interface);
@@ -671,21 +686,25 @@ int main(uint8_t argc, char **argv) {
                     bmp180_iic_init == 1;
                 }
             }
-            SENSOR_ENABLE = 1;
+            BMP180_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
          * bmp388 command line options
          */
-        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bmp388")) {
+        if(!strcmp(argv[i], "--bmp388")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(bmp388_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(bmp388_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bmp388_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bmp388_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bmp388_iic_dev, interface);
+                    }
                 }
                 if(bmp388_iic_init == 0) {
                     if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
@@ -701,15 +720,19 @@ int main(uint8_t argc, char **argv) {
         /*
          * bmp390 command line options
          */
-        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bmp390")) {
+        if(!strcmp(argv[i], "--bmp390")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(bmp390_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(bmp390_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bmp390_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bmp390_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bmp390_iic_dev, interface);
+                    }
                 }
                 if(bmp390_iic_init == 0) {
                     if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
@@ -728,12 +751,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--mcp9808")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(mcp9808_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(mcp9808_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        mcp9808_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(mcp9808_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(mcp9808_iic_dev, interface);
+                    }
                 }
                 if(mcp9808_iic_init == 0) {
                     if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
@@ -744,7 +771,7 @@ int main(uint8_t argc, char **argv) {
                     mcp9808_iic_init == 1;
                 }
             }
-            SENSOR_ENABLE = 3;
+            MCP9808_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -753,12 +780,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--sht4x")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(sht4x_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(sht4x_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        sht4x_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(sht4x_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(sht4x_iic_dev, interface);
+                    }
                 }
                 if(sht4x_iic_init == 0) {
                     if(sht4x_basic_init(sht4x_iic_addr) != 0) {
@@ -768,7 +799,7 @@ int main(uint8_t argc, char **argv) {
                     sht4x_iic_init == 1;
                 }
             }
-            SENSOR_ENABLE = 4;
+            SCD4X_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -777,12 +808,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--shtc3")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(shtc3_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(shtc3_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        shtc3_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(shtc3_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(shtc3_iic_dev, interface);
+                    }
                 }
                 if(shtc3_iic_init == 0) {
                     if(shtc3_basic_init() != 0) {
@@ -792,7 +827,7 @@ int main(uint8_t argc, char **argv) {
                     shtc3_iic_init == 1;
                 }
             }
-            SENSOR_ENABLE = 5;
+            SHTC3_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -801,12 +836,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--aht20")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(aht20_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(aht20_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        aht20_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(aht20_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(aht20_iic_dev, interface);
+                    }
                 }
                 if(aht20_iic_init == 0) {
                     if(aht20_basic_init() != 0) {
@@ -816,7 +855,7 @@ int main(uint8_t argc, char **argv) {
                     aht20_iic_init == 1;
                 }
             }
-            SENSOR_ENABLE = 6;
+            AHT20_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -825,12 +864,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--htu31d")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(htu31d_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(htu31d_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        htu31d_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(htu31d_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(htu31d_iic_dev, interface);
+                    }
                 }
                 if(htu31d_iic_init == 0) {
                     if(htu31d_basic_init(htu31d_iic_addr) != 0) {
@@ -840,7 +883,7 @@ int main(uint8_t argc, char **argv) {
                     htu31d_iic_init == 1;
                 }
             }
-            SENSOR_ENABLE = 7;
+            HTU31D_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -849,12 +892,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--scd30")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(scd30_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(scd30_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bme680_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bme680_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(scd30_iic_dev, interface);
+                    }
                 }
                 if(scd30_iic_init == 0) {
                     if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
@@ -887,12 +934,16 @@ int main(uint8_t argc, char **argv) {
             }
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(scd4x_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(scd4x_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        scd4x_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(scd4x_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(scd4x_iic_dev, interface);
+                    }
                 }
                 if(scd4x_iic_init == 0) {
                     if (scd4x_shot_init(chip_type)) {
@@ -911,12 +962,16 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "--sgp30")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(sgp30_iic_dev, interface);
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    interface = argv[i+2];
-                    strcpy(sgp30_iic_dev, interface);
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        sgp30_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(sgp30_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(sgp30_iic_dev, interface);
+                    }
                 }
                 if(sgp30_iic_init == 0) {
                     if (sgp30_advance_init()) {
@@ -3096,9 +3151,14 @@ int main(uint8_t argc, char **argv) {
             /*
              * break if one and done or sleep
              */
-            if(INTERACTIVE_ENABLE == 0 && DISPLAY_ENABLE != 0) {
+            if(INTERACTIVE_ENABLE != 0 && DISPLAY_ENABLE == 0) {
 
-                sleep_ms(1000 * dp[page].seconds);
+                OPTIONS_COUNT = c;
+                i += (float)INTERACTIVE_ENABLE;
+
+                sleep_ms(INTERACTIVE_ENABLE);
+            }
+            else if(INTERACTIVE_ENABLE == 0 && DISPLAY_ENABLE != 0) {
 
                 if(page < pg_count-1) {
                     page++;
@@ -3135,11 +3195,54 @@ int main(uint8_t argc, char **argv) {
                         return 1;
                     }
                 }
+
+                sleep_ms(1000 * dp[page].seconds);
+
             }
-            else {
+            else if(INTERACTIVE_ENABLE != 0 && DISPLAY_ENABLE != 0) {
+
+                if(page < pg_count-1) {
+                    page++;
+                }
+                else {
+                    page = 0;
+                }
+
+                if(SSD1681_ENABLE != 0) {
+                    if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
+                        ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
+                        (void)ssd1681_deinit(&ssd1681_handle);
+                        return 1;
+                    }
+                }
+                if(ST7789_ENABLE != 0) {
+                    if (st7789_clear(&st7789_handle)) {
+                        st7789_interface_debug_print("st7789: clear failed.\n");
+                        (void)st7789_deinit(&st7789_handle);
+                        return 1;
+                    }
+                }
+                if(SSD1306_ENABLE != 0) {
+                    if (ssd1306_gram_clear(&ssd1306_handle)) {
+                        ssd1306_interface_debug_print("ssd1306: gram clear failed.\n");
+                        (void)ssd1306_deinit(&ssd1306_handle);
+                        return 1;
+                    }
+                }
+                if(SH1107_ENABLE != 0) {
+                    if (sh1107_gram_clear(&sh1107_handle)) {
+                        sh1107_interface_debug_print("sh1107: gram clear failed.\n");
+                        (void)sh1107_deinit(&sh1107_handle);
+                        return 1;
+                    }
+                }
+
                 OPTIONS_COUNT = c;
                 i += (float)INTERACTIVE_ENABLE;
                 sleep_ms(INTERACTIVE_ENABLE);
+            }
+            else if(INTERACTIVE_ENABLE == 0 && DISPLAY_ENABLE == 0) {
+                break;
             }
         }
     }

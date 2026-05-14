@@ -206,9 +206,15 @@ static int8_t OPTIONS_COUNT = 0;
 static int8_t SGP30_ENABLE = 0;
 static int8_t SCD30_ENABLE = 0;
 static int8_t SCD4X_ENABLE = 0;
+static int8_t BMP180_ENABLE = 0;
 static int8_t BMP388_ENABLE = 0;
 static int8_t BMP390_ENABLE = 0;
+static int8_t BME280_ENABLE = 0;
 static int8_t BME680_ENABLE = 0;
+static int8_t MCP9808_ENABLE = 0;
+static int8_t SHTC3_ENABLE = 0;
+static int8_t AHT20_ENABLE = 0;
+static int8_t HTU31D_ENABLE = 0;
 
 static int8_t DISPLAY_ENABLE = 0;
 static int8_t SSD1681_ENABLE = 0;
