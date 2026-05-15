@@ -1444,46 +1444,46 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(SENSOR_ENABLE == 1) {
+                if(BMP180_ENABLE == 1) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%d", temperature_f, pressure);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n BMP180 Sensor = %.2lf c\n", temperature_f);
-                        printf("        Pres = %d hPa\n", pressure/100);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n BMP180 Temp = %.2lf c\n", temperature_f);
+                        printf("          Pres = %d hPa\n", pressure/100);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
+                        printf(",%.2lf, %d", temperature_f, pressure/100);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%d,", temperature_f, pressure/100);
                         }
                         else {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%d", temperature_f, pressure/100);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%d", temperature_f, pressure);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d,", temperature_f, pressure);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d", temperature_f, pressure);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%d", temperature_f, pressure/100);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%d,", temperature_f, pressure/100);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%d", temperature_f, pressure/100);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -1527,43 +1527,43 @@ int main(uint8_t argc, char **argv) {
                 if(BMP388_ENABLE == 1) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f", temperature_f, pressure);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                        printf("\n BMP388 Sensor = %.2lf c\n", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n BMP388 Temp = %.2lf c\n", temperature_f);
                         printf("        Pres = %.2lf hPa\n", pressure/100);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf,%.2lf", temperature_f, pressure/100);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,", temperature_f, pressure/100);
                         }
                         else {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf", temperature_f, pressure/100);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, pressure);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, pressure);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, pressure);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, pressure/100);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, pressure/100);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, pressure/100);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -1597,7 +1597,7 @@ int main(uint8_t argc, char **argv) {
                 float temperature_f;
                 float pressure;
 
-                bmp390_interface_delay_ms(75);
+                bmp390_interface_delay_ms(100);
                 uint8_t res = bmp390_basic_read((float *)&temperature_f, (float *)&pressure);
                 if (res != 0) {
                     bmp390_basic_deinit();
@@ -1609,43 +1609,43 @@ int main(uint8_t argc, char **argv) {
                 if(BMP390_ENABLE == 1) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f", temperature_f, pressure);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                        printf("\n BMP390 Sensor = %.2lf c\n", temperature_f);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n BMP390 Temp = %.2lf c\n", temperature_f);
                         printf("        Pres = %.2lf hPa\n", pressure/100);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", temperature_f);
+                        printf(",%.2lf,%.2lf", temperature_f, pressure/100);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,", temperature_f, pressure/100);
                         }
                         else {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf", temperature_f, pressure/100);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, pressure);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, pressure);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, pressure);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, pressure/100);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, pressure/100);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, pressure/100);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -1674,7 +1674,7 @@ int main(uint8_t argc, char **argv) {
             /*
              * read bme280
              */
-            if(BME280_ENABLE == 2 || DP_BME280 != 0) {
+            if(BME280_ENABLE == 1 || DP_BME280 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1687,53 +1687,53 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(SENSOR_ENABLE == 2) {
+                if(BME280_ENABLE == 1) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f,%f", temperature_f, humidity_f, pressure_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n BME280 Sensor = %.2lf c\n", temperature_f);
+                        printf("\n BME280 Temp = %.2lf c\n", temperature_f);
                         printf("        Humd = %.2lf %\n", humidity_f);
                         printf("        Pres = %.2lf hPa\n", pressure_f/100);
                      }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature_f);
+                            printf(",%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,%.2lf,", temperature_f, humidity_f, pressure_f);
                         }
                         else {
-                            printf("%.2lf", temperature_f);
+                            printf("%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", temperature_f);
+                        fprintf(log_file,",%f,%f,%f", temperature_f, humidity_f, pressure_f);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature_f);
+                        fprintf(log_file,",%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f,%f", temperature_f, humidity_f, pressure_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,", temperature_f, humidity_f, pressure_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f", temperature_f, humidity_f, pressure_f);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,", temperature_f, humidity_f, pressure_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -1785,7 +1785,7 @@ int main(uint8_t argc, char **argv) {
                 if(BME680_ENABLE != 0) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n BME680 Temp = %.2lf c\n", temperature_f);
@@ -1794,42 +1794,42 @@ int main(uint8_t argc, char **argv) {
                         printf("         Gas = %d\n", index);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature_f);
+                            printf(",%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f, index);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,%.2lf,%d,", temperature_f, humidity_f, pressure_f, index);
                         }
                         else {
-                            printf("%.2lf", temperature_f);
+                            printf("%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f, index);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", temperature_f);
+                        fprintf(log_file,",%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature_f);
+                        fprintf(log_file,",%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f/100, index);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,%d,", temperature_f, humidity_f, pressure_f, index);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f/100, index);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,%d,", temperature_f, humidity_f, pressure_f/100, index);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f/100, index);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -1862,17 +1862,17 @@ int main(uint8_t argc, char **argv) {
             /*
              * read mcp9808 temperature sensor
              */
-            if(MCP9808_ENABLE == 3 || DP_MCP9808 != 0) {
+            if(MCP9808_ENABLE == 1 || DP_MCP9808 != 0) {
 
                 float temperature = mcp9808_read();
 
-                if(SENSOR_ENABLE == 3) {
+                if(MCP9808_ENABLE == 1) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%d", temperature);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n MCP9808 Sensor = %.2lfc\n", temperature);
+                        printf("\n MCP9808 Temp = %.2lfc\n", temperature);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf", temperature);
@@ -1926,7 +1926,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * SHT4x enabled
             */
-            if(SHT4X_ENABLE == 4 || DP_SHT4X != 0) {
+            if(SHT4X_ENABLE == 1 || DP_SHT4X != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1938,52 +1938,52 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(SENSOR_ENABLE == 4) {
+                if(SHT4X_ENABLE == 1) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n sht4x Sensor = %.2lf c\n", temperature_f);
-                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("\n sht4x Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature_f);
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            printf("%.2lf", temperature_f);
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", temperature_f);
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature_f);
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -2012,7 +2012,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * SHTC3 enabled
             */
-            if(SHTC3_ENABLE == 5 || DP_SHTC3 != 0) {
+            if(SHTC3_ENABLE == 1 || DP_SHTC3 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -2024,51 +2024,51 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(SENSOR_ENABLE == 5) {
+                if(SHTC3_ENABLE == 1) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n shtc3 Sensor = %.2lf c\n", temperature_f);
-                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("\n shtc3 Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature_f);
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            printf("%.2lf", temperature_f);
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", temperature_f);
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature_f);
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -2097,7 +2097,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * aht20 enabled
             */
-            if(AHT20_ENABLE == 6 || DP_AHT20 != 0) {
+            if(AHT20_ENABLE == 1 || DP_AHT20 != 0) {
 
                 float temperature_f;
                 uint8_t humidity_f;
@@ -2109,51 +2109,51 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(SENSOR_ENABLE == 6) {
+                if(AHT20_ENABLE == 1) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n aht20 Sensor = %.2lf c", temperature_f);
-                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("\n aht20 Temp = %.2lf c", temperature_f);
+                        printf("       Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature_f);
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            printf("%.2lf", temperature_f);
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", temperature_f);
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature_f);
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -2182,7 +2182,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * htu31d enabled
             */
-            if(HTU31D_ENABLE == 7 || DP_HTU31D != 0) {
+            if(HTU31D_ENABLE == 1 || DP_HTU31D != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -2194,51 +2194,51 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(SENSOR_ENABLE == 7) {
+                if(HTU31D_ENABLE == 1) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", temperature_f);
+                        printf(",%f,%f", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n htu31d Sensor = %.2lf c\n", temperature_f);
+                        printf("\n htu31d Temp = %.2lf c\n", temperature_f);
                         printf("        Humd = %.2lf %\n", humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature_f);
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature_f);
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            printf("%.2lf", temperature_f);
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", temperature_f);
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature_f);
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -2278,50 +2278,50 @@ int main(uint8_t argc, char **argv) {
                 }
                 if(SCD30_ENABLE != 0) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f", data.co2_ppm);
+                        printf(",%f,%f,%f", data.co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n scd30 Sensor = %.2lf ppm", data.co2_ppm);
-                        printf("        Temp = %.2lf c\n", data.temperature_deg);
-                        printf("        Humd = %.2lf %\n", data.humidity_percent);
+                        printf("\n scd30 Temp = %.2lf c\n", data.temperature_deg);
+                        printf("       Humd = %.2lf %\n", data.humidity_percent);
+                        printf("        CO2 = %.2lf ppm\n", data.co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", data.co2_ppm);
+                            printf(",%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", data.co2_ppm);
+                            printf("%.2lf,%.2lf,%.2lf,", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                         }
                         else {
-                            printf("%.2lf", data.co2_ppm);
+                            printf("%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f", data.co2_ppm);
+                        fprintf(log_file,",%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", data.co2_ppm);
+                        fprintf(log_file,",%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f", data.co2_ppm);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,", data.co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f", data.co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", data.co2_ppm);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", data.co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", data.co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -2369,47 +2369,47 @@ int main(uint8_t argc, char **argv) {
                         printf(",%d", co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n scd4x Sensor = %d ppm\n", co2_ppm);
-                        printf("         Temp = %.2lf c\n", temperature_f);
-                        printf("         Humd = %.2lf %\n", humidity_f);
+                        printf("\n scd4x Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %\n", humidity_f);
+                        printf("        CO2 = %d ppm\n", co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%d", co2_ppm);
+                            printf(",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%d,", co2_ppm);
+                            printf("%.2lf,%.2lf,%d,", temperature_f, humidity_f, co2_ppm);
                         }
                         else {
-                            printf("%d", co2_ppm);
+                            printf("%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%d", co2_ppm);
+                        fprintf(log_file,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%d", co2_ppm);
+                        fprintf(log_file,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%d", co2_ppm);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d,", temperature_f, humidity_f, co2_ppm);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d", co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%d", co2_ppm);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d,", temperature_f, humidity_f, co2_ppm);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d", co2_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -2456,49 +2456,49 @@ int main(uint8_t argc, char **argv) {
 
                 if(SGP30_ENABLE != 0) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%d", tvoc_ppb);
+                        printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n sgp30 Sensor = %d ppm\n", tvoc_ppb);
-                        printf(" eCO2 = %d ppm\n", co2_eq_ppm);
+                        printf("\n sgp30 VOC = %d ppm\n", tvoc_ppb);
+                        printf("      eCO2 = %d ppm\n", co2_eq_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%d", tvoc_ppb);
+                            printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%d,", tvoc_ppb);
+                            printf("%d,%d,", tvoc_ppb, co2_eq_ppm);
                         }
                         else {
-                            printf("%d", tvoc_ppb);
+                            printf("%d,%d", tvoc_ppb, co2_eq_ppm);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%d", tvoc_ppb);
+                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%d", tvoc_ppb);
+                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%d", tvoc_ppb);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", tvoc_ppb);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d", tvoc_ppb);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%d", tvoc_ppb);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,", tvoc_ppb);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d", tvoc_ppb);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
                         }
                     }
                     OPTIONS_COUNT--;
