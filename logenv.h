@@ -215,6 +215,7 @@ static int8_t MCP9808_ENABLE = 0;
 static int8_t SHTC3_ENABLE = 0;
 static int8_t AHT20_ENABLE = 0;
 static int8_t HTU31D_ENABLE = 0;
+static int8_t SHT4X_ENABLE = 0;
 
 static int8_t DISPLAY_ENABLE = 0;
 static int8_t SSD1681_ENABLE = 0;

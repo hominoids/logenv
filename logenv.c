@@ -1137,7 +1137,7 @@ int main(uint8_t argc, char **argv) {
                     fprintf(log_file,"%.3f", i/1000);
                 }
                 else {
-                    now = time((time_t *)NULL);
+                    now = time((time_t *) NULL);
                     t = localtime(&now);
                     fprintf(log_file,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
                             t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
@@ -1148,7 +1148,7 @@ int main(uint8_t argc, char **argv) {
                     udp_count = sprintf(udp_tx_data,"%.3f", i/1000);
                 }
                 if(DT_ENABLE == 1) {
-                    now = time((time_t *)NULL);
+                    now = time((time_t *) NULL);
                     t = localtime(&now);
                     if(COUNT_ENABLE >= 1 && OPTIONS_COUNT > 1) {
                         udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
@@ -1270,7 +1270,7 @@ int main(uint8_t argc, char **argv) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
 
-                            int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, NULL, 0);
+                            int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **) NULL, 0);
 
                             if(!strcmp(dp[d].dc[i].name, "frequency") && dp[d].page == page && (r == -1 || r == c)) {
 
@@ -1406,7 +1406,7 @@ int main(uint8_t argc, char **argv) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
 
-                            int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, NULL, 0);
+                            int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **)NULL, 0);
 
                             if(!strcmp(dp[d].dc[i].name, "thermal") && dp[d].page == page && (r == -1 || r == c)) {
 
@@ -1432,7 +1432,7 @@ int main(uint8_t argc, char **argv) {
             /*
              * read bmp180
              */
-            if(SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
+            if(BMP180_ENABLE == 1 || DP_BMP180 != 0) {
 
                 float temperature_f;
                 uint32_t pressure;
@@ -1672,7 +1672,7 @@ int main(uint8_t argc, char **argv) {
             /*
              * read bme280
              */
-            if(SENSOR_ENABLE == 2 || DP_BME280 != 0) {
+            if(BME280_ENABLE == 2 || DP_BME280 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1860,7 +1860,7 @@ int main(uint8_t argc, char **argv) {
             /*
              * read mcp9808 temperature sensor
              */
-            if(SENSOR_ENABLE == 3 || DP_MCP9808 != 0) {
+            if(MCP9808_ENABLE == 3 || DP_MCP9808 != 0) {
 
                 float temperature = mcp9808_read();
 
@@ -1924,7 +1924,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * SHT4x enabled
             */
-            if(SENSOR_ENABLE == 4 || DP_SHT4X != 0) {
+            if(SHT4X_ENABLE == 4 || DP_SHT4X != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -2010,7 +2010,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * SHTC3 enabled
             */
-            if(SENSOR_ENABLE == 5 || DP_SHTC3 != 0) {
+            if(SHTC3_ENABLE == 5 || DP_SHTC3 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -2095,7 +2095,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * aht20 enabled
             */
-            if(SENSOR_ENABLE == 6 || DP_AHT20 != 0) {
+            if(AHT20_ENABLE == 6 || DP_AHT20 != 0) {
 
                 float temperature_f;
                 uint8_t humidity_f;
@@ -2180,7 +2180,7 @@ int main(uint8_t argc, char **argv) {
             /*
             * htu31d enabled
             */
-            if(SENSOR_ENABLE == 7 || DP_HTU31D != 0) {
+            if(HTU31D_ENABLE == 7 || DP_HTU31D != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -2726,7 +2726,7 @@ int main(uint8_t argc, char **argv) {
                         if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                             printf(",%Lf", u[3][c]);
                         }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE ==1) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                             if(c == 0) {
                                 printf("CPU = %.2f%% ", r);
                                 if(c == USAGE_ENABLE) {
@@ -2800,9 +2800,9 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                             for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
 
-                                int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, NULL, 0);
+                                int16_t n = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **) NULL, 0);
 
-                                if(!strcmp(dp[d].dc[i].name, "usage") && dp[d].page == page && (r == -1 || r == c)) {
+                                if(!strcmp(dp[d].dc[i].name, "usage") && dp[d].page == page && (n == -1 || n == c)) {
 
                                     uint16_t yloc_reset = dp[d].dc[i].yloc;
                                     char buffer[25];
@@ -2817,7 +2817,7 @@ int main(uint8_t argc, char **argv) {
                                     }
                                     sprintf(buffer, "%.2f", r);
                                     strcpy(dp[d].dc[i].data2, buffer);
-                                    if(r == -1) {
+                                    if(n == -1) {
                                         dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
                                     }
                                     if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
