@@ -1597,10 +1597,12 @@ int main(uint8_t argc, char **argv) {
                 float temperature_f;
                 float pressure;
 
+                bmp390_interface_delay_ms(75);
                 uint8_t res = bmp390_basic_read((float *)&temperature_f, (float *)&pressure);
                 if (res != 0) {
                     bmp390_basic_deinit();
                     printf("ERROR: bmp390 read failed.\n");
+
                     return 1;
                 }
 
