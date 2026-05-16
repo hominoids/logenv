@@ -198,7 +198,7 @@
         "ysize": 200,
         "rotation": 0,
         "page": 2,
-        "seconds": 10,
+        "seconds": 0,
         "contrast": 207,
         "segment_column_address": 0,
         "scan_direction_start": 0,

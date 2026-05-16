@@ -3162,13 +3162,6 @@ int main(uint8_t argc, char **argv) {
             }
             else if(INTERACTIVE_ENABLE == 0 && DISPLAY_ENABLE != 0) {
 
-                if(page < pg_count-1) {
-                    page++;
-                }
-                else {
-                    page = 0;
-                }
-
                 if(SSD1681_ENABLE != 0) {
                     if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
                         ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
@@ -3199,6 +3192,13 @@ int main(uint8_t argc, char **argv) {
                 }
 
                 sleep_ms(1000 * dp[page].seconds);
+
+                if(page < pg_count-1) {
+                    page++;
+                }
+                else {
+                    page = 0;
+                }
 
             }
             else if(INTERACTIVE_ENABLE != 0 && DISPLAY_ENABLE != 0) {
