@@ -195,10 +195,11 @@ int main(uint8_t argc, char **argv) {
                 cJSON_ArrayForEach(iterator, content)
                     {
 
+                    cJSON *cmd = cJSON_GetObjectItemCaseSensitive(iterator, "cmd");
                     cJSON *name = cJSON_GetObjectItemCaseSensitive(iterator, "name");
                     cJSON *device = cJSON_GetObjectItemCaseSensitive(iterator, "device");
                     cJSON *address = cJSON_GetObjectItemCaseSensitive(iterator, "address");
-                    cJSON *type = cJSON_GetObjectItemCaseSensitive(iterator, "type");
+                    cJSON *dtype = cJSON_GetObjectItemCaseSensitive(iterator, "dtype");
                     cJSON *xloc = cJSON_GetObjectItemCaseSensitive(iterator, "xloc");
                     cJSON *yloc = cJSON_GetObjectItemCaseSensitive(iterator, "yloc");
                     cJSON *color = cJSON_GetObjectItemCaseSensitive(iterator, "color");
@@ -206,10 +207,11 @@ int main(uint8_t argc, char **argv) {
                     cJSON *label = cJSON_GetObjectItemCaseSensitive(iterator, "label");
                     cJSON *unit = cJSON_GetObjectItemCaseSensitive(iterator, "unit");
 
+                    strcpy(dp[DISPLAY_ENABLE].dc[ac].cmd, cmd->valuestring);
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].name, name->valuestring);
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].device, device->valuestring);
                     dp[DISPLAY_ENABLE].dc[ac].address = address->valueint;
-                    strcpy(dp[DISPLAY_ENABLE].dc[ac].type, type->valuestring);
+                    strcpy(dp[DISPLAY_ENABLE].dc[ac].dtype, dtype->valuestring);
                     dp[DISPLAY_ENABLE].dc[ac].xloc = xloc->valueint;
                     dp[DISPLAY_ENABLE].dc[ac].yloc = yloc->valueint;
                     dp[DISPLAY_ENABLE].dc[ac].color = color->valueint;
@@ -218,10 +220,11 @@ int main(uint8_t argc, char **argv) {
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].unit, unit->valuestring);
 
                     if(VERBOSE_DEBUG) {
-                        printf("  %s ", &dp[DISPLAY_ENABLE].dc[ac].name);
+                        printf("  %s ", &dp[DISPLAY_ENABLE].dc[ac].cmd);
+                        printf("%s", &dp[DISPLAY_ENABLE].dc[ac].name);
                         printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].device);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].address);
-                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].type);
+                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].dtype);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
@@ -230,52 +233,98 @@ int main(uint8_t argc, char **argv) {
                         printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
                     }
 
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"date")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"date")) {
                         DP_DATE++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"time")) {
-                        DP_TIME++;
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"day")) {
+                        DP_DAY++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"frequency")) {
-                        DP_FREQ++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"thermal")) {
-                        DP_THERMAL++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"governor")) {
-                        DP_GOVERNOR++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"memory")) {
-                        DP_MEMORY++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"usage")) {
-                        DP_USAGE++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"disk")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"disk")) {
                         DP_DISK++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"uptime")) {
-                        DP_UPTIME++;
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"circle")) {
+                        DP_CIRCLE++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sysload")) {
-                        DP_SYSLOAD++;
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"frequency")) {
+                        DP_FREQ++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"hostname")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"governor")) {
+                        DP_GOVERNOR++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"hostname")) {
                         DP_HOSTNAME++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"kernel")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"iio")) {
+                        DP_IIO++;
+                        for (uint16_t c = 0; c <= 1024; c++) {
+
+                            char iioloc[255] = "\0";
+                            char strChar[5] = "\0";
+
+                            itoa(c,strChar);
+                            strcpy(iioloc,iiopath);
+                            strcat(iioloc,strChar);
+                            strcat(iioloc,"/");
+                            strcat(iioloc,"name");
+                            if((iio_file = fopen(iioloc, "r")) == NULL) {
+                                break;
+                            }
+                            fclose(iio_file);
+                            IIO_ENABLE++;
+                        }
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"image")) {
+                        DP_IMAGE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"ip")) {
+                        DP_IP++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"kernel")) {
                         DP_KERNEL++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp2")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"line")) {
+                        DP_LINE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"memory")) {
+                        DP_MEMORY++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"point")) {
+                        DP_POINT++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"rectangle")) {
+                        DP_RECTANGLE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sp2")) {
                         DP_SP2++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp3-ch1")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sp3-ch1")) {
                         DP_SP3CH1++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sp3-ch2")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sp3-ch2")) {
                         DP_SP3CH2++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp180")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"swap")) {
+                        DP_SWAP++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sysload")) {
+                        DP_SYSLOAD++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"text")) {
+                        DP_TEXT++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"thermal")) {
+                        DP_THERMAL++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"time")) {
+                        DP_TIME++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"uptime")) {
+                        DP_UPTIME++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"usage")) {
+                        DP_USAGE++;
+                    }
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bmp180")) {
                         strcpy(bmp180_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bmp180_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(bmp180_basic_init() != 0) {
@@ -285,7 +334,7 @@ int main(uint8_t argc, char **argv) {
                         bmp180_iic_init = 1;
                         DP_BMP180++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp388")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bmp388")) {
                         strcpy(bmp388_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bmp388_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
@@ -295,7 +344,7 @@ int main(uint8_t argc, char **argv) {
                         bmp388_iic_init = 1;
                         DP_BMP388++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp390")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bmp390")) {
                         strcpy(bmp390_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bmp390_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
@@ -305,7 +354,7 @@ int main(uint8_t argc, char **argv) {
                         bmp390_iic_init = 1;
                         DP_BMP390++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme280")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bme280")) {
                         strcpy(bme280_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bme280_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
@@ -315,7 +364,7 @@ int main(uint8_t argc, char **argv) {
                         bme280_iic_init = 1;
                         DP_BME280++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme680")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bme680")) {
                         strcpy(bme680_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         bme680_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
@@ -325,7 +374,7 @@ int main(uint8_t argc, char **argv) {
                         bme680_iic_init = 1;
                         DP_BME680++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"mcp9808")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"mcp9808")) {
                         strcpy(mcp9808_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         mcp9808_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address;
                         if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
@@ -336,7 +385,7 @@ int main(uint8_t argc, char **argv) {
                         mcp9808_iic_init = 1;
                         DP_MCP9808++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sht4x")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sht4x")) {
                         strcpy(sht4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         sht4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(sht4x_basic_init(sht4x_iic_addr) != 0) {
@@ -346,7 +395,7 @@ int main(uint8_t argc, char **argv) {
                         sht4x_iic_init = 1;
                         DP_SHT4X++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"shtc3")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"shtc3")) {
                         strcpy(shtc3_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         shtc3_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(shtc3_basic_init() != 0) {
@@ -356,7 +405,7 @@ int main(uint8_t argc, char **argv) {
                         shtc3_iic_init = 1;
                         DP_SHTC3++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"aht20")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"aht20")) {
                         strcpy(aht20_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         aht20_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(aht20_basic_init() != 0) {
@@ -366,7 +415,7 @@ int main(uint8_t argc, char **argv) {
                         aht20_iic_init = 1;
                         DP_AHT20++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"htu31d")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"htu31d")) {
                         strcpy(htu31d_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         htu31d_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if(htu31d_basic_init(htu31d_iic_addr) != 0) {
@@ -376,7 +425,7 @@ int main(uint8_t argc, char **argv) {
                         htu31d_iic_init = 1;
                         DP_HTU31D++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd30")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd30")) {
                         strcpy(scd30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         scd30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
@@ -386,19 +435,19 @@ int main(uint8_t argc, char **argv) {
                         scd30_iic_init = 1;
                         DP_SCD30++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd40") || \
-                        !strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41") || \
-                            !strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd40") || \
+                        !strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd41") || \
+                            !strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd43")) {
                         strcpy(scd4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         scd4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         scd4x_t chip_type;
-                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd40")) {
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd40")) {
                             chip_type = SCD40;
                         } 
-                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
+                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd41")) {
                             chip_type = SCD41;
                         }
-                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
+                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd43")) {
                             chip_type = SCD43;
                         }
                         if (scd4x_shot_init(chip_type)) {
@@ -408,7 +457,7 @@ int main(uint8_t argc, char **argv) {
                         scd4x_iic_init = 1;
                         DP_SCD4X++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sgp30")) {
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sgp30")) {
                         strcpy(sgp30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
                         sgp30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                         if (sgp30_advance_init()) {
@@ -417,24 +466,6 @@ int main(uint8_t argc, char **argv) {
                         }
                         sgp30_iic_init = 1;
                         DP_SGP30++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"text")) {
-                        DP_TEXT++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"point")) {
-                        DP_POINT++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"line")) {
-                        DP_LINE++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"circle")) {
-                        DP_CIRCLE++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"rectangle")) {
-                        DP_RECTANGLE++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"image")) {
-                        DP_IMAGE++;
                     }
                     ac++;
                 }
@@ -1081,17 +1112,17 @@ int main(uint8_t argc, char **argv) {
             if(DP_TIME  != 0 || DP_DATE  != 0){
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(DISPLAY_ENABLE != 0 && DP_TIME != 0 && !strcmp(dp[d].dc[i].name, "time") && dp[d].page == page) {
+                        if(DISPLAY_ENABLE != 0 && DP_TIME != 0 && !strcmp(dp[d].dc[i].cmd, "time") && dp[d].page == page) {
 
                             uint16_t count = 0;
                             char buffer[36] = "\0";
                             now = time((time_t *)NULL);
                             t = localtime(&now);
 
-                            if(!strcmp(dp[d].dc[i].type, "24")) {
+                            if(!strcmp(dp[d].dc[i].dtype, "24")) {
                                 count = sprintf(buffer,"%02d:%02d",t->tm_hour, t->tm_min);
                             }
-                            else if(!strcmp(dp[d].dc[i].type, "12")) {
+                            else if(!strcmp(dp[d].dc[i].dtype, "12")) {
                                 count = strftime(buffer,sizeof(buffer),"%I:%M",t);
                             }
                             else {
@@ -1102,17 +1133,17 @@ int main(uint8_t argc, char **argv) {
                                 printf("%s time failed\n", &dp[d].name);
                             }
                         }
-                        if(DISPLAY_ENABLE  != 0 && DP_DATE  != 0 && !strcmp(dp[d].dc[i].name, "date")) {
+                        if(DISPLAY_ENABLE  != 0 && DP_DATE  != 0 && !strcmp(dp[d].dc[i].cmd, "date")) {
 
                             uint16_t count = 0;
                             char buffer[36] = "\0";
                             now = time((time_t *)NULL);
                             t = localtime(&now);
 
-                            if(!strcmp(dp[d].dc[i].type, "short")) {
+                            if(!strcmp(dp[d].dc[i].dtype, "short")) {
                                 count = strftime(buffer,sizeof(buffer),"%a %d-%b-%y",t);
                             }
-                            else if(!strcmp(dp[d].dc[i].type, "long")) {
+                            else if(!strcmp(dp[d].dc[i].dtype, "long")) {
                                 count = strftime(buffer,sizeof(buffer),"%A %d %B %Y",t);
                             }
                             else {
@@ -1272,7 +1303,7 @@ int main(uint8_t argc, char **argv) {
 
                             int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **) NULL, 0);
 
-                            if(!strcmp(dp[d].dc[i].name, "frequency") && dp[d].page == page && (r == -1 || r == c)) {
+                            if(!strcmp(dp[d].dc[i].cmd, "frequency") && dp[d].page == page && (r == -1 || r == c)) {
 
                                 uint16_t yloc_reset = dp[d].dc[i].yloc;
                                 char buffer[25];
@@ -1408,7 +1439,7 @@ int main(uint8_t argc, char **argv) {
 
                             int16_t r = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **)NULL, 0);
 
-                            if(!strcmp(dp[d].dc[i].name, "thermal") && dp[d].page == page && (r == -1 || r == c)) {
+                            if(!strcmp(dp[d].dc[i].cmd, "thermal") && dp[d].page == page && (r == -1 || r == c)) {
 
                                 uint16_t yloc_reset = dp[d].dc[i].yloc;
                                 char buffer[25];
@@ -1572,7 +1603,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bmp388") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "bmp388") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1654,7 +1685,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bmp390") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "bmp390") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1742,7 +1773,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bme280") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "bme280") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1838,7 +1869,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "bme680") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "bme680") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1908,7 +1939,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "mcp9808") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "mcp9808") && dp[d].page == page) {
 
                                 char buffer[6];
 
@@ -1992,7 +2023,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "sht4x") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "sht4x") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2077,7 +2108,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "shtc3") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "shtc3") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2162,7 +2193,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "aht20") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "aht20") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2247,7 +2278,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "htu31d") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "htu31d") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2329,7 +2360,7 @@ int main(uint8_t argc, char **argv) {
                 if(DP_SCD30 != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "scd30") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "scd30") && dp[d].page == page) {
 
                                 char buffer[6];
 
@@ -2417,9 +2448,9 @@ int main(uint8_t argc, char **argv) {
                 if(DP_SCD4X != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if((!strcmp(dp[d].dc[i].name, "scd40") || \
-                                !strcmp(dp[d].dc[i].name, "scd41") || \
-                                    !strcmp(dp[d].dc[i].name, "scd43")) && dp[d].page == page) {
+                            if((!strcmp(dp[d].dc[i].cmd, "scd40") || \
+                                !strcmp(dp[d].dc[i].cmd, "scd41") || \
+                                    !strcmp(dp[d].dc[i].cmd, "scd43")) && dp[d].page == page) {
 
                                 char buffer[6];
 
@@ -2507,7 +2538,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "sgp30") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "sgp30") && dp[d].page == page) {
 
                                 char buffer[10];
 
@@ -2804,7 +2835,7 @@ int main(uint8_t argc, char **argv) {
 
                                 int16_t n = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **) NULL, 0);
 
-                                if(!strcmp(dp[d].dc[i].name, "usage") && dp[d].page == page && (n == -1 || n == c)) {
+                                if(!strcmp(dp[d].dc[i].cmd, "usage") && dp[d].page == page && (n == -1 || n == c)) {
 
                                     uint16_t yloc_reset = dp[d].dc[i].yloc;
                                     char buffer[25];
@@ -2922,7 +2953,7 @@ int main(uint8_t argc, char **argv) {
                 if(DP_MEMORY != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "memory") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "memory") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2945,7 +2976,7 @@ int main(uint8_t argc, char **argv) {
             if(DP_GOVERNOR != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "governor") && dp[d].page == page) {
+                        if(!strcmp(dp[d].dc[i].cmd, "governor") && dp[d].page == page) {
 
                             strcpy(governorloc, dp[d].dc[i].device);
                             if((governor_file = fopen(governorloc, "r")) == NULL) {
@@ -2969,7 +3000,7 @@ int main(uint8_t argc, char **argv) {
             if(DP_DISK != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "disk") && dp[d].page == page) {
+                        if(!strcmp(dp[d].dc[i].cmd, "disk") && dp[d].page == page) {
 
                             struct statfs stat;
                             char buffer[25] = {0};
@@ -2984,15 +3015,15 @@ int main(uint8_t argc, char **argv) {
                             uint64_t dused = (stat.f_bsize * (stat.f_blocks-stat.f_bavail))/1000000000;
                             float pused = ((float)dused/(float)dsize) * 100;
 
-                            if(!strcmp(dp[d].dc[i].type, "free")) {
+                            if(!strcmp(dp[d].dc[i].dtype, "free")) {
                                 sprintf(buffer, "%d", davail);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
-                            else if(!strcmp(dp[d].dc[i].type, "used")) {
+                            else if(!strcmp(dp[d].dc[i].dtype, "used")) {
                                 sprintf(buffer, "%d", dused);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
-                            else if(!strcmp(dp[d].dc[i].type, "percent")) {
+                            else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
                                 sprintf(buffer, "%.0f", pused);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
@@ -3009,7 +3040,7 @@ int main(uint8_t argc, char **argv) {
             if(DP_UPTIME != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "uptime") && dp[d].page == page) {
+                        if(!strcmp(dp[d].dc[i].cmd, "uptime") && dp[d].page == page) {
 
                             struct sysinfo sys_info;
                             char buffer[127] = "\0";
@@ -3023,11 +3054,11 @@ int main(uint8_t argc, char **argv) {
                             int16_t hours = (sys_info.uptime / 3600) - (days * 24);
                             int16_t mins = (sys_info.uptime / 60) - (days * 1440) - (hours * 60);
 
-                            if(!strcmp(dp[d].dc[i].type, "short")) {
+                            if(!strcmp(dp[d].dc[i].dtype, "short")) {
                                 sprintf(buffer, "%d days %d:%d", days, hours, mins);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
-                            else if(!strcmp(dp[d].dc[i].type, "long")) {
+                            else if(!strcmp(dp[d].dc[i].dtype, "long")) {
                                 sprintf(buffer, "%ddays, %dhours, %dminutes", days, hours, mins);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
@@ -3044,7 +3075,7 @@ int main(uint8_t argc, char **argv) {
             if(DP_SYSLOAD != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "sysload") && dp[d].page == page) {
+                        if(!strcmp(dp[d].dc[i].cmd, "sysload") && dp[d].page == page) {
 
                             struct sysinfo sys_info;
                             char buffer[127] = "\0";
@@ -3058,11 +3089,11 @@ int main(uint8_t argc, char **argv) {
                             float sysil2 = sys_info.loads[1];
                             float sysil3 = sys_info.loads[2];
 
-                            if(!strcmp(dp[d].dc[i].type, "short")) {
+                            if(!strcmp(dp[d].dc[i].dtype, "short")) {
                                 sprintf(buffer, "[%.2f] [%.2f] [%.2f]", sysil1/100000, sysil2/100000, sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
-                            else if(!strcmp(dp[d].dc[i].type, "long")) {
+                            else if(!strcmp(dp[d].dc[i].dtype, "long")) {
                                 sprintf(buffer, "1min(%.2f) 5min(%.2f) 15min(%.2f)", sysil1/100000, sysil2/100000, sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
@@ -3079,7 +3110,7 @@ int main(uint8_t argc, char **argv) {
             if(DP_HOSTNAME != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "hostname") && dp[d].page == page) {
+                        if(!strcmp(dp[d].dc[i].cmd, "hostname") && dp[d].page == page) {
 
                             struct utsname uname_info;
 
@@ -3100,12 +3131,64 @@ int main(uint8_t argc, char **argv) {
                 }
             }
             /*
+             * open and read iio
+             */
+            if(DP_IIO != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].cmd, "iio") && dp[d].page == page) {
+                            for (uint16_t c = 0; c < IIO_ENABLE; c++) {
+
+                                float iio_f = 0;
+                                char buffer[24] = "\0";
+                                char strChar[5] = "\0";
+                                char iio_name[24] = "\0";
+                                char iioloc[255] = "\0";
+                                char iiosensor[255] = "\0";
+
+                                itoa(c,strChar);
+                                strcpy(iioloc,iiopath);
+                                strcat(iioloc,strChar);
+                                strcat(iioloc,"/");
+                                strcat(iioloc,"name");
+                                if((iio_file = fopen(iioloc, "r")) == NULL) {
+                                    printf("\nERROR: Cannot open %s\n", iioloc);
+                                    exit(1);
+                                }
+                                fscanf(iio_file, "%s", &iio_name);
+                                fclose(iio_file);
+
+                                if(!strcmp(dp[d].dc[i].name, iio_name)) {
+                                    strcpy(iiosensor,iiopath);
+                                    strcat(iiosensor,strChar);
+                                    strcat(iiosensor,"/");
+                                    strcat(iiosensor, dp[d].dc[i].device);
+                                    if((iio_file = fopen(iiosensor, "r")) == NULL) {
+                                        printf("\nERROR: Cannot open iio at %s\n", iiosensor);
+                                        break;
+                                    }
+
+                                    fscanf(iio_file, "%f", &iio_f);
+                                    fclose(iio_file);
+
+                                    sprintf(dp[d].dc[i].data1, "%.2f", iio_f);
+
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                        printf("%s iio cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
              * kernel version from uname()
              */
             if(DP_KERNEL != 0) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].name, "kernel") && dp[d].page == page) {
+                        if(!strcmp(dp[d].dc[i].cmd, "kernel") && dp[d].page == page) {
 
                             struct utsname uname_info;
 

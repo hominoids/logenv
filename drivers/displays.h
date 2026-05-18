@@ -63,17 +63,18 @@ extern st7789_handle_t st7789_handle;
 uint8_t fontoi(char *);
 
 struct display_content {
-    char name[15];
+    char cmd[15];
+    char name[35];
     char device[255];
     uint8_t address;
-    char type[15];
+    char dtype[15];
     uint16_t xloc;
     uint16_t yloc;
     uint32_t color;
     char font[30];
     char label[20];
     char unit[20];
-    char data1[127];  // Temperature c
+    char data1[127]; // Temperature c
     char data2[30];  // Humidity %
     char data3[30];  // Pressure hPa
     char data4[30];  // CO2 as ppm

@@ -60,37 +60,40 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
         char buffer[127] = "\0";
 
-        if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"N") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"D") || !strcmp(ptr->dc[dcidx].type,"DN") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"D") || !strcmp(ptr->dc[dcidx].dtype,"DN") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"governor")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"disk")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"uptime")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"hostname")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"kernel")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"kernel")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].cmd,"iio")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"DN")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"DN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ssd1681_gram_write_string(&ssd1681_handle, SSD1681_COLOR_BLACK, ptr->dc[dcidx].xloc, \
@@ -109,25 +112,25 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"C")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"C")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"F")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
             sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"H")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"H")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"P")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"P")) {
             strcat(buffer, ptr->dc[dcidx].data3);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"G")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"G")) {
             strcat(buffer, ptr->dc[dcidx].data4);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"V")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
         }
         if(ptr->dc[dcidx].unit) {
@@ -192,37 +195,40 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
 
         char buffer[127] = "\0";
 
-        if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"N") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"D") || !strcmp(ptr->dc[dcidx].type,"DN") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"D") || !strcmp(ptr->dc[dcidx].dtype,"DN") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"governor")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"disk")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"uptime")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"hostname")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"kernel")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"kernel")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].cmd,"iio")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"DN")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"DN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ssd1306_gram_write_string(&ssd1306_handle, ptr->dc[dcidx].xloc, \
@@ -243,25 +249,25 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"C")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"C")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"F")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
             sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"H")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"H")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"P")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"P")) {
             strcat(buffer, ptr->dc[dcidx].data3);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"G")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"G")) {
             strcat(buffer, ptr->dc[dcidx].data4);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"V")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
         }
         if(ptr->dc[dcidx].unit) {
@@ -326,37 +332,40 @@ uint8_t sh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         char buffer[127] = "\0";
 
         strcpy(buffer, "\0");
-        if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"N") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"D") || !strcmp(ptr->dc[dcidx].type,"DN") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"D") || !strcmp(ptr->dc[dcidx].dtype,"DN") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"governor")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"disk")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"uptime")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"hostname")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"kernel")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"kernel")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].cmd,"iio")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"DN")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"DN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(sh1107_gram_write_string(&sh1107_handle, ptr->dc[dcidx].xloc, \
@@ -377,25 +386,25 @@ uint8_t sh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"C")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"C")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"F")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
             sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"H")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"H")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"P")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"P")) {
             strcat(buffer, ptr->dc[dcidx].data3);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"G")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"G")) {
             strcat(buffer, ptr->dc[dcidx].data4);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"V")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
         }
         if(ptr->dc[dcidx].unit) {
@@ -445,37 +454,40 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         char buffer[127] = "\0";
 
         strcpy(buffer, "\0");
-        if(!strcmp(ptr->dc[dcidx].type,"N") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"N") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"D") || !strcmp(ptr->dc[dcidx].type,"DN") || !strcmp(ptr->dc[dcidx].type,"ND")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"D") || !strcmp(ptr->dc[dcidx].dtype,"DN") || !strcmp(ptr->dc[dcidx].dtype,"ND")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"governor")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"governor")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"disk")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"disk")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"uptime")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"uptime")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"sysload")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"sysload")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"hostname")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"hostname")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].name,"kernel")) {
+        if(!strcmp(ptr->dc[dcidx].cmd,"kernel")) {
+            strcat(buffer, ptr->dc[dcidx].data1);
+        }
+        if(!strcmp(ptr->dc[dcidx].cmd,"iio")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"DN")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"DN")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
         if(st7789_write_string(&st7789_handle, ptr->dc[dcidx].xloc, ptr->dc[dcidx].yloc, \
@@ -495,25 +507,25 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(ptr->dc[dcidx].label) {
             strcat(buffer,ptr->dc[dcidx].label);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"C")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"C")) {
             strcat(buffer, ptr->dc[dcidx].data1);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"F")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"F")) {
             sscanf(ptr->dc[dcidx].data1,"%f",&temp_f);
             temp_f = temp_f * 1.8 + 32;
             sprintf(buffer2, "%.1lf", temp_f);
             strcat(buffer, buffer2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"H")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"H")) {
             strcat(buffer, ptr->dc[dcidx].data2);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"P")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"P")) {
             strcat(buffer, ptr->dc[dcidx].data3);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"G")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"G")) {
             strcat(buffer, ptr->dc[dcidx].data4);
         }
-        if(!strcmp(ptr->dc[dcidx].type,"V")) {
+        if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
         }
         if(ptr->dc[dcidx].unit) {

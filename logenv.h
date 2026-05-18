@@ -53,7 +53,7 @@ uint8_t SH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = 127;
 static volatile sig_atomic_t go = 1;
 
 FILE *cpu_online, *cpu_freq, *cpu_thermal, *thermal_type, *cpu_use, *mem_load, \
-     *governor_file, *log_file, *gnuplot_file, *json_file;
+     *governor_file, *log_file, *iio_file, *gnuplot_file, *json_file;
 
 bool VERBOSE_DEBUG = 0;
 
@@ -174,6 +174,8 @@ char thermalname[255];
 char governor[25];
 char governorloc[255] = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
 
+char iiopath[255] = "/sys/bus/iio/devices/iio:device";
+
 char spfile[255];
 char spline[5];
 char spline1[5];
@@ -187,33 +189,36 @@ char two2one[] = "2,1";
 char three2one[] = "3,1";
 char four2one[] = "4,1";
 
-static int8_t SP_ENABLE = 0;
-static int8_t SENSOR_ENABLE = 0;
-static int8_t FREQ_ENABLE = 0;
-static int8_t MEM_ENABLE = 0;
-static int8_t THERMAL_ENABLE = 0;
-static int8_t QUIET_ENABLE = 0;
-static int8_t VERBOSE_ENABLE = 0;
 static uint32_t INTERACTIVE_ENABLE = 0;
-static int8_t LOG_ENABLE = 0;
-static int8_t RAW_ENABLE = 0;
-static int8_t GNUPLOT_ENABLE = 0;
+
 static int8_t COUNT_ENABLE = 0;
 static int8_t DT_ENABLE = 0;
-static int8_t USAGE_ENABLE = 0;
-static int8_t UDP_ENABLE = 0;
+static int8_t FREQ_ENABLE = 0;
+static int8_t GNUPLOT_ENABLE = 0;
+static int8_t IIO_ENABLE = 0;
+static int8_t LOG_ENABLE = 0;
+static int8_t MEM_ENABLE = 0;
 static int8_t OPTIONS_COUNT = 0;
-static int8_t SGP30_ENABLE = 0;
-static int8_t SCD30_ENABLE = 0;
-static int8_t SCD4X_ENABLE = 0;
+static int8_t QUIET_ENABLE = 0;
+static int8_t RAW_ENABLE = 0;
+static int8_t SENSOR_ENABLE = 0;
+static int8_t SP_ENABLE = 0;
+static int8_t THERMAL_ENABLE = 0;
+static int8_t UDP_ENABLE = 0;
+static int8_t USAGE_ENABLE = 0;
+static int8_t VERBOSE_ENABLE = 0;
+
+static int8_t AHT20_ENABLE = 0;
+static int8_t BME280_ENABLE = 0;
+static int8_t BME680_ENABLE = 0;
 static int8_t BMP180_ENABLE = 0;
 static int8_t BMP388_ENABLE = 0;
 static int8_t BMP390_ENABLE = 0;
-static int8_t BME280_ENABLE = 0;
-static int8_t BME680_ENABLE = 0;
 static int8_t MCP9808_ENABLE = 0;
+static int8_t SCD30_ENABLE = 0;
+static int8_t SCD4X_ENABLE = 0;
+static int8_t SGP30_ENABLE = 0;
 static int8_t SHTC3_ENABLE = 0;
-static int8_t AHT20_ENABLE = 0;
 static int8_t HTU31D_ENABLE = 0;
 static int8_t SHT4X_ENABLE = 0;
 
@@ -222,40 +227,46 @@ static int8_t SSD1681_ENABLE = 0;
 static int8_t SSD1306_ENABLE = 0;
 static int8_t SH1107_ENABLE = 0;
 static int8_t ST7789_ENABLE = 0;
-static int8_t DP_TIME = 0;
+
+static int8_t DP_CIRCLE = 0;
 static int8_t DP_DATE = 0;
-static int8_t DP_FREQ = 0;
-static int8_t DP_THERMAL = 0;
-static int8_t DP_GOVERNOR = 0;
-static int8_t DP_MEMORY = 0;
-static int8_t DP_USAGE = 0;
+static int8_t DP_DAY = 0;
 static int8_t DP_DISK = 0;
-static int8_t DP_UPTIME = 0;
-static int8_t DP_SYSLOAD = 0;
+static int8_t DP_FREQ = 0;
+static int8_t DP_GOVERNOR = 0;
 static int8_t DP_HOSTNAME = 0;
+static int8_t DP_IMAGE = 0;
+static int8_t DP_IP = 0;
+static int8_t DP_IIO = 0;
 static int8_t DP_KERNEL = 0;
+static int8_t DP_LINE = 0;
+static int8_t DP_MEMORY = 0;
+static int8_t DP_POINT = 0;
+static int8_t DP_RECTANGLE = 0;
 static int8_t DP_SP2 = 0;
 static int8_t DP_SP3CH1 = 0;
 static int8_t DP_SP3CH2 = 0;
+static int8_t DP_SWAP = 0;
+static int8_t DP_SYSLOAD = 0;
+static int8_t DP_TEXT = 0;
+static int8_t DP_THERMAL = 0;
+static int8_t DP_TIME = 0;
+static int8_t DP_USAGE = 0;
+static int8_t DP_UPTIME = 0;
+
+static int8_t DP_AHT20 = 0;
 static int8_t DP_BME280 = 0;
 static int8_t DP_BME680 = 0;
 static int8_t DP_BMP180 = 0;
 static int8_t DP_BMP388 = 0;
 static int8_t DP_BMP390 = 0;
-static int8_t DP_MCP9808 = 0;
-static int8_t DP_SHT4X = 0;
-static int8_t DP_SHTC3 = 0;
-static int8_t DP_AHT20 = 0;
 static int8_t DP_HTU31D = 0;
+static int8_t DP_MCP9808 = 0;
 static int8_t DP_SCD30 = 0;
 static int8_t DP_SCD4X = 0;
 static int8_t DP_SGP30 = 0;
-static int8_t DP_TEXT = 0;
-static int8_t DP_POINT = 0;
-static int8_t DP_LINE = 0;
-static int8_t DP_CIRCLE = 0;
-static int8_t DP_RECTANGLE = 0;
-static int8_t DP_IMAGE = 0;
+static int8_t DP_SHT4X = 0;
+static int8_t DP_SHTC3 = 0;
 
 static int16_t xmtics = 10;
 static int32_t temperature;

@@ -16,10 +16,11 @@
         "pin_config_alt": 0,
         "content": [
             {
-            "name": "time",
+            "cmd": "time",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "24",
+            "dtype": "24",
             "xloc": 35,
             "yloc": 5,
             "color": 0,
@@ -28,10 +29,11 @@
             "unit": ""
             },
             {
-            "name": "date",
+            "cmd": "date",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "long",
+            "dtype": "long",
             "xloc": 25,
             "yloc": 40,
             "color": 0,
@@ -40,10 +42,11 @@
             "unit": ""
             },
             {
-            "name": "mcp9808",
+            "cmd": "mcp9808",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 24,
-            "type": "F",
+            "dtype": "F",
             "xloc": 5,
             "yloc": 65,
             "color": 0,
@@ -52,10 +55,11 @@
             "unit": ""
             },
             {
-            "name": "mcp9808",
+            "cmd": "mcp9808",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 24,
-            "type": "C",
+            "dtype": "C",
             "xloc": 135,
             "yloc": 62,
             "color": 0,
@@ -64,10 +68,11 @@
             "unit": "c"
             },
             {
-            "name": "scd41",
+            "cmd": "scd41",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 98,
-            "type": "H",
+            "dtype": "H",
             "xloc": 0,
             "yloc": 90,
             "color": 0,
@@ -76,10 +81,11 @@
             "unit": "%"
             },
             {
-            "name": "bmp390",
+            "cmd": "bmp390",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 119,
-            "type": "P",
+            "dtype": "P",
             "xloc": 0,
             "yloc": 115,
             "color": 0,
@@ -88,10 +94,11 @@
             "unit": "hPa"
             },
             {
-            "name": "scd41",
+            "cmd": "scd41",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 98,
-            "type": "G",
+            "dtype": "G",
             "xloc": 0,
             "yloc": 140,
             "color": 0,
@@ -100,10 +107,11 @@
             "unit": " ppm"
             },
             {
-            "name": "sgp30",
+            "cmd": "sgp30",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 88,
-            "type": "V",
+            "dtype": "V",
             "xloc": 0,
             "yloc": 165,
             "color": 0,
@@ -129,10 +137,11 @@
         "pin_config_alt": 0,
         "content": [
             {
-            "name": "uptime",
+            "cmd": "uptime",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "short",
+            "dtype": "short",
             "xloc": 0,
             "yloc": 0,
             "color": 0,
@@ -141,10 +150,11 @@
             "unit": ""
             },
             {
-            "name": "kernel",
+            "cmd": "kernel",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 0,
             "yloc": 20,
             "color": 0,
@@ -153,10 +163,11 @@
             "unit": ""
             },
             {
-            "name": "disk",
+            "cmd": "disk",
+            "name": "",
             "device": "/",
             "address": 0,
-            "type": "free",
+            "dtype": "free",
             "xloc": 0,
             "yloc": 40,
             "color": 0,
@@ -165,10 +176,11 @@
             "unit": "G free"
             },
             {
-            "name": "disk",
+            "cmd": "disk",
+            "name": "",
             "device": "/home",
             "address": 0,
-            "type": "free",
+            "dtype": "free",
             "xloc":0,
             "yloc": 60,
             "color": 0,
@@ -177,10 +189,11 @@
             "unit": "G free"
             },
             {
-            "name": "thermal",
+            "cmd": "thermal",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "DN",
+            "dtype": "DN",
             "xloc": 3,
             "yloc": 85,
             "color": 0,
@@ -206,10 +219,11 @@
         "pin_config_alt": 0,
         "content": [
             {
-            "name": "governor",
+            "cmd": "governor",
+            "name": "",
             "device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 0,
             "yloc": 0,
             "color": 0,
@@ -218,10 +232,11 @@
             "unit": ""
             },
             {
-            "name": "governor",
+            "cmd": "governor",
+            "name": "",
             "device": "/sys/devices/platform/fb000000.gpu/devfreq/fb000000.gpu/governor",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 0,
             "yloc": 20,
             "color": 0,
@@ -230,10 +245,11 @@
             "unit": ""
             },
             {
-            "name": "usage",
+            "cmd": "usage",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "ND",
+            "dtype": "ND",
             "xloc": 5,
             "yloc": 45,
             "color": 0,
@@ -242,10 +258,11 @@
             "unit": "%"
             },
             {
-            "name": "memory",
+            "cmd": "memory",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "ND",
+            "dtype": "ND",
             "xloc": 125,
             "yloc": 45,
             "color": 0,
@@ -254,10 +271,11 @@
             "unit": "%"
             },
             {
-            "name": "frequency",
+            "cmd": "frequency",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "D",
+            "dtype": "D",
             "xloc": 125,
             "yloc": 60,
             "color": 0,
@@ -283,10 +301,11 @@
         "pin_config_alt": 1,
         "content": [
             {
-            "name": "time",
+            "cmd": "time",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 15,
             "yloc": 5,
             "color": 0,
@@ -295,10 +314,11 @@
             "unit": ""
             },
             {
-            "name": "date",
+            "cmd": "date",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 35,
             "yloc": 30,
             "color": 0,
@@ -307,15 +327,16 @@
             "unit": ""
             },
             {
-            "name": "sysload",
-            "device": "/dev/i2c-1",
-            "address": 119,
-            "type": "short",
+            "cmd": "iio",
+            "name": "tsl2591",
+            "device": "in_illuminance_input",
+            "address": 0,
+            "dtype": "",
             "xloc": 5,
             "yloc": 50,
             "color": 0,
             "font": "DEFAULT_12",
-            "label": "",
+            "label": "tsl2591 ",
             "unit": ""
             }
         ]
@@ -336,10 +357,11 @@
         "pin_config_alt": 1,
         "content": [
             {
-            "name": "time",
+            "cmd": "time",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "12",
+            "dtype": "12",
             "xloc": 15,
             "yloc": 5,
             "color": 0,
@@ -348,10 +370,11 @@
             "unit": ""
             },
             {
-            "name": "date",
+            "cmd": "date",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "short",
+            "dtype": "short",
             "xloc": 20,
             "yloc": 30,
             "color": 0,
@@ -360,10 +383,11 @@
             "unit": ""
             },
             {
-            "name": "mcp9808",
+            "cmd": "mcp9808",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 24,
-            "type": "F",
+            "dtype": "F",
             "xloc": 0,
             "yloc": 50,
             "color": 0,
@@ -372,10 +396,11 @@
             "unit": ""
             },
             {
-            "name": "mcp9808",
+            "cmd": "mcp9808",
+            "name": "",
             "device": "/dev/i2c-0",
             "address": 24,
-            "type": "C",
+            "dtype": "C",
             "xloc": 75,
             "yloc": 51,
             "color": 0,
@@ -384,10 +409,11 @@
             "unit": "c"
             },
             {
-            "name": "hostname",
+            "cmd": "hostname",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 25,
             "yloc": 72,
             "color": 0,
@@ -396,10 +422,11 @@
             "unit": ""
             },
             {
-            "name": "kernel",
+            "cmd": "kernel",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 14,
             "yloc": 85,
             "color": 0,
@@ -408,10 +435,11 @@
             "unit": ""
             },
             {
-            "name": "disk",
+            "cmd": "disk",
+            "name": "",
             "device": "/",
             "address": 0,
-            "type": "percent",
+            "dtype": "percent",
             "xloc":0,
             "yloc": 102,
             "color": 0,
@@ -420,10 +448,11 @@
             "unit": "%"
             },
             {
-            "name": "disk",
+            "cmd": "disk",
+            "name": "",
             "device": "/home",
             "address": 0,
-            "type": "percent",
+            "dtype": "percent",
             "xloc":0,
             "yloc": 113,
             "color": 0,
