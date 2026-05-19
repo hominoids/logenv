@@ -101,44 +101,53 @@ gnuplot -c ocl-m2_g610-a76_1.gpl ocl-m2_g610-a76_1.png ocl-m2_g610-a76_1.csv
 ## SmartPower Settings
 Settings for the Hard Kernel SmartPower3 and SmartPower2 are baud rate 115200,8N1 with no HW or SW control.
 
-## Sensor Support
+## Builtin Sensor Support
 Many types of sensors are directly supported using built in drivers and require no other setup.  At this time only I2C access is available for those that also have a SPI interface.  The I2C device and or the address can follow any sensor argument while using the command line interface, otherwise the default values are used.  The I2C address follows standard C language notation for decimal, hex or octal e.g. 119, 0x77, 0167 
 ```
-logenv --bme680 /dev/i2c-0
-or
-logenv --bme680 /dev/i2c-0@0x77.
+logenv --bme680
+       --bme680 /dev/i2c-0
+       --bme680 /dev/i2c-0@119.
+       --bme680 /dev/i2c-0@0x77.
+       --bme680 /dev/i2c-0@0167.
 ```
 
-AHT20 - Temperature & Humidity I2C ADD 0x38
+```
+aht20 - Temperature & Humidity I2C ADD 0x38
+htu31 - Temperature & Humidity I2C ADD 0x40
+sht40,sht41,sht43,sht45 - Temperature & Humidity I2C ADD 0x44
+shtC3 - Temperature & Humidity I2C ADD 0x70
+mcp9808 - High Accuracy Temperature Sensor I2C ADD 0x18
 
-HTU31 - Temperature & Humidity I2C ADD 0x40
+bme280 - Pressure, Altitude, Temperature & Relative Humidity, ADD 0x76 or 0x77
+bme680 - Pressure, Altitude, Temperature, Relative Humidity & VOC ADD 0x76 or 0x77
 
-SHT40,SHT41,SHT43,SHT45 - Temperature & Humidity I2C ADD 0x44
+bmp180 - Barometric Pressure, Altitude and Temperature
+bmp388 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
+bmp390 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
 
-SHTC3 - Temperature & Humidity I2C ADD 0x70
+scd30 - NDIR True CO2 (400ppm – 10,000ppm), Temperature and Humidity Sensor ADD 0x61
+scd40,scd41,scd43 - True CO2, Temperature and Humidity Sensor ADD 0x62
 
-MCP9808 - High Accuracy Temperature Sensor I2C ADD 0x18
+sgp30 - VOC and eCO2 I2C ADD 0x58
+```
 
-
-
-BME280 - Barometric Pressure, Altitude, Temperature & Relative Humidity, ADD 0x76 or 0x77
-
-BME680 - Barometric Pressure, Altitude, Temperature, Relative Humidity & VOC ADD 0x76 or 0x77
-
-
-BMP180 - Barometric Pressure, Altitude and Temperature
-
-BMP388 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
-
-BMP390 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
-
-
-SCD30 - NDIR True CO2 (400ppm – 10,000ppm), Temperature and Humidity Sensor ADD 0x61
-
-SCD40,SCD41,SCD43 - True CO2, Temperature and Humidity Sensor ADD 0x62
-
-SGP30 - VOC and eCO2 I2C ADD 0x58
-
+## Kernel Industrial IO Sensor Support
+The kernel industrial IO(iio) sensors can be read by using the iio command instead of the sensor command.  The iio sensor name, as presented in the device tree and in */sys/bus/iio/devices/iio:device0/name*, is used to identify the correct sensor entry since the iio device number is not persistent across system boots. The JSON device entry is used to identify the file system file name to read for the sensor datum e.g. */sys/bus/iio/devices/iio:device0/in_illuminance_input*
+```
+			{
+			"cmd": "iio",
+			"name": "tsl2591",
+			"device": "in_illuminance_input",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "illum: ",
+			"unit": ""
+			},
+```
 
 ## GNUPlot Charts
 Single or stacked charts are created based on the type and number of datum that are contained in the data set.  Core Frequency, Thermal Zone Temperatures, CPU core usage and SmartPower data can all be charted with the addition of Ambient Temperature when Thermal Zone Temperatures are also charted.  When a GNUPlot Script file is generated, part of it's contents is based on the number of CPU cores and the number and name of thermal Zones.  For this reason the GNUPlot script needs to be generated on the machine the data was collected from if any of those datum are included.  The GNUPlot Scripts or .gpl files can be reused and don't need to be regenerated if the type of data being collected and the machine are the same.
@@ -159,14 +168,15 @@ Multiple displays are supported with each capable of multiple pages containing t
 ```
 {
 "displays": [
+    {
         "name": "ssd1306",
-        "device": "/dev/i2c-0",
+        "device": "/dev/i2c-1",
         "address": 61,
         "xsize": 128,
         "ysize": 64,
         "rotation": 0,
         "page": 0,
-        "seconds": 60,
+        "seconds": 0,
         "contrast": 125,
         "segment_column_address": 1,
         "scan_direction_start": 1,
@@ -174,57 +184,63 @@ Multiple displays are supported with each capable of multiple pages containing t
         "pin_config_alt": 1,
         "content": [
             {
-            "name": "time",
+            "cmd": "time",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 15,
             "yloc": 5,
             "color": 0,
-            "font": "MONOSPACE_24",
+            "font": "DEFAULT_24",
             "label": "",
             "unit": ""
             },
             {
-            "name": "date",
+            "cmd": "date",
+            "name": "",
             "device": "",
             "address": 0,
-            "type": "short",
-            "xloc": 20,
+            "dtype": "",
+            "xloc": 35,
             "yloc": 30,
             "color": 0,
-            "font": "MONOSPACE_12",
+            "font": "DEFAULT_12",
             "label": "",
             "unit": ""
             },
             {
-            "name": "mcp9808",
-            "device": "/dev/i2c-0",
-            "address": 24,
-            "type": "C",
+            "cmd": "iio",
+            "name": "tsl2591",
+            "device": "in_illuminance_input",
+            "address": 0,
+            "dtype": "",
             "xloc": 5,
             "yloc": 50,
             "color": 0,
             "font": "DEFAULT_12",
-            "label": "",
-            "unit": "c"
+            "label": "illum:",
+            "unit": ""
             },
             {
-            "name": "bme680",
-            "device": "/dev/i2c-1",
-            "address": 119,
-            "type": "P",
-            "xloc": 45,
+            "cmd": "sensor",
+            "name": "mcp9808",
+            "device": "/dev/i2c-0",
+            "address": 24,
+            "dtype": "F",
+            "xloc": 70,
             "yloc": 50,
             "color": 0,
-            "font": "DEFAULT_12",
-            "label": " ",
-            "unit": " hPa"
+            "font": "MONOSPACE_12",
+            "label": "",
+            "unit": "c"
             }
-        ]
-    }
-  ]
+         ]
+      }
+   ]
 }
+
+
 ```
 
 Most entries in the json file are self explanatory with the possible exception of the initialization variables *segment_column_address*, *scan_direction_start*, *left_right_remap* and *pin_config_alt*.  They are set to a 0 or 1 value to enable or disable the configuration command.  The first two control the direction and starting column address.  If the oled is displaying upside down, change the *segment_column_address* and *scan_direction_start* values to the opposite.  If they are 0 change them to 1 and retest.
@@ -240,7 +256,8 @@ DESCRIPTION: displays date at xloc, yloc using font.
 			 long    Friday 01 May 2026
 	EXAMPLE:
 			{
-			"name": "date",
+			"cmd": "date",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "long",
@@ -264,7 +281,8 @@ DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 	   
 	EXAMPLE:       
 			{
-			"name": "disk",
+			"cmd": "disk",
+			"name": "",
 			"device": "/",
 			"address": 0,
 			"type": "free",
@@ -290,7 +308,8 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
 
 	EXAMPLE:       
 			{
-			"name": "frequency",
+			"cmd": "frequency",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "D",
@@ -312,7 +331,8 @@ DESCRIPTION: displays governor from device at xloc, yloc using font.
 
 	EXAMPLE:       
 			{
-			"name": "governor",
+			"cmd": "governor",
+			"name": "",
 			"device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
 			"address": 0,
 			"type": "",
@@ -332,7 +352,8 @@ DESCRIPTION: displays hostname at xloc, yloc using font.
 
 	EXAMPLE:       
 			{
-			"name": "hostname",
+			"cmd": "hostname",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "short",
@@ -345,6 +366,27 @@ DESCRIPTION: displays hostname at xloc, yloc using font.
 			},
 ```
 
+***iio***
+```
+    COMMAND: iio
+DESCRIPTION: displays kernel iio sensor at xloc, yloc using font.
+
+	EXAMPLE:       
+			{
+			"cmd": "iio",
+			"name": "tsl2591",
+			"device": "in_illuminance_input",
+			"address": 0,
+			"type": "",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "illum: ",
+			"unit": ""
+			},
+```
+
 ***kernel***
 ```
     COMMAND: kernel
@@ -352,7 +394,8 @@ DESCRIPTION: displays kernel version at xloc, yloc using font.
 
 	EXAMPLE:       
 			{
-			"name": "kernel",
+			"cmd": "kernel",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "",
@@ -372,7 +415,8 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
 
 	EXAMPLE:       
 			{
-			"name": "memory",
+			"cmd": "memory",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "",
@@ -386,15 +430,13 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
 ```
 
 ***sensor***
-
-AHT20,HTU31,SHT40,SHT41,SHT43,SHT45,SHTC3,MCP9808,BME280,BME680,BMP180,BMP388,BMP390,SCD30,SCD40,SCD41,SCD43,SGP30
-
-7-bits I2C address in decimal e.g. 119 = 0x77
-
 ```
-    COMMAND: *sensor* name
+    COMMAND: sensor
 DESCRIPTION: displays sensor datum at xloc, yloc using font.
 
+       NAME: aht20,htu31,sht40,sht41,sht43,sht45,shtc3,mcp9808
+       		bme280,bme680,bmp180,bmp388,bmp390,
+       		scd30,sdc40,scd41,scd43,sgp30
        TYPE: C = Celsius
 			 F = Fahrenheit
 			 H = Humidity
@@ -402,8 +444,9 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
 			 G = Gas
 			 V = VOC
 			
-	EXAMPLE:       
+	EXAMPLE:
 	        {
+	        "cmd": "sensor",
 	        "name": "bme680",
 	        "device": "/dev/i2c-1",
 	        "address": 119,
@@ -416,6 +459,7 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
 	        "unit": "c"
 	        },
 ```
+The sensor address is 7-bits I2C address in decimal e.g. 119 = 0x77
 
 ***sysload***
 ```
@@ -427,7 +471,8 @@ DESCRIPTION: displays sysload info at xloc, yloc using font.
 	   		 
 	EXAMPLE:       
 			{
-			"name": "sysload",
+			"cmd": "sysload",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "short",
@@ -453,7 +498,8 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
 
 	EXAMPLE:       
 			{
-			"name": "thermal",
+			"cmd": "thermal",
+			"name": "",
 			"device": "0",
 			"address": 0,
 			"type": "ND",
@@ -476,7 +522,8 @@ DESCRIPTION: displays time at xloc, yloc using font.
 			 24		 16:00
 	EXAMPLE:       
 			{
-			"name": "time",
+			"cmd": "time",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "24",
@@ -500,7 +547,8 @@ DESCRIPTION: displays uptime at xloc, yloc using font.
 	   		 
 	EXAMPLE:       
 			{
-			"name": "uptime",
+			"cmd": "uptime",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "short",
@@ -526,7 +574,8 @@ DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
 	EXAMPLE:       
 			{
-			"name": "usage",
+			"cmd": "usage",
+			"name": "",
 			"device": "",
 			"address": 0,
 			"type": "ND",

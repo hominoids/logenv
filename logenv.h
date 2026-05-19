@@ -174,6 +174,7 @@ char thermalname[255];
 char governor[25];
 char governorloc[255] = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
 
+uint8_t iio_counted = 0;
 char iiopath[255] = "/sys/bus/iio/devices/iio:device";
 
 char spfile[255];

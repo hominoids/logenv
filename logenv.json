@@ -42,8 +42,8 @@
             "unit": ""
             },
             {
-            "cmd": "mcp9808",
-            "name": "",
+            "cmd": "sensor",
+            "name": "mcp9808",
             "device": "/dev/i2c-0",
             "address": 24,
             "dtype": "F",
@@ -55,8 +55,8 @@
             "unit": ""
             },
             {
-            "cmd": "mcp9808",
-            "name": "",
+            "cmd": "sensor",
+            "name": "mcp9808",
             "device": "/dev/i2c-0",
             "address": 24,
             "dtype": "C",
@@ -68,8 +68,8 @@
             "unit": "c"
             },
             {
-            "cmd": "scd41",
-            "name": "",
+            "cmd": "sensor",
+            "name": "scd41",
             "device": "/dev/i2c-0",
             "address": 98,
             "dtype": "H",
@@ -81,8 +81,8 @@
             "unit": "%"
             },
             {
-            "cmd": "bmp390",
-            "name": "",
+            "cmd": "sensor",
+            "name": "bmp390",
             "device": "/dev/i2c-0",
             "address": 119,
             "dtype": "P",
@@ -94,8 +94,8 @@
             "unit": "hPa"
             },
             {
-            "cmd": "scd41",
-            "name": "",
+            "cmd": "sensor",
+            "name": "scd41",
             "device": "/dev/i2c-0",
             "address": 98,
             "dtype": "G",
@@ -107,8 +107,8 @@
             "unit": " ppm"
             },
             {
-            "cmd": "sgp30",
-            "name": "",
+            "cmd": "sensor",
+            "name": "sgp30",
             "device": "/dev/i2c-0",
             "address": 88,
             "dtype": "V",
@@ -336,7 +336,20 @@
             "yloc": 50,
             "color": 0,
             "font": "DEFAULT_12",
-            "label": "tsl2591 ",
+            "label": "illum:",
+            "unit": ""
+            },
+            {
+            "cmd": "iio",
+            "name": "tsl2591",
+            "device": "in_intensity_ir_raw",
+            "address": 0,
+            "dtype": "",
+            "xloc": 70,
+            "yloc": 50,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "ir:",
             "unit": ""
             }
         ]
@@ -383,8 +396,8 @@
             "unit": ""
             },
             {
-            "cmd": "mcp9808",
-            "name": "",
+            "cmd": "sensor",
+            "name": "mcp9808",
             "device": "/dev/i2c-0",
             "address": 24,
             "dtype": "F",
@@ -396,8 +409,8 @@
             "unit": ""
             },
             {
-            "cmd": "mcp9808",
-            "name": "",
+            "cmd": "sensor",
+            "name": "mcp9808",
             "device": "/dev/i2c-0",
             "address": 24,
             "dtype": "C",

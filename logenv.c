@@ -256,21 +256,24 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"iio")) {
                         DP_IIO++;
-                        for (uint16_t c = 0; c <= 1024; c++) {
+                        if(iio_counted == 0) {
+                            for (uint16_t c = 0; c <= 1024; c++) {
 
-                            char iioloc[255] = "\0";
-                            char strChar[5] = "\0";
+                                char iioloc[255] = "\0";
+                                char strChar[5] = "\0";
 
-                            itoa(c,strChar);
-                            strcpy(iioloc,iiopath);
-                            strcat(iioloc,strChar);
-                            strcat(iioloc,"/");
-                            strcat(iioloc,"name");
-                            if((iio_file = fopen(iioloc, "r")) == NULL) {
-                                break;
+                                itoa(c,strChar);
+                                strcpy(iioloc,iiopath);
+                                strcat(iioloc,strChar);
+                                strcat(iioloc,"/");
+                                strcat(iioloc,"name");
+                                if((iio_file = fopen(iioloc, "r")) == NULL) {
+                                    break;
+                                }
+                                fclose(iio_file);
+                                IIO_ENABLE++;
                             }
-                            fclose(iio_file);
-                            IIO_ENABLE++;
+                            iio_counted++;
                         }
                     }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"image")) {
@@ -324,148 +327,150 @@ int main(uint8_t argc, char **argv) {
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"usage")) {
                         DP_USAGE++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bmp180")) {
-                        strcpy(bmp180_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        bmp180_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(bmp180_basic_init() != 0) {
-                            printf("\nERROR: Cannot open BMP180 at %s\n", interface);
-                            exit(1);
+                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sensor")) {
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp180")) {
+                            strcpy(bmp180_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            bmp180_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(bmp180_basic_init() != 0) {
+                                printf("\nERROR: Cannot open BMP180 at %s\n", interface);
+                                exit(1);
+                            }
+                            bmp180_iic_init = 1;
+                            DP_BMP180++;
                         }
-                        bmp180_iic_init = 1;
-                        DP_BMP180++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bmp388")) {
-                        strcpy(bmp388_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        bmp388_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
-                            printf("\nERROR: Cannot open BMP388 at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp388")) {
+                            strcpy(bmp388_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            bmp388_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
+                                printf("\nERROR: Cannot open BMP388 at %s\n", interface);
+                                exit(1);
+                            }
+                            bmp388_iic_init = 1;
+                            DP_BMP388++;
                         }
-                        bmp388_iic_init = 1;
-                        DP_BMP388++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bmp390")) {
-                        strcpy(bmp390_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        bmp390_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
-                            printf("\nERROR: Cannot open BMP390 at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bmp390")) {
+                            strcpy(bmp390_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            bmp390_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
+                                printf("\nERROR: Cannot open BMP390 at %s\n", interface);
+                                exit(1);
+                            }
+                            bmp390_iic_init = 1;
+                            DP_BMP390++;
                         }
-                        bmp390_iic_init = 1;
-                        DP_BMP390++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bme280")) {
-                        strcpy(bme280_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        bme280_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
-                            printf("\nERROR: Cannot open BME280 at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme280")) {
+                            strcpy(bme280_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            bme280_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
+                                printf("\nERROR: Cannot open BME280 at %s\n", interface);
+                                exit(1);
+                            }
+                            bme280_iic_init = 1;
+                            DP_BME280++;
                         }
-                        bme280_iic_init = 1;
-                        DP_BME280++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"bme680")) {
-                        strcpy(bme680_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        bme680_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
-                            printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"bme680")) {
+                            strcpy(bme680_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            bme680_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
+                                printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
+                                exit(1);
+                            }
+                            bme680_iic_init = 1;
+                            DP_BME680++;
                         }
-                        bme680_iic_init = 1;
-                        DP_BME680++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"mcp9808")) {
-                        strcpy(mcp9808_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        mcp9808_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address;
-                        if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
-                            printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"mcp9808")) {
+                            strcpy(mcp9808_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            mcp9808_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address;
+                            if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
+                                printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
+                                exit(1);
+                            }
+                            mcp9808_open();
+                            mcp9808_iic_init = 1;
+                            DP_MCP9808++;
                         }
-                        mcp9808_open();
-                        mcp9808_iic_init = 1;
-                        DP_MCP9808++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sht4x")) {
-                        strcpy(sht4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        sht4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(sht4x_basic_init(sht4x_iic_addr) != 0) {
-                            printf("\nERROR: Cannot open SHT4x at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sht4x")) {
+                            strcpy(sht4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            sht4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(sht4x_basic_init(sht4x_iic_addr) != 0) {
+                                printf("\nERROR: Cannot open SHT4x at %s\n", interface);
+                                exit(1);
+                            }
+                            sht4x_iic_init = 1;
+                            DP_SHT4X++;
                         }
-                        sht4x_iic_init = 1;
-                        DP_SHT4X++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"shtc3")) {
-                        strcpy(shtc3_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        shtc3_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(shtc3_basic_init() != 0) {
-                            printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"shtc3")) {
+                            strcpy(shtc3_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            shtc3_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(shtc3_basic_init() != 0) {
+                                printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
+                                exit(1);
+                            }
+                            shtc3_iic_init = 1;
+                            DP_SHTC3++;
                         }
-                        shtc3_iic_init = 1;
-                        DP_SHTC3++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"aht20")) {
-                        strcpy(aht20_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        aht20_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(aht20_basic_init() != 0) {
-                            printf("\nERROR: Cannot open AHT20 at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"aht20")) {
+                            strcpy(aht20_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            aht20_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(aht20_basic_init() != 0) {
+                                printf("\nERROR: Cannot open AHT20 at %s\n", interface);
+                                exit(1);
+                            }
+                            aht20_iic_init = 1;
+                            DP_AHT20++;
                         }
-                        aht20_iic_init = 1;
-                        DP_AHT20++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"htu31d")) {
-                        strcpy(htu31d_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        htu31d_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if(htu31d_basic_init(htu31d_iic_addr) != 0) {
-                            printf("\nERROR: Cannot open HTU31D at %s\n", interface);
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"htu31d")) {
+                            strcpy(htu31d_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            htu31d_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if(htu31d_basic_init(htu31d_iic_addr) != 0) {
+                                printf("\nERROR: Cannot open HTU31D at %s\n", interface);
+                                exit(1);
+                            }
+                            htu31d_iic_init = 1;
+                            DP_HTU31D++;
                         }
-                        htu31d_iic_init = 1;
-                        DP_HTU31D++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd30")) {
-                        strcpy(scd30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        scd30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
-                            printf("\nERROR: SCD30 Init failed.\n");
-                            exit(1);
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd30")) {
+                            strcpy(scd30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            scd30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
+                                printf("\nERROR: SCD30 Init failed.\n");
+                                exit(1);
+                            }
+                            scd30_iic_init = 1;
+                            DP_SCD30++;
                         }
-                        scd30_iic_init = 1;
-                        DP_SCD30++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd40") || \
-                        !strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd41") || \
-                            !strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd43")) {
-                        strcpy(scd4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        scd4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        scd4x_t chip_type;
-                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd40")) {
-                            chip_type = SCD40;
-                        } 
-                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd41")) {
-                            chip_type = SCD41;
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd40") || \
+                            !strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41") || \
+                                !strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
+                            strcpy(scd4x_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            scd4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            scd4x_t chip_type;
+                            if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd40")) {
+                                chip_type = SCD40;
+                            }
+                            else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd41")) {
+                                chip_type = SCD41;
+                            }
+                            else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"scd43")) {
+                                chip_type = SCD43;
+                            }
+                            if (scd4x_shot_init(chip_type)) {
+                                printf("\nERROR: SCD4x Init failed.\n");
+                                exit(1);
+                            }
+                            scd4x_iic_init = 1;
+                            DP_SCD4X++;
                         }
-                        else if (!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"scd43")) {
-                            chip_type = SCD43;
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"sgp30")) {
+                            strcpy(sgp30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            sgp30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if (sgp30_advance_init()) {
+                                printf("\nERROR: SGP30 Init failed.\n");
+                                exit(1);
+                            }
+                            sgp30_iic_init = 1;
+                            DP_SGP30++;
                         }
-                        if (scd4x_shot_init(chip_type)) {
-                            printf("\nERROR: SCD4x Init failed.\n");
-                            exit(1);
-                        }
-                        scd4x_iic_init = 1;
-                        DP_SCD4X++;
-                    }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"sgp30")) {
-                        strcpy(sgp30_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
-                        sgp30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
-                        if (sgp30_advance_init()) {
-                            printf("\nERROR: SGP30 Init failed.\n");
-                            exit(1);
-                        }
-                        sgp30_iic_init = 1;
-                        DP_SGP30++;
                     }
                     ac++;
                 }
@@ -1603,7 +1608,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "bmp388") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "bmp388") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1685,7 +1690,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "bmp390") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "bmp390") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1773,7 +1778,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "bme280") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "bme280") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1869,7 +1874,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "bme680") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "bme680") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -1939,7 +1944,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "mcp9808") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "mcp9808") && dp[d].page == page) {
 
                                 char buffer[6];
 
@@ -2023,7 +2028,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "sht4x") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "sht4x") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2108,7 +2113,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "shtc3") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "shtc3") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2193,7 +2198,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "aht20") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "aht20") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2278,7 +2283,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "htu31d") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "htu31d") && dp[d].page == page) {
 
                                 char buffer[25];
 
@@ -2360,7 +2365,7 @@ int main(uint8_t argc, char **argv) {
                 if(DP_SCD30 != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "scd30") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "scd30") && dp[d].page == page) {
 
                                 char buffer[6];
 
@@ -2448,9 +2453,9 @@ int main(uint8_t argc, char **argv) {
                 if(DP_SCD4X != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if((!strcmp(dp[d].dc[i].cmd, "scd40") || \
-                                !strcmp(dp[d].dc[i].cmd, "scd41") || \
-                                    !strcmp(dp[d].dc[i].cmd, "scd43")) && dp[d].page == page) {
+                            if((!strcmp(dp[d].dc[i].name, "scd40") || \
+                                !strcmp(dp[d].dc[i].name, "scd41") || \
+                                !strcmp(dp[d].dc[i].name, "scd43")) && dp[d].page == page) {
 
                                 char buffer[6];
 
@@ -2538,7 +2543,7 @@ int main(uint8_t argc, char **argv) {
 
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "sgp30") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].name, "sgp30") && dp[d].page == page) {
 
                                 char buffer[10];
 
@@ -3171,7 +3176,7 @@ int main(uint8_t argc, char **argv) {
                                     fscanf(iio_file, "%f", &iio_f);
                                     fclose(iio_file);
 
-                                    sprintf(dp[d].dc[i].data1, "%.2f", iio_f);
+                                    sprintf(dp[d].dc[i].data1, "%.1f", iio_f);
 
                                     if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                         printf("%s iio cmd %d failed\n", &dp[d].name, i);
