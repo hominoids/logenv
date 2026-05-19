@@ -435,8 +435,8 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
 DESCRIPTION: displays sensor datum at xloc, yloc using font.
 
        NAME: aht20,htu31,sht40,sht41,sht43,sht45,shtc3,mcp9808
-       		bme280,bme680,bmp180,bmp388,bmp390,
-       		scd30,sdc40,scd41,scd43,sgp30
+       		 bme280,bme680,bmp180,bmp388,bmp390,
+       		 scd30,sdc40,scd41,scd43,sgp30
        TYPE: C = Celsius
 			 F = Fahrenheit
 			 H = Humidity
@@ -518,8 +518,8 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
 DESCRIPTION: displays time at xloc, yloc using font.
 
        TYPE: default 4:00 PM
-			 12		 04:00
-			 24		 16:00
+			 12		04:00
+			 24		16:00
 	EXAMPLE:       
 			{
 			"cmd": "time",

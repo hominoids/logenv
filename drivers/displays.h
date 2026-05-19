@@ -62,7 +62,7 @@ extern st7789_handle_t st7789_handle;
 
 uint8_t fontoi(char *);
 
-struct display_content {
+struct page_content {
     char cmd[15];
     char name[35];
     char device[255];
@@ -80,6 +80,7 @@ struct display_content {
     char data4[30];  // CO2 as ppm
     char data5[30];  // TVOC as ppb
     uint8_t read;
+    uint8_t prevlen;
 };
 
 struct display {
@@ -100,7 +101,7 @@ struct display {
     uint8_t init;
     uint8_t (*dptr)(struct display *, uint8_t, uint8_t);
     uint8_t dc_count;
-    struct display_content dc[32];
+    struct page_content dc[32];
 };
 
 #ifdef __cplusplus

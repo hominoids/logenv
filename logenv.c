@@ -101,6 +101,7 @@ int main(uint8_t argc, char **argv) {
             }
 
             char buffer[16384];
+
             uint16_t len = fread(buffer, 1, sizeof(buffer), json_file);
             fclose(json_file);
             if(VERBOSE_DEBUG) printf("json file read...\n");
