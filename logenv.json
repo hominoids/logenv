@@ -171,7 +171,7 @@
             "xloc": 0,
             "yloc": 40,
             "color": 0,
-            "font": "MONOSPACE_20",
+            "font": "MONOSPACE_16",
             "label": "/     ",
             "unit": "G free"
             },
@@ -184,7 +184,7 @@
             "xloc":0,
             "yloc": 60,
             "color": 0,
-            "font": "MONOSPACE_20",
+            "font": "MONOSPACE_16",
             "label": "/home ",
             "unit": "G free"
             },
@@ -435,16 +435,16 @@
             "unit": ""
             },
             {
-            "cmd": "kernel",
+            "cmd": "sysload",
             "name": "",
             "device": "",
             "address": 0,
-            "dtype": "",
-            "xloc": 14,
+            "dtype": "short",
+            "xloc": 0,
             "yloc": 85,
             "color": 0,
             "font": "DEFAULT_12",
-            "label": "kernel ",
+            "label": "",
             "unit": ""
             },
             {

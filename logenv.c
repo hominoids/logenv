@@ -3025,20 +3025,24 @@ int main(uint8_t argc, char **argv) {
                                 break;;
                             }
 
-                            uint64_t dsize = (stat.f_bsize * stat.f_blocks)/1000000000;
-                            uint64_t davail = (stat.f_bsize * stat.f_bavail)/1000000000;
-                            uint64_t dused = (stat.f_bsize * (stat.f_blocks-stat.f_bavail))/1000000000;
-                            float pused = ((float)dused/(float)dsize) * 100;
+                            uint64_t dsize = stat.f_bsize * stat.f_blocks;
+                            uint64_t davail = stat.f_bsize * stat.f_bavail;
+                            uint64_t dused = stat.f_bsize * (stat.f_blocks-stat.f_bavail);
 
-                            if(!strcmp(dp[d].dc[i].dtype, "free")) {
-                                sprintf(buffer, "%d", davail);
+                            if(!strcmp(dp[d].dc[i].dtype, "total")) {
+                                sprintf(buffer, "%.2f", (float)dsize/1000000000);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "free")) {
+                                sprintf(buffer, "%.2f", (float)davail/1000000000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             else if(!strcmp(dp[d].dc[i].dtype, "used")) {
-                                sprintf(buffer, "%d", dused);
+                                sprintf(buffer, "%.2f", (float)dused/1000000000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
+                                float pused = (float)((float)dused/(float)dsize) * 100;
                                 sprintf(buffer, "%.0f", pused);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
@@ -3105,11 +3109,11 @@ int main(uint8_t argc, char **argv) {
                             unsigned long sysil3 = sys_info.loads[2];
 
                             if(!strcmp(dp[d].dc[i].dtype, "short")) {
-                                sprintf(buffer, "[%lu] [%lu] [%lu]", sysil1/100000, sysil2/100000, sysil3/100000);
+                                sprintf(buffer, "[%.2f] [%.2f] [%.2f]", (float)sysil1/100000, (float)sysil2/100000, (float)sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             else if(!strcmp(dp[d].dc[i].dtype, "long")) {
-                                sprintf(buffer, "1min(%lu) 5min(%lu) 15min(%lu)", sysil1/100000, sysil2/100000, sysil3/100000);
+                                sprintf(buffer, "1min(%.2f) 5min(%.2f) 15min(%.2f)", (float)sysil1/100000, (float)sysil2/100000, (float)sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
@@ -3138,7 +3142,6 @@ int main(uint8_t argc, char **argv) {
                             unsigned long tswap = sys_info.totalswap;
                             unsigned long fswap = sys_info.freeswap;
                             unsigned long uswap = tswap - fswap;
-                            float pswap = (float) (((float)uswap/1000000000)/((float)tswap/1000000000)) * 100;
 
                             if(!strcmp(dp[d].dc[i].dtype, "total")) {
                                 sprintf(buffer, "%.2f", (float) tswap/1000000000);
@@ -3153,6 +3156,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
+                                float pswap = (float) (((float)uswap/1000000000)/((float)tswap/1000000000)) * 100;
                                 sprintf(buffer, "%.0f", pswap);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
