@@ -34,7 +34,7 @@
             "device": "",
             "address": 0,
             "dtype": "long",
-            "xloc": 25,
+            "xloc": 15,
             "yloc": 40,
             "color": 0,
             "font": "DEFAULT_16",

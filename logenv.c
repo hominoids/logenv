@@ -2920,7 +2920,7 @@ int main(uint8_t argc, char **argv) {
                         printf(",%.3g", r);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n RAM load = %.3g%%", r);
+                        printf("\n\n RAM Use = %.3g%%", r);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.3g", r);
@@ -3100,20 +3100,64 @@ int main(uint8_t argc, char **argv) {
                                 break;;
                             }
 
-                            float sysil1 = sys_info.loads[0];
-                            float sysil2 = sys_info.loads[1];
-                            float sysil3 = sys_info.loads[2];
+                            unsigned long sysil1 = sys_info.loads[0];
+                            unsigned long sysil2 = sys_info.loads[1];
+                            unsigned long sysil3 = sys_info.loads[2];
 
                             if(!strcmp(dp[d].dc[i].dtype, "short")) {
-                                sprintf(buffer, "[%.2f] [%.2f] [%.2f]", sysil1/100000, sysil2/100000, sysil3/100000);
+                                sprintf(buffer, "[%lu] [%lu] [%lu]", sysil1/100000, sysil2/100000, sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             else if(!strcmp(dp[d].dc[i].dtype, "long")) {
-                                sprintf(buffer, "1min(%.2f) 5min(%.2f) 15min(%.2f)", sysil1/100000, sysil2/100000, sysil3/100000);
+                                sprintf(buffer, "1min(%lu) 5min(%lu) 15min(%lu)", sysil1/100000, sysil2/100000, sysil3/100000);
                                 strcpy(dp[d].dc[i].data1, buffer);
                             }
                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                 printf("%s sysload cmd %d failed\n", &dp[d].name, i);
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * sysinfo swap
+             */
+            if(DP_SWAP != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].cmd, "swap") && dp[d].page == page) {
+
+                            struct sysinfo sys_info;
+                            char buffer[127] = "\0";
+
+                            if(sysinfo(&sys_info) != 0) {
+                                printf("%s cmd %d swap failed\n", &dp[d].name, i);
+                                break;;
+                            }
+
+                            unsigned long tswap = sys_info.totalswap;
+                            unsigned long fswap = sys_info.freeswap;
+                            unsigned long uswap = tswap - fswap;
+                            float pswap = (float) (((float)uswap/1000000000)/((float)tswap/1000000000)) * 100;
+
+                            if(!strcmp(dp[d].dc[i].dtype, "total")) {
+                                sprintf(buffer, "%.2f", (float) tswap/1000000000);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            if(!strcmp(dp[d].dc[i].dtype, "free")) {
+                                sprintf(buffer, "%.2f", (float) fswap/1000000000);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "used")) {
+                                sprintf(buffer, "%.2f", (float) uswap/1000000000);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
+                                sprintf(buffer, "%.0f", pswap);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                            }
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                printf("%s swap cmd %d failed\n", &dp[d].name, i);
                             }
                         }
                     }

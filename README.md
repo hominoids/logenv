@@ -464,6 +464,30 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
 ```
 The sensor address is 7-bits I2C address in decimal e.g. 119 = 0x77
 
+***swap***
+```
+    COMMAND: swap
+DESCRIPTION: displays swap info at xloc, yloc using font.
+
+	 DEVICE: path
+	   TYPE: total, free, used, percent
+	   
+	EXAMPLE:       
+			{
+			"cmd": "swap",
+			"name": "",
+			"device": "",
+			"address": 0,
+			"type": "percent",
+			"xloc": 10,
+			"yloc": 40,
+			"color": 0,
+			"font": "MONOSPACE_16",
+			"label": "swap ",
+			"unit": "%"
+			},
+```
+
 ***sysload***
 ```
     COMMAND: sysload
