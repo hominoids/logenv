@@ -1152,6 +1152,15 @@ int main(uint8_t argc, char **argv) {
                             else if(!strcmp(dp[d].dc[i].dtype, "long")) {
                                 count = strftime(buffer,sizeof(buffer),"%A %d %B %Y",t);
                             }
+                            else if(!strcmp(dp[d].dc[i].dtype, "day")) {
+                                count = strftime(buffer,sizeof(buffer),"%A",t);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "dd/mm/yyyy")) {
+                                count = sprintf(buffer,"%02d/%02d/%4d", t->tm_mday, t->tm_mon+1, t->tm_year+1900);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "yyyy/mm/dd")) {
+                                count = sprintf(buffer,"%04d/%02d/%2d", t->tm_year+1900, t->tm_mon+1, t->tm_mday);
+                            }
                             else {
                                 count = sprintf(buffer,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
                             }

@@ -251,9 +251,12 @@ Most entries in the json file are self explanatory with the possible exception o
     COMMAND: date
 DESCRIPTION: displays date at xloc, yloc using font.
 
-       TYPE: default mm/dd/yyyy
+       TYPE: mm/dd/yyyy
+       		 dd/mm/yyyy
+       		 yyyy/mm/dd
 			 short   Fri 01-May-26
 			 long    Friday 01 May 2026
+			 day     Friday
 	EXAMPLE:
 			{
 			"cmd": "date",
