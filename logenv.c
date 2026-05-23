@@ -3294,6 +3294,20 @@ int main(uint8_t argc, char **argv) {
                 }
             }
             /*
+             * display text string
+             */
+            if(DP_TEXT != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].cmd, "text") && dp[d].page == page) {
+                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                printf("%s text cmd %d failed\n", &dp[d].name, i);
+                            }
+                        }
+                    }
+                }
+            }
+            /*
              * eol for stdout and log file
              */
             if(QUIET_ENABLE == 0) {

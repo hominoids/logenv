@@ -176,7 +176,7 @@ Multiple displays are supported with each capable of multiple pages containing t
         "ysize": 64,
         "rotation": 0,
         "page": 0,
-        "seconds": 0,
+        "seconds": 60,
         "contrast": 125,
         "segment_column_address": 1,
         "scan_direction_start": 1,
@@ -246,6 +246,23 @@ Multiple displays are supported with each capable of multiple pages containing t
 Most entries in the json file are self explanatory with the possible exception of the initialization variables *segment_column_address*, *scan_direction_start*, *left_right_remap* and *pin_config_alt*.  They are set to a 0 or 1 value to enable or disable the configuration command.  The first two control the direction and starting column address.  If the oled is displaying upside down, change the *segment_column_address* and *scan_direction_start* values to the opposite.  If they are 0 change them to 1 and retest.
  
 ### Page Content Commands
+- date
+- disk
+- frequency
+- governor
+- hostname
+- iio
+- kernel
+- memory
+- sensor
+- swap
+- sysload
+- text
+- thermal
+- time
+- uptime
+- usage
+
 ***date***
 ```
     COMMAND: date
@@ -312,9 +329,9 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
 
      DEVICE: empty for all cores or core number
        TYPE: D = datum
-                N = name
-                DN = datum name
-                ND = name datum
+             N = name
+            DN = datum name
+            ND = name datum
 
     EXAMPLE:
             {
@@ -522,6 +539,29 @@ DESCRIPTION: displays sysload info at xloc, yloc using font.
             },
 ```
 
+***text***
+```
+    COMMAND: text
+DESCRIPTION: displays string at xloc, yloc using font.
+
+     DEVICE: string of up to 255 characters
+
+    EXAMPLE:
+            {
+            "cmd": "text",
+            "name": "",
+            "device": "This is a Test.",
+            "address": 0,
+            "type": "",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
+```
+
 ***thermal***
 ```
     COMMAND: thermal
@@ -581,7 +621,7 @@ DESCRIPTION: displays time at xloc, yloc using font.
 DESCRIPTION: displays uptime at xloc, yloc using font.
 
        TYPE: short %d days HH:MM
-                long  %ddays, %dhours, %dminutes
+             long  %ddays, %dhours, %dminutes
 
     EXAMPLE:
             {
