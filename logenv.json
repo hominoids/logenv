@@ -34,7 +34,7 @@
             "device": "",
             "address": 0,
             "dtype": "long",
-            "xloc": 15,
+            "xloc": 10,
             "yloc": 40,
             "color": 0,
             "font": "DEFAULT_16",
@@ -428,22 +428,9 @@
             "address": 0,
             "dtype": "",
             "xloc": 25,
-            "yloc": 72,
+            "yloc": 70,
             "color": 0,
             "font": "MONOSPACE_12",
-            "label": "",
-            "unit": ""
-            },
-            {
-            "cmd": "sysload",
-            "name": "",
-            "device": "",
-            "address": 0,
-            "dtype": "short",
-            "xloc": 0,
-            "yloc": 85,
-            "color": 0,
-            "font": "DEFAULT_12",
             "label": "",
             "unit": ""
             },
@@ -454,7 +441,7 @@
             "address": 0,
             "dtype": "percent",
             "xloc":0,
-            "yloc": 102,
+            "yloc": 85,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "/     ",
@@ -467,15 +454,26 @@
             "address": 0,
             "dtype": "percent",
             "xloc":0,
-            "yloc": 113,
+            "yloc": 97,
             "color": 0,
             "font": "MONOSPACE_12",
             "label": "/home ",
             "unit": "%"
+            },
+            {
+            "cmd": "sysload",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "short",
+            "xloc": 0,
+            "yloc": 113,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": ""
             }
         ]
     }
-
-   ]
+  ]
 }
-

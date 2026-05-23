@@ -15,10 +15,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Code released under GPLv3: http://www.gnu.org/licenses/gpl.html
 
-   logenv - logs count or time stamp, thermal zone temperature, cpu frequency,
-            air temperature(BME280, BMP180, MCP9808),
-            volts, amps and watts (HK SmartPower2 or SmartPower3 output)
-
+    logenv - A Linux command-line utility for the aggregating, logging,
+             charting and displaying of timestamped CPU core frequencies,
+             thermal zone temperatures, ambient temperature, CPU core usage,
+             memory usage, sensors data and volts, amps and watts, from a
+             HardKernel SmartPower2 or SmartPower3, as a single-shot or
+             continuos interval based feed.
 
     void usage (void)
     int16_t itoa(int32_t n, char s[])
@@ -237,9 +239,6 @@ int main(uint8_t argc, char **argv) {
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"date")) {
                         DP_DATE++;
                     }
-                    if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"day")) {
-                        DP_DAY++;
-                    }
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"disk")) {
                         DP_DISK++;
                     }
@@ -334,7 +333,7 @@ int main(uint8_t argc, char **argv) {
                             bmp180_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(bmp180_basic_init() != 0) {
                                 printf("\nERROR: Cannot open BMP180 at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             bmp180_iic_init = 1;
                             DP_BMP180++;
@@ -344,7 +343,7 @@ int main(uint8_t argc, char **argv) {
                             bmp388_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
                                 printf("\nERROR: Cannot open BMP388 at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             bmp388_iic_init = 1;
                             DP_BMP388++;
@@ -354,7 +353,7 @@ int main(uint8_t argc, char **argv) {
                             bmp390_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
                                 printf("\nERROR: Cannot open BMP390 at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             bmp390_iic_init = 1;
                             DP_BMP390++;
@@ -364,7 +363,7 @@ int main(uint8_t argc, char **argv) {
                             bme280_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
                                 printf("\nERROR: Cannot open BME280 at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             bme280_iic_init = 1;
                             DP_BME280++;
@@ -374,7 +373,7 @@ int main(uint8_t argc, char **argv) {
                             bme680_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
                                 printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             bme680_iic_init = 1;
                             DP_BME680++;
@@ -384,7 +383,7 @@ int main(uint8_t argc, char **argv) {
                             mcp9808_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address;
                             if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
                                 printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             mcp9808_open();
                             mcp9808_iic_init = 1;
@@ -395,7 +394,7 @@ int main(uint8_t argc, char **argv) {
                             sht4x_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(sht4x_basic_init(sht4x_iic_addr) != 0) {
                                 printf("\nERROR: Cannot open SHT4x at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             sht4x_iic_init = 1;
                             DP_SHT4X++;
@@ -405,7 +404,7 @@ int main(uint8_t argc, char **argv) {
                             shtc3_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(shtc3_basic_init() != 0) {
                                 printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             shtc3_iic_init = 1;
                             DP_SHTC3++;
@@ -415,7 +414,7 @@ int main(uint8_t argc, char **argv) {
                             aht20_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(aht20_basic_init() != 0) {
                                 printf("\nERROR: Cannot open AHT20 at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             aht20_iic_init = 1;
                             DP_AHT20++;
@@ -425,7 +424,7 @@ int main(uint8_t argc, char **argv) {
                             htu31d_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if(htu31d_basic_init(htu31d_iic_addr) != 0) {
                                 printf("\nERROR: Cannot open HTU31D at %s\n", interface);
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             htu31d_iic_init = 1;
                             DP_HTU31D++;
@@ -435,7 +434,7 @@ int main(uint8_t argc, char **argv) {
                             scd30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
                                 printf("\nERROR: SCD30 Init failed.\n");
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             scd30_iic_init = 1;
                             DP_SCD30++;
@@ -457,7 +456,7 @@ int main(uint8_t argc, char **argv) {
                             }
                             if (scd4x_shot_init(chip_type)) {
                                 printf("\nERROR: SCD4x Init failed.\n");
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             scd4x_iic_init = 1;
                             DP_SCD4X++;
@@ -467,7 +466,7 @@ int main(uint8_t argc, char **argv) {
                             sgp30_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
                             if (sgp30_advance_init()) {
                                 printf("\nERROR: SGP30 Init failed.\n");
-                                exit(1);
+                                exit(EXIT_FAILURE);
                             }
                             sgp30_iic_init = 1;
                             DP_SGP30++;
@@ -480,7 +479,7 @@ int main(uint8_t argc, char **argv) {
                     strcpy(ssd1681_spi_dev, dp[DISPLAY_ENABLE].device);
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
-                        exit(0);
+                        exit(EXIT_FAILURE);
                     }
                     if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     SSD1681_ENABLE = 1;
@@ -494,7 +493,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
-                        exit(0);
+                        exit(EXIT_FAILURE);
                     }
                     if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     SSD1306_ENABLE = 1;
@@ -508,7 +507,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
-                        exit(0);
+                        exit(EXIT_FAILURE);
                     }
                     if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     SH1107_ENABLE = 1;
@@ -517,7 +516,7 @@ int main(uint8_t argc, char **argv) {
                     strcpy(st7789_spi_dev, dp[DISPLAY_ENABLE].device);
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
                         printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
-                        exit(0);
+                        exit(EXIT_FAILURE);
                     }
                     if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
                     ST7789_ENABLE = 1;
@@ -539,7 +538,7 @@ int main(uint8_t argc, char **argv) {
         }
         if(!strcmp(argv[i], "--version")) {
             printf("\nlogenv version %s\n", version);
-            exit(0);
+            exit(EXIT_SUCCESS);
         }
         if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "--date")) {
             DT_ENABLE = 1;
@@ -554,7 +553,7 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "-u") || !strcmp(argv[i], "--usage") || DP_USAGE != 0) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
                 printf("\nERROR: Cannot open %s\n", cpuonline);
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             size_t size = 0;
             char *line = 0;
@@ -587,7 +586,7 @@ int main(uint8_t argc, char **argv) {
             udp_host = (struct hostent *) gethostbyname((char *)udp_name);
             if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
                 printf("\nERROR: Cannot open UDP socket for %s on port %d\n", udp_name, udp_port);
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             udp_server_addr.sin_family = AF_INET;
             udp_server_addr.sin_port = htons(udp_port);
@@ -611,7 +610,7 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--frequency") || DP_FREQ >= 1) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
                 printf("\nERROR: Cannot open %s\n", cpuonline);
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             size_t size = 0;
             char *line = 0;
@@ -670,7 +669,7 @@ int main(uint8_t argc, char **argv) {
                 if(bme280_iic_init == 0) {
                     if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
                         printf("\nERROR: Cannot open BME280 at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     bme280_iic_init == 1;
                 }
@@ -698,7 +697,7 @@ int main(uint8_t argc, char **argv) {
                 if(bme680_iic_init == 0) {
                     if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
                         printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     bme680_iic_init == 1;
                 }
@@ -718,7 +717,7 @@ int main(uint8_t argc, char **argv) {
                 if(bmp180_iic_init == 0) {
                     if(bmp180_basic_init() != 0) {
                         printf("\nERROR: Cannot open BMP180 at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     bmp180_iic_init == 1;
                 }
@@ -746,7 +745,7 @@ int main(uint8_t argc, char **argv) {
                 if(bmp388_iic_init == 0) {
                     if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
                         printf("\nERROR: Cannot open BMP388 at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     bmp388_iic_init == 1;
                 }
@@ -774,7 +773,7 @@ int main(uint8_t argc, char **argv) {
                 if(bmp390_iic_init == 0) {
                     if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
                         printf("\nERROR: Cannot open BMP390 at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     bmp390_iic_init == 1;
                 }
@@ -802,7 +801,7 @@ int main(uint8_t argc, char **argv) {
                 if(mcp9808_iic_init == 0) {
                     if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
                         printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     mcp9808_open();
                     mcp9808_iic_init == 1;
@@ -831,7 +830,7 @@ int main(uint8_t argc, char **argv) {
                 if(sht4x_iic_init == 0) {
                     if(sht4x_basic_init(sht4x_iic_addr) != 0) {
                         printf("\nERROR: Cannot open SHT4x at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     sht4x_iic_init == 1;
                 }
@@ -859,7 +858,7 @@ int main(uint8_t argc, char **argv) {
                 if(shtc3_iic_init == 0) {
                     if(shtc3_basic_init() != 0) {
                         printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     shtc3_iic_init == 1;
                 }
@@ -887,7 +886,7 @@ int main(uint8_t argc, char **argv) {
                 if(aht20_iic_init == 0) {
                     if(aht20_basic_init() != 0) {
                         printf("\nERROR: Cannot open AHT20 at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     aht20_iic_init == 1;
                 }
@@ -915,7 +914,7 @@ int main(uint8_t argc, char **argv) {
                 if(htu31d_iic_init == 0) {
                     if(htu31d_basic_init(htu31d_iic_addr) != 0) {
                         printf("\nERROR: Cannot open HTU31D at %s\n", interface);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     htu31d_iic_init == 1;
                 }
@@ -943,7 +942,7 @@ int main(uint8_t argc, char **argv) {
                 if(scd30_iic_init == 0) {
                     if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
                         printf("\nERROR: SCD30 Init failed.\n");
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     scd30_iic_init == 1;
                 }
@@ -967,7 +966,7 @@ int main(uint8_t argc, char **argv) {
             }
             if (scd4x_shot_init(chip_type)) {
                 printf("\nERROR: SCD4x Init failed.\n");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
@@ -985,7 +984,7 @@ int main(uint8_t argc, char **argv) {
                 if(scd4x_iic_init == 0) {
                     if (scd4x_shot_init(chip_type)) {
                         printf("\nERROR: SCD41 Init failed.\n");
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     scd4x_iic_init == 1;
                 }
@@ -1013,7 +1012,7 @@ int main(uint8_t argc, char **argv) {
                 if(sgp30_iic_init == 0) {
                     if (sgp30_advance_init()) {
                         printf("\nERROR: SGP30 Init failed.\n");
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
                     sgp30_iic_init == 1;
                  }
@@ -1034,7 +1033,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
@@ -1052,7 +1051,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
@@ -1070,7 +1069,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 set_tty_attributes(pwr_in, B115200, false);
                 close(pwr_in);
@@ -1155,16 +1154,36 @@ int main(uint8_t argc, char **argv) {
                             else if(!strcmp(dp[d].dc[i].dtype, "day")) {
                                 count = strftime(buffer,sizeof(buffer),"%A",t);
                             }
+                            else if(!strcmp(dp[d].dc[i].dtype, "month")) {
+                                count = strftime(buffer,sizeof(buffer),"%B",t);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "year")) {
+                                count = sprintf(buffer,"%4d", t->tm_year+1900);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "dd")) {
+                                count = sprintf(buffer,"%02d", t->tm_mday);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "mm")) {
+                                count = sprintf(buffer,"%02d", t->tm_mon+1);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "yy")) {
+                                count = sprintf(buffer,"%2d", t->tm_year+1900);
+                            }
                             else if(!strcmp(dp[d].dc[i].dtype, "dd/mm/yyyy")) {
                                 count = sprintf(buffer,"%02d/%02d/%4d", t->tm_mday, t->tm_mon+1, t->tm_year+1900);
+                            }
+                            else if(!strcmp(dp[d].dc[i].dtype, "mm/dd/yyyy")) {
+                                count = sprintf(buffer,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
                             }
                             else if(!strcmp(dp[d].dc[i].dtype, "yyyy/mm/dd")) {
                                 count = sprintf(buffer,"%04d/%02d/%2d", t->tm_year+1900, t->tm_mon+1, t->tm_mday);
                             }
                             else {
-                                count = sprintf(buffer,"%02d/%02d/%4d", t->tm_mon+1, t->tm_mday, t->tm_year+1900);
+                                count = strftime(buffer,sizeof(buffer),"%Y.%j",t);
                             }
+
                             strcpy(dp[d].dc[i].data1, buffer);
+
                             if(dp[d].page == page) {
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_DATE)){
                                     printf("%s date failed\n", i, &dp[d].name);
@@ -1177,7 +1196,7 @@ int main(uint8_t argc, char **argv) {
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
                     printf("\nERROR: Cannot open %s\n\n", logfile);
-                exit(1);
+                exit(EXIT_FAILURE);
                 }
                 if(COUNT_ENABLE && DT_ENABLE == 0) {
                     fprintf(log_file,"%.3f", i/1000);
@@ -1229,7 +1248,7 @@ int main(uint8_t argc, char **argv) {
                     strcat(cpufreq,cpufreq2);
                     if((cpu_freq = fopen(cpufreq, "r")) == NULL) {
                         printf("\nERROR: Cannot open %s\n", cpufreq);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     } 
                     fscanf(cpu_freq, "%d", &freq);
                     fclose(cpu_freq);
@@ -1308,7 +1327,7 @@ int main(uint8_t argc, char **argv) {
                     strcat(cpufreq,cpufreq2);
                     if((cpu_freq = fopen(cpufreq, "r")) == NULL) {
                         printf("\nERROR: Cannot open %s\n", cpufreq);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     } 
                     fscanf(cpu_freq, "%d", &freq);
                     fclose(cpu_freq);
@@ -2577,7 +2596,7 @@ int main(uint8_t argc, char **argv) {
 
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 /*
                  * read SmartPower2
@@ -2735,7 +2754,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if((cpu_use = fopen(cpuusage, "r")) == NULL) {
                     printf("\nERROR: Cannot open %s\n", cpuusage);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 for (uint16_t c = 0; c <= corecnt; c++) {
                     char t[20];
@@ -2746,7 +2765,7 @@ int main(uint8_t argc, char **argv) {
                     if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
                         &us[2][c], &us[3][c], &us[4][c], &us[5][c], &us[6][c], &us[7][c], &us[8][c], &us[9][c])) != 11) {
                         printf("\nERROR: Reading %s\n", cpuusage);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     }
 
                     u[0][c] = strtoll(&us[0][c], &endptr, 10);
@@ -2904,7 +2923,7 @@ int main(uint8_t argc, char **argv) {
 
                 if((mem_load = fopen(memload, "r")) == NULL) {
                     printf("\nERROR: Cannot open %s\n", memload);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 while(feof(mem_load) == 0) {
                     fscanf(mem_load, "%29s %f %*s", field, &nd);
@@ -2998,6 +3017,9 @@ int main(uint8_t argc, char **argv) {
                                 printf("\nERROR: Cannot open governor at %s\n", governorloc);
                                 break;
                             }
+
+                            char governor[25];
+
                             fscanf(governor_file, "%s", &governor);
                             fclose(governor_file);
 
@@ -3216,7 +3238,7 @@ int main(uint8_t argc, char **argv) {
                                 strcat(iioloc,"name");
                                 if((iio_file = fopen(iioloc, "r")) == NULL) {
                                     printf("\nERROR: Cannot open %s\n", iioloc);
-                                    exit(1);
+                                    exit(EXIT_FAILURE);
                                 }
                                 fscanf(iio_file, "%s", &iio_name);
                                 fclose(iio_file);
@@ -3838,7 +3860,7 @@ void usage (void) {
         printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -i -f -t -a -p \n\n");
         printf("Gnuplot chart creation:\n");
         printf("gnuplot -c gplotscript.gpl chart.png logfile.csv\n\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
 }
 
 

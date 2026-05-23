@@ -134,19 +134,19 @@ sgp30 - VOC and eCO2 I2C ADD 0x58
 ## Kernel Industrial IO Sensor Support
 The kernel industrial IO(iio) sensors can be read by using the iio command instead of the sensor command.  The iio sensor name, as presented in the device tree and in */sys/bus/iio/devices/iio:device0/name*, is used to identify the correct sensor entry since the iio device number is not persistent across system boots. The JSON device entry is used to identify the file system file name to read for the sensor datum e.g. */sys/bus/iio/devices/iio:device0/in_illuminance_input*
 ```
-			{
-			"cmd": "iio",
-			"name": "tsl2591",
-			"device": "in_illuminance_input",
-			"address": 0,
-			"type": "",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "illum: ",
-			"unit": ""
-			},
+    {
+    "cmd": "iio",
+    "name": "tsl2591",
+    "device": "in_illuminance_input",
+    "address": 0,
+    "type": "",
+    "xloc": 10,
+    "yloc": 40,
+    "color": 0,
+    "font": "MONOSPACE_16",
+    "label": "illum: ",
+    "unit": ""
+    },
 ```
 
 ## GNUPlot Charts
@@ -251,27 +251,32 @@ Most entries in the json file are self explanatory with the possible exception o
     COMMAND: date
 DESCRIPTION: displays date at xloc, yloc using font.
 
-       TYPE: mm/dd/yyyy
-       		 dd/mm/yyyy
-       		 yyyy/mm/dd
-			 short   Fri 01-May-26
-			 long    Friday 01 May 2026
-			 day     Friday
-	EXAMPLE:
-			{
-			"cmd": "date",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "long",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "DEFAULT_16",
-			"label": "",
-			"unit": ""
-			},
-			
+       TYPE: dd
+             mm
+             yy
+             mm/dd/yyyy
+             dd/mm/yyyy
+             yyyy/mm/dd
+             short      Fri 01-May-26
+             long       Friday 01 May 2026
+             day        Friday
+             month      May
+             year       2026
+
+    EXAMPLE:
+             {
+             "cmd": "date",
+             "name": "",
+             "device": "",
+             "address": 0,
+             "type": "long",
+             "xloc": 10,
+             "yloc": 40,
+             "color": 0,
+             "font": "DEFAULT_16",
+             "label": "",
+             "unit": ""
+             },
 ```
 
 ***disk***
@@ -279,23 +284,25 @@ DESCRIPTION: displays date at xloc, yloc using font.
     COMMAND: disk
 DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 
-	 DEVICE: path
-	   TYPE: free, used, percent
-	   
-	EXAMPLE:       
-			{
-			"cmd": "disk",
-			"name": "",
-			"device": "/",
-			"address": 0,
-			"type": "free",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "/ ",
-			"unit": "G free"
-			},
+     DEVICE: path
+       TYPE: free
+             used
+             percent
+
+    EXAMPLE:
+            {
+            "cmd": "disk",
+            "name": "",
+            "device": "/",
+            "address": 0,
+            "type": "free",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "/ ",
+            "unit": "G free"
+            },
 ```
 
 ***frequency***
@@ -305,24 +312,24 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
 
      DEVICE: empty for all cores or core number
        TYPE: D = datum
-       		 N = name
-       		 DN = datum name
-       		 ND = name datum
+                N = name
+                DN = datum name
+                ND = name datum
 
-	EXAMPLE:       
-			{
-			"cmd": "frequency",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "D",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
+    EXAMPLE:
+            {
+            "cmd": "frequency",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "D",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
 ```
 
 ***governor***
@@ -332,20 +339,20 @@ DESCRIPTION: displays governor from device at xloc, yloc using font.
 
      DEVICE: path
 
-	EXAMPLE:       
-			{
-			"cmd": "governor",
-			"name": "",
-			"device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
-			"address": 0,
-			"type": "",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "CPU: ",
-			"unit": ""
-			},
+    EXAMPLE:
+            {
+            "cmd": "governor",
+            "name": "",
+            "device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
+            "address": 0,
+            "type": "",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "CPU: ",
+            "unit": ""
+            },
 ```
 
 ***hostname***
@@ -353,20 +360,20 @@ DESCRIPTION: displays governor from device at xloc, yloc using font.
     COMMAND: hostname
 DESCRIPTION: displays hostname at xloc, yloc using font.
 
-	EXAMPLE:       
-			{
-			"cmd": "hostname",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "short",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
+    EXAMPLE:
+            {
+            "cmd": "hostname",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "short",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
 ```
 
 ***iio***
@@ -374,20 +381,20 @@ DESCRIPTION: displays hostname at xloc, yloc using font.
     COMMAND: iio
 DESCRIPTION: displays kernel iio sensor at xloc, yloc using font.
 
-	EXAMPLE:       
-			{
-			"cmd": "iio",
-			"name": "tsl2591",
-			"device": "in_illuminance_input",
-			"address": 0,
-			"type": "",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "illum: ",
-			"unit": ""
-			},
+    EXAMPLE:
+            {
+            "cmd": "iio",
+            "name": "tsl2591",
+            "device": "in_illuminance_input",
+            "address": 0,
+            "type": "",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "illum: ",
+            "unit": ""
+            },
 ```
 
 ***kernel***
@@ -395,20 +402,20 @@ DESCRIPTION: displays kernel iio sensor at xloc, yloc using font.
     COMMAND: kernel
 DESCRIPTION: displays kernel version at xloc, yloc using font.
 
-	EXAMPLE:       
-			{
-			"cmd": "kernel",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "DEFAULT_12",
-			"label": "kernel ",
-			"unit": ""
-			},
+    EXAMPLE:
+            {
+            "cmd": "kernel",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "kernel ",
+            "unit": ""
+            },
 ```
 
 ***memory***
@@ -416,20 +423,20 @@ DESCRIPTION: displays kernel version at xloc, yloc using font.
     COMMAND: memory
 DESCRIPTION: displays memory usage at xloc, yloc using font.
 
-	EXAMPLE:       
-			{
-			"cmd": "memory",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
+    EXAMPLE:
+            {
+            "cmd": "memory",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
 ```
 
 ***sensor***
@@ -438,29 +445,29 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
 DESCRIPTION: displays sensor datum at xloc, yloc using font.
 
        NAME: aht20,htu31,sht40,sht41,sht43,sht45,shtc3,mcp9808
-       		 bme280,bme680,bmp180,bmp388,bmp390,
-       		 scd30,sdc40,scd41,scd43,sgp30
+             bme280,bme680,bmp180,bmp388,bmp390,
+             scd30,sdc40,scd41,scd43,sgp30
        TYPE: C = Celsius
-			 F = Fahrenheit
-			 H = Humidity
-			 P = Pressure
-			 G = Gas
-			 V = VOC
-			
-	EXAMPLE:
-	        {
-	        "cmd": "sensor",
-	        "name": "bme680",
-	        "device": "/dev/i2c-1",
-	        "address": 119,
-	        "type": "C",
-	        "xloc": 5,
-	        "yloc": 50,
-	        "color": 0,
-	        "font": "DEFAULT_12",
-	        "label": "",
-	        "unit": "c"
-	        },
+             F = Fahrenheit
+             H = Humidity
+             P = Pressure
+             G = Gas
+             V = VOC
+
+    EXAMPLE:
+            {
+            "cmd": "sensor",
+            "name": "bme680",
+            "device": "/dev/i2c-1",
+            "address": 119,
+            "type": "C",
+            "xloc": 5,
+            "yloc": 50,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": "c"
+            },
 ```
 The sensor address is 7-bits I2C address in decimal e.g. 119 = 0x77
 
@@ -469,23 +476,26 @@ The sensor address is 7-bits I2C address in decimal e.g. 119 = 0x77
     COMMAND: swap
 DESCRIPTION: displays swap info at xloc, yloc using font.
 
-	 DEVICE: path
-	   TYPE: total, free, used, percent
-	   
-	EXAMPLE:       
-			{
-			"cmd": "swap",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "percent",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "swap ",
-			"unit": "%"
-			},
+     DEVICE: path
+       TYPE: total
+             free
+             used
+             percent
+
+    EXAMPLE:
+            {
+            "cmd": "swap",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "percent",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "swap ",
+            "unit": "%"
+            },
 ```
 
 ***sysload***
@@ -493,23 +503,23 @@ DESCRIPTION: displays swap info at xloc, yloc using font.
     COMMAND: sysload
 DESCRIPTION: displays sysload info at xloc, yloc using font.
 
-	   TYPE: short [%d] [%d] [%d]
-	   		 long  1min(%d) 5min(%d) 15min(%d)
-	   		 
-	EXAMPLE:       
-			{
-			"cmd": "sysload",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "short",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
+       TYPE: short [%d] [%d] [%d]
+             long  1min(%d) 5min(%d) 15min(%d)
+
+    EXAMPLE:
+            {
+            "cmd": "sysload",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "short",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
 ```
 
 ***thermal***
@@ -519,24 +529,24 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
 
      DEVICE: empty for all zones or zone number
        TYPE: D = datum
-       		 N = name
-       		 DN = datum name
-       		 ND = name datum
+             N = name
+            DN = datum name
+            ND = name datum
 
-	EXAMPLE:       
-			{
-			"cmd": "thermal",
-			"name": "",
-			"device": "0",
-			"address": 0,
-			"type": "ND",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": "c"
-			},
+    EXAMPLE:
+            {
+            "cmd": "thermal",
+            "name": "",
+            "device": "0",
+            "address": 0,
+            "type": "ND",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": "c"
+            },
 ```
 
 ***time***
@@ -544,23 +554,24 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
     COMMAND: time
 DESCRIPTION: displays time at xloc, yloc using font.
 
-       TYPE: default 4:00 PM
-			 12		04:00
-			 24		16:00
-	EXAMPLE:       
-			{
-			"cmd": "time",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "24",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_36",
-			"label": "",
-			"unit": ""
-			},
+       TYPE: empty 4:00 PM
+             12   04:00
+             24   16:00
+
+    EXAMPLE:
+            {
+            "cmd": "time",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "24",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_36",
+            "label": "",
+            "unit": ""
+            },
 ```
 
 
@@ -569,23 +580,23 @@ DESCRIPTION: displays time at xloc, yloc using font.
     COMMAND: uptime
 DESCRIPTION: displays uptime at xloc, yloc using font.
 
-	   TYPE: short %d days HH:MM
-	   		 long  %ddays, %dhours, %dminutes
-	   		 
-	EXAMPLE:       
-			{
-			"cmd": "uptime",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "short",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
+       TYPE: short %d days HH:MM
+                long  %ddays, %dhours, %dminutes
+
+    EXAMPLE:
+            {
+            "cmd": "uptime",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "short",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
 ```
 
 ***usage***
@@ -595,24 +606,23 @@ DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
      DEVICE: empty for all cores or core number, 0 is total usage
        TYPE: D = datum
-       		 N = name
-       		 DN = datum name
-       		 ND = name datum
-
-	EXAMPLE:       
-			{
-			"cmd": "usage",
-			"name": "",
-			"device": "",
-			"address": 0,
-			"type": "ND",
-			"xloc": 10,
-			"yloc": 40,
-			"color": 0,
-			"font": "MONOSPACE_16",
-			"label": "",
-			"unit": ""
-			},
+             N = name
+            DN = datum name
+            ND = name datum
+    EXAMPLE:
+            {
+            "cmd": "usage",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "type": "ND",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
 ```
 
 
