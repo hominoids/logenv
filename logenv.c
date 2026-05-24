@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <ifaddrs.h>
 #include <linux/i2c-dev.h>
 #include <math.h>
 #include <netdb.h>
@@ -529,7 +530,7 @@ int main(uint8_t argc, char **argv) {
         }
     }
     /*
-     * parse command line options
+     * parse command line option
      */
     i = argc;
     while (i-- > 1) {
@@ -605,7 +606,7 @@ int main(uint8_t argc, char **argv) {
             strcpy(charttitle, argv[i+1]);
         }
         /*
-         * CPU frequency command line options
+         * CPU frequency command line option
          */
         if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--frequency") || DP_FREQ >= 1) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
@@ -620,7 +621,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * thermal zones command line options
+         * thermal zones command line option
          */
         if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temperature") || DP_THERMAL >= 1) {
 
@@ -653,7 +654,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /*
-         * bmp280 command line options
+         * bmp280 command line option
          */
         if(!strcmp(argv[i], "--bme280")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -678,7 +679,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * bme680 command line options
+         * bme680 command line option
          */
         if(!strcmp(argv[i], "--bme680")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -706,7 +707,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * bmp180 command line options
+         * bmp180 command line option
          */
         if(!strcmp(argv[i], "--bmp180")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -726,7 +727,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * bmp388 command line options
+         * bmp388 command line option
          */
         if(!strcmp(argv[i], "--bmp388")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -754,7 +755,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * bmp390 command line options
+         * bmp390 command line option
          */
         if(!strcmp(argv[i], "--bmp390")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -782,7 +783,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * mcp9808 command line options
+         * mcp9808 command line option
          */
         if(!strcmp(argv[i], "--mcp9808")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -811,7 +812,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * sht4x command line options
+         * sht4x command line option
          */
         if(!strcmp(argv[i], "--sht4x")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -839,7 +840,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * shtc3 command line options
+         * shtc3 command line option
          */
         if(!strcmp(argv[i], "--shtc3")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -867,7 +868,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * aht20 command line options
+         * aht20 command line option
          */
         if(!strcmp(argv[i], "--aht20")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -895,7 +896,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * htu31d command line options
+         * htu31d command line option
          */
         if(!strcmp(argv[i], "--htu31d")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -923,7 +924,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * scd30 command line options
+         * scd30 command line option
          */
         if(!strcmp(argv[i], "--scd30")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -951,7 +952,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * scd41 command line options
+         * scd41 command line option
          */
         if(!strcmp(argv[i], "--scd40") || !strcmp(argv[i], "--scd41") || !strcmp(argv[i], "--scd43")) {
             scd4x_t chip_type;
@@ -993,7 +994,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * sgp30 command line options
+         * sgp30 command line option
          */
         if(!strcmp(argv[i], "--sgp30")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -1021,7 +1022,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * smartpower options command line options
+         * smartpower command line option
          */
         if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -3289,6 +3290,49 @@ int main(uint8_t argc, char **argv) {
                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                 printf("%s kernel version cmd %d failed\n", &dp[d].name, i);
                             }
+                        }
+                    }
+                }
+            }
+            /*
+             * network interface and ip
+             */
+            if(DP_IP != 0) {
+                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                        if(!strcmp(dp[d].dc[i].cmd, "ip") && dp[d].page == page) {
+
+                            struct ifaddrs *ifaddr, *ifa;
+                            int s;
+                            char host[NI_MAXHOST];
+
+                            if(getifaddrs(&ifaddr) == -1) {
+                                perror("getifaddrs");
+                                exit(EXIT_FAILURE);
+                            }
+
+                            for(ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+                                if(ifa->ifa_addr == NULL)
+                                    continue;
+
+                                s=getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in),host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
+                                if(ifa->ifa_addr->sa_family==AF_INET) {
+                                    if(s != 0) {
+                                        printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                                        exit(EXIT_FAILURE);
+                                    }
+                                    if(!strcmp(dp[d].dc[i].name, ifa->ifa_name)) {
+                                        sprintf(dp[d].dc[i].data1, "%s ", ifa->ifa_name);
+                                        sprintf(dp[d].dc[i].data2, "%s", host);
+
+                                        if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                            printf("%s ip cmd %d failed\n", &dp[d].name, i);
+                                        }
+                                    }
+                                }
+                            }
+                            freeifaddrs(ifaddr);
                         }
                     }
                 }

@@ -422,12 +422,12 @@
             "unit": "c"
             },
             {
-            "cmd": "hostname",
-            "name": "",
+            "cmd": "ip",
+            "name": "end0",
             "device": "",
             "address": 0,
-            "dtype": "",
-            "xloc": 25,
+            "dtype": "D",
+            "xloc": 20,
             "yloc": 70,
             "color": 0,
             "font": "MONOSPACE_12",

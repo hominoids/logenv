@@ -252,6 +252,7 @@ Most entries in the json file are self explanatory with the possible exception o
 - governor
 - hostname
 - iio
+- ip
 - kernel
 - memory
 - sensor
@@ -410,6 +411,33 @@ DESCRIPTION: displays kernel iio sensor at xloc, yloc using font.
             "color": 0,
             "font": "MONOSPACE_16",
             "label": "illum: ",
+            "unit": ""
+            },
+```
+
+***ip***
+```
+    COMMAND: ip
+DESCRIPTION: displays named network interface ip at xloc, yloc using font.
+
+       NAME: interface name
+       TYPE: D = datum
+             N = name
+            DN = datum name
+            ND = name datum
+
+    EXAMPLE:
+            {
+            "cmd": "ip",
+            "name": "eth0",
+            "device": "0",
+            "address": 0,
+            "type": "ND",
+            "xloc": 10,
+            "yloc": 40,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
             "unit": ""
             },
 ```
