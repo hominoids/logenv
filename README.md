@@ -139,7 +139,7 @@ The kernel industrial IO(iio) sensors can be read by using the iio command inste
     "name": "tsl2591",
     "device": "in_illuminance_input",
     "address": 0,
-    "type": "",
+    "dtype": "",
     "xloc": 10,
     "yloc": 40,
     "color": 0,
@@ -269,7 +269,7 @@ Most entries in the json file are self explanatory with the possible exception o
     COMMAND: date
 DESCRIPTION: displays date at xloc, yloc using font.
 
-       TYPE: dd
+      DTYPE: dd
              mm
              yy
              mm/dd/yyyy
@@ -287,7 +287,7 @@ DESCRIPTION: displays date at xloc, yloc using font.
              "name": "",
              "device": "",
              "address": 0,
-             "type": "long",
+             "dtype": "long",
              "xloc": 10,
              "yloc": 40,
              "color": 0,
@@ -303,7 +303,7 @@ DESCRIPTION: displays date at xloc, yloc using font.
 DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 
      DEVICE: path
-       TYPE: free
+      DTYPE: free
              used
              percent
 
@@ -313,7 +313,7 @@ DESCRIPTION: displays mounted disk info at xloc, yloc using font.
             "name": "",
             "device": "/",
             "address": 0,
-            "type": "free",
+            "dtype": "free",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -329,7 +329,7 @@ DESCRIPTION: displays mounted disk info at xloc, yloc using font.
 DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
 
      DEVICE: empty for all cores or core number
-       TYPE: D = datum
+      DTYPE: D = datum
              N = name
             DN = datum name
             ND = name datum
@@ -340,7 +340,7 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "D",
+            "dtype": "D",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -355,7 +355,7 @@ DESCRIPTION: displays core name and frequencies at xloc, yloc using font.
     COMMAND: governor
 DESCRIPTION: displays governor from device at xloc, yloc using font.
 
-     DEVICE: path
+     DEVICE: path to sysfs entry
 
     EXAMPLE:
             {
@@ -363,7 +363,7 @@ DESCRIPTION: displays governor from device at xloc, yloc using font.
             "name": "",
             "device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -384,7 +384,7 @@ DESCRIPTION: displays hostname at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "short",
+            "dtype": "",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -399,13 +399,17 @@ DESCRIPTION: displays hostname at xloc, yloc using font.
     COMMAND: iio
 DESCRIPTION: displays kernel iio sensor at xloc, yloc using font.
 
+       NAME: name of sensor as defined in /sys/bus/iio/devices/iio:device0/name
+     DEVICE: sensor datum entry to display in /sys/bus/iio/devices/iio:device0/
+      DTYPE: divide / or multiply * sensor datum as post process.
+
     EXAMPLE:
             {
             "cmd": "iio",
             "name": "tsl2591",
             "device": "in_illuminance_input",
             "address": 0,
-            "type": "",
+            "dtype": "/10",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -421,7 +425,7 @@ DESCRIPTION: displays kernel iio sensor at xloc, yloc using font.
 DESCRIPTION: displays named network interface ip at xloc, yloc using font.
 
        NAME: interface name
-       TYPE: D = datum
+      DTYPE: D = datum
              N = name
             DN = datum name
             ND = name datum
@@ -432,7 +436,7 @@ DESCRIPTION: displays named network interface ip at xloc, yloc using font.
             "name": "eth0",
             "device": "0",
             "address": 0,
-            "type": "ND",
+            "dtype": "ND",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -453,7 +457,7 @@ DESCRIPTION: displays kernel version at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -474,7 +478,7 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -492,7 +496,7 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
        NAME: aht20,htu31,sht40,sht41,sht43,sht45,shtc3,mcp9808
              bme280,bme680,bmp180,bmp388,bmp390,
              scd30,sdc40,scd41,scd43,sgp30
-       TYPE: C = Celsius
+      DTYPE: C = Celsius
              F = Fahrenheit
              H = Humidity
              P = Pressure
@@ -505,7 +509,7 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
             "name": "bme680",
             "device": "/dev/i2c-1",
             "address": 119,
-            "type": "C",
+            "dtype": "C",
             "xloc": 5,
             "yloc": 50,
             "color": 0,
@@ -522,7 +526,7 @@ The sensor address is 7-bits I2C address in decimal e.g. 119 = 0x77
 DESCRIPTION: displays swap info at xloc, yloc using font.
 
      DEVICE: path
-       TYPE: total
+      DTYPE: total
              free
              used
              percent
@@ -533,7 +537,7 @@ DESCRIPTION: displays swap info at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "percent",
+            "dtype": "percent",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -548,7 +552,7 @@ DESCRIPTION: displays swap info at xloc, yloc using font.
     COMMAND: sysload
 DESCRIPTION: displays sysload info at xloc, yloc using font.
 
-       TYPE: short [%d] [%d] [%d]
+      DTYPE: short [%d] [%d] [%d]
              long  1min(%d) 5min(%d) 15min(%d)
 
     EXAMPLE:
@@ -557,7 +561,7 @@ DESCRIPTION: displays sysload info at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "short",
+            "dtype": "short",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -580,7 +584,7 @@ DESCRIPTION: displays string at xloc, yloc using font.
             "name": "",
             "device": "This is a Test.",
             "address": 0,
-            "type": "",
+            "dtype": "",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -596,7 +600,7 @@ DESCRIPTION: displays string at xloc, yloc using font.
 DESCRIPTION: displays thermal temps at xloc, yloc using font.
 
      DEVICE: empty for all zones or zone number
-       TYPE: D = datum
+      DTYPE: D = datum
              N = name
             DN = datum name
             ND = name datum
@@ -607,7 +611,7 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
             "name": "",
             "device": "0",
             "address": 0,
-            "type": "ND",
+            "dtype": "ND",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -622,7 +626,7 @@ DESCRIPTION: displays thermal temps at xloc, yloc using font.
     COMMAND: time
 DESCRIPTION: displays time at xloc, yloc using font.
 
-       TYPE: empty 4:00 PM
+      DTYPE: empty 4:00 PM
              12   04:00
              24   16:00
 
@@ -632,7 +636,7 @@ DESCRIPTION: displays time at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "24",
+            "dtype": "24",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -648,7 +652,7 @@ DESCRIPTION: displays time at xloc, yloc using font.
     COMMAND: uptime
 DESCRIPTION: displays uptime at xloc, yloc using font.
 
-       TYPE: short %d days HH:MM
+      DTYPE: short %d days HH:MM
              long  %ddays, %dhours, %dminutes
 
     EXAMPLE:
@@ -657,7 +661,7 @@ DESCRIPTION: displays uptime at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "short",
+            "dtype": "short",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -673,7 +677,7 @@ DESCRIPTION: displays uptime at xloc, yloc using font.
 DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
      DEVICE: empty for all cores or core number, 0 is total usage
-       TYPE: D = datum
+      DTYPE: D = datum
              N = name
             DN = datum name
             ND = name datum
@@ -683,7 +687,7 @@ DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "type": "ND",
+            "dtype": "ND",
             "xloc": 10,
             "yloc": 40,
             "color": 0,

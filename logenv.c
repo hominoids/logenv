@@ -3256,8 +3256,26 @@ int main(uint8_t argc, char **argv) {
 
                                     fscanf(iio_file, "%f", &iio_f);
                                     fclose(iio_file);
+                                    if(strcmp(dp[d].dc[i].dtype, "")) {
+                                        char buffer[17];
+                                        long num;
+                                        if(strchr(dp[d].dc[i].dtype, '/') != NULL) {
+                                            strcpy(buffer, strrchr(dp[d].dc[i].dtype, '/') + 1 );
+                                            num = strtol(buffer, (char **) NULL, 0);
 
-                                    sprintf(dp[d].dc[i].data1, "%.1f", iio_f);
+                                            sprintf(dp[d].dc[i].data1, "%.2f", iio_f / (float)num);
+                                        }
+                                        if(strchr(dp[d].dc[i].dtype, '*') != NULL) {
+                                            strcpy(buffer, strrchr(dp[d].dc[i].dtype, '*') + 1 );
+                                            num = strtol(buffer, (char **) NULL, 0);
+
+                                            sprintf(dp[d].dc[i].data1, "%.2f", iio_f * (float)num);
+                                        }
+
+                                    }
+                                    else {
+                                        sprintf(dp[d].dc[i].data1, "%.1f", iio_f);
+                                    }
 
                                     if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                         printf("%s iio cmd %d failed\n", &dp[d].name, i);
