@@ -115,18 +115,6 @@ uint16_t mcp9808_iic_addr = 0x18;
 char mcp9808_iic_dev[14] = "/dev/i2c-0";
 uint8_t mcp9808_iic_init = 0;
 
-uint16_t scd30_iic_addr = 0x61 << 1;
-char scd30_iic_dev[14] = "/dev/i2c-0";
-uint8_t scd30_iic_init = 0;
-
-uint16_t scd4x_iic_addr = 0x62 << 1;
-char scd4x_iic_dev[14] = "/dev/i2c-0";
-uint8_t scd4x_iic_init = 0;
-
-uint16_t sgp30_iic_addr = 0x58 << 1;
-char sgp30_iic_dev[14] = "/dev/i2c-0";
-uint8_t sgp30_iic_init = 0;
-
 uint16_t sht4x_iic_addr = 0x44 << 1;
 char sht4x_iic_dev[14] = "/dev/i2c-0";
 uint8_t sht4x_iic_init = 0;
@@ -142,6 +130,18 @@ uint8_t aht20_iic_init = 0;
 uint16_t htu31d_iic_addr = 0x40 << 1;
 char htu31d_iic_dev[14] = "/dev/i2c-0";
 uint8_t htu31d_iic_init = 0;
+
+uint16_t scd30_iic_addr = 0x61 << 1;
+char scd30_iic_dev[14] = "/dev/i2c-0";
+uint8_t scd30_iic_init = 0;
+
+uint16_t scd4x_iic_addr = 0x62 << 1;
+char scd4x_iic_dev[14] = "/dev/i2c-0";
+uint8_t scd4x_iic_init = 0;
+
+uint16_t sgp30_iic_addr = 0x58 << 1;
+char sgp30_iic_dev[14] = "/dev/i2c-0";
+uint8_t sgp30_iic_init = 0;
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
@@ -389,19 +389,6 @@ static char gpscript_freq[9][55] = {
     "set ytics 0,.5 border nomirror out\n",
     "#set format y \'%.1f\'\n\n"};
 
-static char gpscript_power[11][55] = {
-    "# power plot\n",
-    "set size 1,.3\n",
-    "set origin 0,0\n",
-    "set lmargin 11\n",
-    "# power y axis\n",
-    "set ylabel \'Amps, Volts, Watts\' font \'Verdana,12\'\n",
-    "set yrange [0:20]\n",
-    "set ytics 0,1 border nomirror out\n",
-    "set format y \'%.0f\'\n",
-    "# power x axis\n",
-    "set noxlabel\n\n"};
-
 static char gpscript_usage[11][55] = {
     "# proc stat plot\n",
     "set size 1,.2\n",
@@ -413,6 +400,19 @@ static char gpscript_usage[11][55] = {
     "set ytics 0,20 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# usage x axis\n",
+    "set noxlabel\n\n"};
+
+static char gpscript_power[11][55] = {
+    "# power plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# power y axis\n",
+    "set ylabel \'Amps, Volts, Watts\' font \'Verdana,12\'\n",
+    "set yrange [0:20]\n",
+    "set ytics 0,1 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# power x axis\n",
     "set noxlabel\n\n"};
 
 static char gpscript_end[18] = {"unset multiplot\n" };

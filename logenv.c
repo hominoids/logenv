@@ -118,8 +118,7 @@ int main(uint8_t argc, char **argv) {
 
             cJSON *display = cJSON_GetObjectItemCaseSensitive(root, "displays");
             cJSON *item = display ? display->child : 0;
-            while (item)
-            {
+            while (item) {
                 cJSON *name = cJSON_GetObjectItemCaseSensitive(item, "name");
                 if (cJSON_IsString(name) && (name->valuestring != NULL)) {
                     strcpy(dp[DISPLAY_ENABLE].name, name->valuestring);
@@ -1079,10 +1078,10 @@ int main(uint8_t argc, char **argv) {
            OPTIONS_COUNT++;
         }
     }
+    /*
+     * primary poll loop
+     */
     if (GNUPLOT_ENABLE == 0) {
-        /*
-         * primary poll loop
-         */
         double i = 0;
         int8_t c = OPTIONS_COUNT;
 
@@ -1496,9 +1495,829 @@ int main(uint8_t argc, char **argv) {
                 }
             }
             /*
+             * read proc stat
+             */
+            if(USAGE_ENABLE != 0 || DP_USAGE != 0) {
+
+                float r = 0;
+                float s = 0;
+                float sum = 0;
+                uint8_t corecnt = 0;
+
+                if(!USAGE_ENABLE) {
+                corecnt = DP_USAGE;
+                }
+                else {
+                corecnt = USAGE_ENABLE;
+                }
+                if((cpu_use = fopen(cpuusage, "r")) == NULL) {
+                    printf("\nERROR: Cannot open %s\n", cpuusage);
+                    exit(EXIT_FAILURE);
+                }
+                for (uint16_t c = 0; c <= corecnt; c++) {
+                    char t[20];
+                    char us[10][256] = {0};
+                    double long u[10][256] = {0};
+                    char *endptr;
+
+                    if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
+                        &us[2][c], &us[3][c], &us[4][c], &us[5][c], &us[6][c], &us[7][c], &us[8][c], &us[9][c])) != 11) {
+                        printf("\nERROR: Reading %s\n", cpuusage);
+                        exit(EXIT_FAILURE);
+                    }
+
+                    u[0][c] = strtoll(&us[0][c], &endptr, 10);
+                    u[1][c] = strtoll(&us[1][c], &endptr, 10);
+                    u[2][c] = strtoll(&us[2][c], &endptr, 10);
+                    u[3][c] = strtoll(&us[3][c], &endptr, 10);
+                    u[4][c] = strtoll(&us[4][c], &endptr, 10);
+                    u[5][c] = strtoll(&us[5][c], &endptr, 10);
+                    u[6][c] = strtoll(&us[6][c], &endptr, 10);
+                    u[7][c] = strtoll(&us[7][c], &endptr, 10);
+                    u[8][c] = strtoll(&us[8][c], &endptr, 10);
+                    u[9][c] = strtoll(&us[9][c], &endptr, 10);
+
+                    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
+                        + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
+                    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
+                        + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c];
+
+                    r = i == 0 && INTERACTIVE_ENABLE != 0 ? (s-sum) : u[3][c] - use[3][c];
+                    r /= (s-sum);
+                    r = 1 - r;
+                    r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
+
+                    if(USAGE_ENABLE != 0) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                            printf(",%Lf", u[3][c]);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                            if(c == 0) {
+                                printf("CPU = %.2f%% ", r);
+                                if(c == USAGE_ENABLE) {
+                                    printf("\n");
+                                }
+                            }
+                            else {
+                                printf("core%d = %.2f%% ", c, r);
+                                if(c == USAGE_ENABLE) {
+                                    printf("\n");
+                                }
+                            }
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                                printf(",%.2f", r);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                                printf("%.2f,", r);
+                            }
+                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    printf("%.2f,", r);
+                                }
+                                else {
+                                    printf("%.2f", r);
+                                }
+                            }
+                        }
+                        if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                            fprintf(log_file,",%Lf", u[3][c]);
+                        }
+                        if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                            fprintf(log_file,",%.2f", r);
+                        }
+
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%Lf", u[3][c]);
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
+                            }
+                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
+                                }
+                                else {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%Lf", u[3][c]);
+                                }
+                            }
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f", r);
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
+                            }
+                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
+                                }
+                                else {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f", r);
+                                }
+                            }
+                        }
+                    }
+                    if(DP_USAGE != 0) {
+                        for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                            for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+
+                                int16_t n = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **) NULL, 0);
+
+                                if(!strcmp(dp[d].dc[i].cmd, "usage") && dp[d].page == page && (n == -1 || n == c)) {
+
+                                    uint16_t yloc_reset = dp[d].dc[i].yloc;
+                                    char buffer[25];
+
+                                    if(c == 0) {
+                                        sprintf(buffer, "CPU ");
+                                        strcpy(dp[d].dc[i].data1, buffer);
+                                    }
+                                    else {
+                                        sprintf(buffer, "core%d ", c-1);
+                                        strcpy(dp[d].dc[i].data1, buffer);
+                                    }
+                                    sprintf(buffer, "%.2f", r);
+                                    strcpy(dp[d].dc[i].data2, buffer);
+                                    if(n == -1) {
+                                        dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
+                                    }
+                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                        printf("%s usage cmd %d failed\n", &dp[d].name, i);
+                                    }
+                                    dp[d].dc[i].yloc = yloc_reset;
+                                }
+                            }
+                        }
+                    }
+                    use[0][c] = u[0][c];
+                    use[1][c] = u[1][c];
+                    use[2][c] = u[2][c];
+                    use[3][c] = u[3][c];
+                    use[4][c] = u[4][c];
+                    use[5][c] = u[5][c];
+                    use[6][c] = u[6][c];
+                    use[7][c] = u[7][c];
+                    use[8][c] = u[8][c];
+                    use[9][c] = u[9][c];
+                }
+                if(USAGE_ENABLE != 0) {
+                    OPTIONS_COUNT--;
+                }
+                fclose(cpu_use);
+            }
+            /*
+             * Read memory usage
+             */
+            if(MEM_ENABLE != 0 || DP_MEMORY != 0) {
+
+                float mt;
+                float r = 0;
+                float nd;
+                char field[30];
+
+                if((mem_load = fopen(memload, "r")) == NULL) {
+                    printf("\nERROR: Cannot open %s\n", memload);
+                    exit(EXIT_FAILURE);
+                }
+                while(feof(mem_load) == 0) {
+                    fscanf(mem_load, "%29s %f %*s", field, &nd);
+                    if (strcmp(mem_total , field) == 0) mt = nd;
+                    if (strcmp(mem_avail , field) == 0) r -= nd;
+                }
+                r /= mt;
+                r += 1;
+                r *= 100;
+
+                if(MEM_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%.3g", r);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n RAM Use = %.3g%%", r);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.3g", r);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.3g,", r);
+                        }
+                        else {
+                            printf("%.3g", r);
+                        }
+
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%.3g", r);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.3g", r);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                fclose(mem_load);
+                if(DP_MEMORY != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "memory") && dp[d].page == page) {
+
+                                char buffer[25];
+
+                                sprintf(buffer, "RAM ");
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.3g", r);
+                                strcpy(dp[d].dc[i].data2, buffer);
+
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s memory cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * SmartPower enabled
+             */
+            if(SP_ENABLE != 0) {
+
+                if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
+                    printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
+                    exit(EXIT_FAILURE);
+                }
+                /*
+                 * read SmartPower2
+                 */
+                if(SP_ENABLE == 2) {
+                    unsigned char temp[18];
+                    int8_t sp_read = 0;
+                    if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
+                        printf("Error from read: %d: %s\n", sp_read, strerror(errno));
+                    }
+                    temp[sp_read] = 0;
+                    sscanf(temp, "%f%s %f%s %f%s", &volt, spline, &amp, spline1, &watt, spline2);
+                    if(strstr(spline1,"mA")) {
+                        if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                            printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                                printf(",%.2f,.%.0f,%.2f", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1) {
+                                printf("%.2f,.%.0f,%.2f,", volt, amp, watt);
+                            }
+                            else {
+                                printf("%.2f,.%.0f,%.2f", volt, amp, watt);
+                            }
+                        }
+                        if(LOG_ENABLE == 1) {
+                            fprintf(log_file,",%.2f,.%.0f,%.2f", volt, amp, watt);
+                        }
+
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f,.%.0f,%.2f", volt, amp, watt);
+                        }
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,.%.0f,%.2f,", volt, amp, watt);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,.%.0f,%.2f", volt, amp, watt);
+                            }
+                        }
+                    OPTIONS_COUNT--;
+                    }
+                    if(strstr(spline1,"A")) {
+                        if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                            printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                                printf(",%.2f,%.2f,%.2f", volt, amp, watt);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                            if(OPTIONS_COUNT > 1) {
+                                printf("%.2f,%.2f,%.2f,", volt, amp, watt);
+                            }
+                            else {
+                                printf("%.2f,%.2f,%.2f", volt, amp, watt);
+                            }
+                        }
+                        if(LOG_ENABLE == 1) {
+                            fprintf(log_file,",%.2f,%.2f,%.2f", volt, amp, watt);
+                        }
+
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt, amp, watt);
+                        }
+                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT > 1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f,", volt, amp, watt);
+                            }
+                            else {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f", volt, amp, watt);
+                            }
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                /*
+                 * read SmartPower3
+                 */
+                if(SP_ENABLE == 31 || SP_ENABLE == 32) {
+
+                    unsigned char temp[82];
+                    int8_t sp_read = 0;
+
+                    if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
+                        printf("Error from read: %d: %s\n", sp_read, strerror(errno));
+                    }
+                    temp[sp_read] = 0;
+                    sscanf(temp, "%Lf,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
+                        &sp_ms, \
+                        &in_mv, &in_ma, &in_w, &in_on, \
+                        &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
+                        &ch2_mv, &ch2_ma, &ch2_w, &ch2_on, &ch2_int, \
+                        &chk_comp, &chk_xor);
+
+                    if(SP_ENABLE == 31) {
+                        volt = ch1_mv;
+                        amp = ch1_ma;
+                        watt = ch1_w;
+                    }
+                    else {
+                        volt = ch2_mv;
+                        amp = ch2_ma;
+                        watt = ch2_w;
+                    }
+                    if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt/1000, amp/1000, watt/1000);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
+                        }
+                        else {
+                            printf("%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                        }
+                    }
+                    if(LOG_ENABLE == 1) {
+                        fprintf(log_file,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                    }
+
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                close(pwr_in);
+            }
+            /*
+             * read mcp9808 temperature sensor
+             */
+            if(MCP9808_ENABLE != 0 || DP_MCP9808 != 0) {
+
+                float temperature = mcp9808_read();
+
+                if(MCP9808_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n MCP9808 Temp = %.2lfc\n", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf", temperature);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature);
+                        }
+                        else {
+                            printf("%.2lf", temperature);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%.2lf",temperature);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_MCP9808 != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "mcp9808") && dp[d].page == page) {
+
+                                char buffer[6];
+
+                                sprintf(buffer, "%.1lf", temperature);
+                                strcpy(dp[d].dc[i].data1, buffer);
+
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+            * SHT4x enabled
+            */
+            if(SHT4X_ENABLE != 0 || DP_SHT4X != 0) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)sht4x_basic_deinit();
+                    printf("ERROR: sht4x read failed.\n");
+                    return 1;
+                }
+
+                if(SHT4X_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n sht4x Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %\n", humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_SHT4X != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "sht4x") && dp[d].page == page) {
+
+                                char buffer[25];
+
+                                sprintf(buffer, "%.1lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.0lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
+
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+            * SHTC3 enabled
+            */
+            if(SHTC3_ENABLE != 0 || DP_SHTC3 != 0) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = shtc3_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)shtc3_basic_deinit();
+                    printf("ERROR: shtc3 read failed.\n");
+                    return 1;
+                }
+
+                if(SHTC3_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n shtc3 Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %\n", humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_SHTC3 != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "shtc3") && dp[d].page == page) {
+
+                                char buffer[25];
+
+                                sprintf(buffer, "%.1lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.0lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
+
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+            * aht20 enabled
+            */
+            if(AHT20_ENABLE != 0 || DP_AHT20 != 0) {
+
+                float temperature_f;
+                uint8_t humidity_f;
+
+                uint8_t res = aht20_basic_read((float *)&temperature_f, (uint8_t *)&humidity_f);
+                if (res != 0) {
+                    (void)aht20_basic_deinit();
+                    printf("ERROR: aht20 read failed.\n");
+                    return 1;
+                }
+
+                if(AHT20_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n aht20 Temp = %.2lf c", temperature_f);
+                        printf("       Humd = %.2lf %\n", humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_AHT20 != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "aht20") && dp[d].page == page) {
+
+                                char buffer[25];
+
+                                sprintf(buffer, "%.1lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%d", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
+
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+            * htu31d enabled
+            */
+            if(HTU31D_ENABLE != 0 || DP_HTU31D != 0) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = htu31d_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)htu31d_basic_deinit();
+                    printf("ERROR: htu31d read failed.\n");
+                    return 1;
+                }
+
+                if(HTU31D_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n htu31d Temp = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %\n", humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+                if(DP_HTU31D != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "htu31d") && dp[d].page == page) {
+
+                                char buffer[25];
+
+                                sprintf(buffer, "%.1lf", temperature_f);
+                                strcpy(dp[d].dc[i].data1, buffer);
+                                sprintf(buffer, "%.0lf", humidity_f);
+                                strcpy(dp[d].dc[i].data2, buffer);
+
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
              * read bmp180
              */
-            if(BMP180_ENABLE == 1 || DP_BMP180 != 0) {
+            if(BMP180_ENABLE != 0 || DP_BMP180 != 0) {
 
                 float temperature_f;
                 uint32_t pressure;
@@ -1510,7 +2329,7 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(BMP180_ENABLE == 1) {
+                if(BMP180_ENABLE != 0) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%f,%d", temperature_f, pressure);
@@ -1578,7 +2397,7 @@ int main(uint8_t argc, char **argv) {
             /*
              * read bmp388
              */
-            if(BMP388_ENABLE == 1 || DP_BMP388 != 0) {
+            if(BMP388_ENABLE != 0 || DP_BMP388 != 0) {
 
                 float temperature_f;
                 float pressure;
@@ -1590,7 +2409,7 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(BMP388_ENABLE == 1) {
+                if(BMP388_ENABLE != 0) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%f,%f", temperature_f, pressure);
@@ -1658,7 +2477,7 @@ int main(uint8_t argc, char **argv) {
             /*
              * read bmp390
              */
-            if(BMP390_ENABLE == 1 || DP_BMP390 != 0) {
+            if(BMP390_ENABLE != 0 || DP_BMP390 != 0) {
 
                 float temperature_f;
                 float pressure;
@@ -1672,7 +2491,7 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(BMP390_ENABLE == 1) {
+                if(BMP390_ENABLE != 0) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%f,%f", temperature_f, pressure);
@@ -1740,7 +2559,7 @@ int main(uint8_t argc, char **argv) {
             /*
              * read bme280
              */
-            if(BME280_ENABLE == 1 || DP_BME280 != 0) {
+            if(BME280_ENABLE != 0 || DP_BME280 != 0) {
 
                 float temperature_f;
                 float humidity_f;
@@ -1753,7 +2572,7 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
 
-                if(BME280_ENABLE == 1) {
+                if(BME280_ENABLE != 0) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%f,%f,%f", temperature_f, humidity_f, pressure_f);
@@ -1919,411 +2738,6 @@ int main(uint8_t argc, char **argv) {
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * read mcp9808 temperature sensor
-             */
-            if(MCP9808_ENABLE == 1 || DP_MCP9808 != 0) {
-
-                float temperature = mcp9808_read();
-
-                if(MCP9808_ENABLE == 1) {
-
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%d", temperature);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n MCP9808 Temp = %.2lfc\n", temperature);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf", temperature);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,", temperature);
-                        }
-                        else {
-                            printf("%.2lf", temperature);
-                        }
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%.2lf",temperature);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf", temperature);
-                    }
-                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature);
-                    }
-                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature);
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                if(DP_MCP9808 != 0) {
-
-                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "mcp9808") && dp[d].page == page) {
-
-                                char buffer[6];
-
-                                sprintf(buffer, "%.1lf", temperature);
-                                strcpy(dp[d].dc[i].data1, buffer);
-
-                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-            * SHT4x enabled
-            */
-            if(SHT4X_ENABLE == 1 || DP_SHT4X != 0) {
-
-                float temperature_f;
-                float humidity_f;
-
-                uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
-                if (res != 0) {
-                    (void)sht4x_basic_deinit();
-                    printf("ERROR: sht4x read failed.\n");
-                    return 1;
-                }
-
-                if(SHT4X_ENABLE == 1) {
-
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n sht4x Temp = %.2lf c\n", temperature_f);
-                        printf("       Humd = %.2lf %\n", humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
-                        }
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                       if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                if(DP_SHT4X != 0) {
-
-                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "sht4x") && dp[d].page == page) {
-
-                                char buffer[25];
-
-                                sprintf(buffer, "%.1lf", temperature_f);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.0lf", humidity_f);
-                                strcpy(dp[d].dc[i].data2, buffer);
-
-                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-            * SHTC3 enabled
-            */
-            if(SHTC3_ENABLE == 1 || DP_SHTC3 != 0) {
-
-                float temperature_f;
-                float humidity_f;
-
-                uint8_t res = shtc3_basic_read((float *)&temperature_f, (float *)&humidity_f);
-                if (res != 0) {
-                    (void)shtc3_basic_deinit();
-                    printf("ERROR: shtc3 read failed.\n");
-                    return 1;
-                }
-
-                if(SHTC3_ENABLE == 1) {
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n shtc3 Temp = %.2lf c\n", temperature_f);
-                        printf("       Humd = %.2lf %\n", humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
-                        }
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                       if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                if(DP_SHTC3 != 0) {
-
-                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "shtc3") && dp[d].page == page) {
-
-                                char buffer[25];
-
-                                sprintf(buffer, "%.1lf", temperature_f);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.0lf", humidity_f);
-                                strcpy(dp[d].dc[i].data2, buffer);
-
-                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-            * aht20 enabled
-            */
-            if(AHT20_ENABLE == 1 || DP_AHT20 != 0) {
-
-                float temperature_f;
-                uint8_t humidity_f;
-
-                uint8_t res = aht20_basic_read((float *)&temperature_f, (uint8_t *)&humidity_f);
-                if (res != 0) {
-                    (void)aht20_basic_deinit();
-                    printf("ERROR: aht20 read failed.\n");
-                    return 1;
-                }
-
-                if(AHT20_ENABLE == 1) {
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n aht20 Temp = %.2lf c", temperature_f);
-                        printf("       Humd = %.2lf %\n", humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
-                        }
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                       if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                if(DP_AHT20 != 0) {
-
-                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "aht20") && dp[d].page == page) {
-
-                                char buffer[25];
-
-                                sprintf(buffer, "%.1lf", temperature_f);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%d", humidity_f);
-                                strcpy(dp[d].dc[i].data2, buffer);
-
-                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-            * htu31d enabled
-            */
-            if(HTU31D_ENABLE == 1 || DP_HTU31D != 0) {
-
-                float temperature_f;
-                float humidity_f;
-
-                uint8_t res = htu31d_basic_read((float *)&temperature_f, (float *)&humidity_f);
-                if (res != 0) {
-                    (void)htu31d_basic_deinit();
-                    printf("ERROR: htu31d read failed.\n");
-                    return 1;
-                }
-
-                if(HTU31D_ENABLE == 1) {
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n htu31d Temp = %.2lf c\n", temperature_f);
-                        printf("        Humd = %.2lf %\n", humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
-                        }
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                       if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                if(DP_HTU31D != 0) {
-
-                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].name, "htu31d") && dp[d].page == page) {
-
-                                char buffer[25];
-
-                                sprintf(buffer, "%.1lf", temperature_f);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.0lf", humidity_f);
-                                strcpy(dp[d].dc[i].data2, buffer);
-
-                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
@@ -2591,779 +3005,369 @@ int main(uint8_t argc, char **argv) {
                 }
             }
             /*
-             * SmartPower enabled
+             * display only data, skip if no displays
              */
-            if(SP_ENABLE != 0) {
-
-                if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
-                    printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(EXIT_FAILURE);
-                }
+            if(DISPLAY_ENABLE) {
                 /*
-                 * read SmartPower2
-                 */
-                if(SP_ENABLE == 2) {
-                    unsigned char temp[18];
-                    int8_t sp_read = 0;
-                    if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
-                        printf("Error from read: %d: %s\n", sp_read, strerror(errno));
-                    }
-                    temp[sp_read] = 0;
-                    sscanf(temp, "%f%s %f%s %f%s", &volt, spline, &amp, spline1, &watt, spline2);
-                    if(strstr(spline1,"mA")) {
-                        if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                            printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
-                        }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                                printf(",%.2f,.%.0f,%.2f", volt, amp, watt);
-                        }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                            if(OPTIONS_COUNT >= 1) {
-                                printf("%.2f,.%.0f,%.2f,", volt, amp, watt);
-                            }
-                            else {
-                                printf("%.2f,.%.0f,%.2f", volt, amp, watt);
-                            }
-                        }
-                        if(LOG_ENABLE == 1) {
-                            fprintf(log_file,",%.2f,.%.0f,%.2f", volt, amp, watt);
-                        }
-
-                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f,.%.0f,%.2f", volt, amp, watt);
-                        }
-                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
-                            if(OPTIONS_COUNT > 1) {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,.%.0f,%.2f,", volt, amp, watt);
-                            }
-                            else {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,.%.0f,%.2f", volt, amp, watt);
-                            }
-                        }
-                    OPTIONS_COUNT--;
-                    }
-                    if(strstr(spline1,"A")) {
-                        if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                            printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt, amp, watt);
-                        }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                                printf(",%.2f,%.2f,%.2f", volt, amp, watt);
-                        }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                            if(OPTIONS_COUNT > 1) {
-                                printf("%.2f,%.2f,%.2f,", volt, amp, watt);
-                            }
-                            else {
-                                printf("%.2f,%.2f,%.2f", volt, amp, watt);
-                            }
-                        }
-                        if(LOG_ENABLE == 1) {
-                            fprintf(log_file,",%.2f,%.2f,%.2f", volt, amp, watt);
-                        }
-
-                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt, amp, watt);
-                        }
-                        if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
-                            if(OPTIONS_COUNT > 1) {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f,", volt, amp, watt);
-                            }
-                            else {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f", volt, amp, watt);
-                            }
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                /*
-                 * read SmartPower3
-                 */
-                if(SP_ENABLE == 31 || SP_ENABLE == 32) {
-
-                    unsigned char temp[82];
-                    int8_t sp_read = 0;
-
-                    if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
-                        printf("Error from read: %d: %s\n", sp_read, strerror(errno));
-                    }
-                    temp[sp_read] = 0;
-                    sscanf(temp, "%Lf,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
-                        &sp_ms, \
-                        &in_mv, &in_ma, &in_w, &in_on, \
-                        &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
-                        &ch2_mv, &ch2_ma, &ch2_w, &ch2_on, &ch2_int, \
-                        &chk_comp, &chk_xor);
-
-                    if(SP_ENABLE == 31) {
-                        volt = ch1_mv;
-                        amp = ch1_ma;
-                        watt = ch1_w;
-                    }
-                    else {
-                        volt = ch2_mv;
-                        amp = ch2_ma;
-                        watt = ch2_w;
-                    }
-                    if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n Volts = %.2f\n Amps = %.2f\n Watts = %.2f\n\n", volt/1000, amp/1000, watt/1000);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
-                        }
-                        else {
-                            printf("%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
-                        }
-                    }
-                    if(LOG_ENABLE == 1) {
-                        fprintf(log_file,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
-                    }
-
-                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
-                    }
-                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f,", volt/1000, amp/1000, watt/1000);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,%.2f,%.2f", volt/1000, amp/1000, watt/1000);
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                close(pwr_in);
-            }
-            /*
-             * read proc stat
-             */
-            if(USAGE_ENABLE != 0 || DP_USAGE != 0) {
-
-                float r = 0;
-                float s = 0;
-                float sum = 0;
-                uint8_t corecnt = 0;
-
-                if(!USAGE_ENABLE) {
-                corecnt = DP_USAGE;
-                }
-                else {
-                corecnt = USAGE_ENABLE;
-                }
-                if((cpu_use = fopen(cpuusage, "r")) == NULL) {
-                    printf("\nERROR: Cannot open %s\n", cpuusage);
-                    exit(EXIT_FAILURE);
-                }
-                for (uint16_t c = 0; c <= corecnt; c++) {
-                    char t[20];
-                    char us[10][256] = {0};
-                    double long u[10][256] = {0};
-                    char *endptr;
-
-                    if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
-                        &us[2][c], &us[3][c], &us[4][c], &us[5][c], &us[6][c], &us[7][c], &us[8][c], &us[9][c])) != 11) {
-                        printf("\nERROR: Reading %s\n", cpuusage);
-                        exit(EXIT_FAILURE);
-                    }
-
-                    u[0][c] = strtoll(&us[0][c], &endptr, 10);
-                    u[1][c] = strtoll(&us[1][c], &endptr, 10);
-                    u[2][c] = strtoll(&us[2][c], &endptr, 10);
-                    u[3][c] = strtoll(&us[3][c], &endptr, 10);
-                    u[4][c] = strtoll(&us[4][c], &endptr, 10);
-                    u[5][c] = strtoll(&us[5][c], &endptr, 10);
-                    u[6][c] = strtoll(&us[6][c], &endptr, 10);
-                    u[7][c] = strtoll(&us[7][c], &endptr, 10);
-                    u[8][c] = strtoll(&us[8][c], &endptr, 10);
-                    u[9][c] = strtoll(&us[9][c], &endptr, 10);
-
-                    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
-                        + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
-                    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
-                        + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c];
-
-                    r = i == 0 && INTERACTIVE_ENABLE != 0 ? (s-sum) : u[3][c] - use[3][c];
-                    r /= (s-sum);
-                    r = 1 - r;
-                    r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
-
-                    if(USAGE_ENABLE != 0) {
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                            printf(",%Lf", u[3][c]);
-                        }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                            if(c == 0) {
-                                printf("CPU = %.2f%% ", r);
-                                if(c == USAGE_ENABLE) {
-                                    printf("\n");
-                                }
-                            }
-                            else {
-                                printf("core%d = %.2f%% ", c, r);
-                                if(c == USAGE_ENABLE) {
-                                    printf("\n");
-                                }
-                            }
-                        }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                                printf(",%.2f", r);
-                        }
-                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
-                                printf("%.2f,", r);
-                            }
-                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
-                                if(OPTIONS_COUNT > 1) {
-                                    printf("%.2f,", r);
-                                }
-                                else {
-                                    printf("%.2f", r);
-                                }
-                            }
-                        }
-                        if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                            fprintf(log_file,",%Lf", u[3][c]);
-                        }
-                        if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                            fprintf(log_file,",%.2f", r);
-                        }
-
-                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,",%Lf", u[3][c]);
-                        }
-                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
-                            }
-                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
-                                if(OPTIONS_COUNT > 1) {
-                                    udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
-                                }
-                                else {
-                                    udp_count += sprintf(udp_tx_data + udp_count,"%Lf", u[3][c]);
-                                }
-                            }
-                        }
-                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f", r);
-                        }
-                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
-                            }
-                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
-                                if(OPTIONS_COUNT > 1) {
-                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
-                                }
-                                else {
-                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f", r);
-                                }
-                            }
-                        }
-                    }
-                    if(DP_USAGE != 0) {
-                        for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                            for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-
-                                int16_t n = !strcmp(dp[d].dc[i].device, "") ? -1 : (int16_t) strtol(dp[d].dc[i].device, (char **) NULL, 0);
-
-                                if(!strcmp(dp[d].dc[i].cmd, "usage") && dp[d].page == page && (n == -1 || n == c)) {
-
-                                    uint16_t yloc_reset = dp[d].dc[i].yloc;
-                                    char buffer[25];
-
-                                    if(c == 0) {
-                                        sprintf(buffer, "CPU ");
-                                        strcpy(dp[d].dc[i].data1, buffer);
-                                    }
-                                    else {
-                                        sprintf(buffer, "core%d ", c-1);
-                                        strcpy(dp[d].dc[i].data1, buffer);
-                                    }
-                                    sprintf(buffer, "%.2f", r);
-                                    strcpy(dp[d].dc[i].data2, buffer);
-                                    if(n == -1) {
-                                        dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
-                                    }
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s usage cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                    dp[d].dc[i].yloc = yloc_reset;
-                                }
-                            }
-                        }
-                    }
-                    use[0][c] = u[0][c];
-                    use[1][c] = u[1][c];
-                    use[2][c] = u[2][c];
-                    use[3][c] = u[3][c];
-                    use[4][c] = u[4][c];
-                    use[5][c] = u[5][c];
-                    use[6][c] = u[6][c];
-                    use[7][c] = u[7][c];
-                    use[8][c] = u[8][c];
-                    use[9][c] = u[9][c];
-                }
-                if(USAGE_ENABLE != 0) {
-                    OPTIONS_COUNT--;
-                }
-                fclose(cpu_use);
-            }
-            /*
-             * Read memory usage
-             */
-            if(MEM_ENABLE == 1 || DP_MEMORY != 0) {
-
-                float mt;
-                float r = 0;
-                float nd;
-                char field[30];
-
-                if((mem_load = fopen(memload, "r")) == NULL) {
-                    printf("\nERROR: Cannot open %s\n", memload);
-                    exit(EXIT_FAILURE);
-                }
-                while(feof(mem_load) == 0) {
-                    fscanf(mem_load, "%29s %f %*s", field, &nd);
-                    if (strcmp(mem_total , field) == 0) mt = nd;
-                    if (strcmp(mem_avail , field) == 0) r -= nd;
-                }
-                r /= mt;
-                r += 1;
-                r *= 100;
-
-                if(MEM_ENABLE == 1) {
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%.3g", r);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n\n RAM Use = %.3g%%", r);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.3g", r);
-                    }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            printf("%.3g,", r);
-                        }
-                        else {
-                            printf("%.3g", r);
-                        }
-
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%.3g", r);
-                    }
-                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.3g", r);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
-                        }
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
-                    }
-                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                       if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
-                        }
-                        else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
-                        }
-                    }
-                    OPTIONS_COUNT--;
-                }
-                fclose(mem_load);
-                if(DP_MEMORY != 0) {
+                * open and read governor setting
+                */
+                if(DP_GOVERNOR != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                            if(!strcmp(dp[d].dc[i].cmd, "memory") && dp[d].page == page) {
+                            if(!strcmp(dp[d].dc[i].cmd, "governor") && dp[d].page == page) {
 
-                                char buffer[25];
+                                strcpy(governorloc, dp[d].dc[i].device);
+                                if((governor_file = fopen(governorloc, "r")) == NULL) {
+                                    printf("\nERROR: Cannot open governor at %s\n", governorloc);
+                                    break;
+                                }
 
-                                sprintf(buffer, "RAM ");
+                                char governor[25];
+
+                                fscanf(governor_file, "%s", &governor);
+                                fclose(governor_file);
+
+                                strcpy(dp[d].dc[i].data1, governor);
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s governor cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+                /*
+                * open and read disk info
+                */
+                if(DP_DISK != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "disk") && dp[d].page == page) {
+
+                                struct statfs stat;
+                                char buffer[25] = {0};
+
+                                if(statfs(dp[d].dc[i].device, &stat) != 0) {
+                                    printf("%s cmd %d failed, path %s not found.\n", &dp[d].name, i, dp[d].dc[i].device);
+                                    break;;
+                                }
+
+                                uint64_t dsize = stat.f_bsize * stat.f_blocks;
+                                uint64_t davail = stat.f_bsize * stat.f_bavail;
+                                uint64_t dused = stat.f_bsize * (stat.f_blocks-stat.f_bavail);
+
+                                if(!strcmp(dp[d].dc[i].dtype, "total")) {
+                                    sprintf(buffer, "%.2f", (float)dsize/1000000000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                else if(!strcmp(dp[d].dc[i].dtype, "free")) {
+                                    sprintf(buffer, "%.2f", (float)davail/1000000000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                else if(!strcmp(dp[d].dc[i].dtype, "used")) {
+                                    sprintf(buffer, "%.2f", (float)dused/1000000000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
+                                    float pused = (float)((float)dused/(float)dsize) * 100;
+                                    sprintf(buffer, "%.0f", pused);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s disk cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+                /*
+                * sysinfo uptime
+                */
+                if(DP_UPTIME != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "uptime") && dp[d].page == page) {
+
+                                struct sysinfo sys_info;
+                                char buffer[127] = "\0";
+
+                                if(sysinfo(&sys_info) != 0) {
+                                    printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
+                                    break;;
+                                }
+
+                                int16_t days = sys_info.uptime / 86400;
+                                int16_t hours = (sys_info.uptime / 3600) - (days * 24);
+                                int16_t mins = (sys_info.uptime / 60) - (days * 1440) - (hours * 60);
+
+                                if(!strcmp(dp[d].dc[i].dtype, "short")) {
+                                    sprintf(buffer, "%d days %d:%d", days, hours, mins);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                else if(!strcmp(dp[d].dc[i].dtype, "long")) {
+                                    sprintf(buffer, "%ddays, %dhours, %dminutes", days, hours, mins);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s uptime cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+                /*
+                * sysinfo system load
+                */
+                if(DP_SYSLOAD != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "sysload") && dp[d].page == page) {
+
+                                struct sysinfo sys_info;
+                                char buffer[127] = "\0";
+
+                                if(sysinfo(&sys_info) != 0) {
+                                    printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
+                                    break;;
+                                }
+
+                                unsigned long sysil1 = sys_info.loads[0];
+                                unsigned long sysil2 = sys_info.loads[1];
+                                unsigned long sysil3 = sys_info.loads[2];
+
+                                if(!strcmp(dp[d].dc[i].dtype, "short")) {
+                                    sprintf(buffer, "[%.2f] [%.2f] [%.2f]", (float)sysil1/100000, (float)sysil2/100000, (float)sysil3/100000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                else if(!strcmp(dp[d].dc[i].dtype, "long")) {
+                                    sprintf(buffer, "1min(%.2f) 5min(%.2f) 15min(%.2f)", (float)sysil1/100000, (float)sysil2/100000, (float)sysil3/100000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s sysload cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+                /*
+                * sysinfo swap
+                */
+                if(DP_SWAP != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "swap") && dp[d].page == page) {
+
+                                struct sysinfo sys_info;
+                                char buffer[127] = "\0";
+
+                                if(sysinfo(&sys_info) != 0) {
+                                    printf("%s cmd %d swap failed\n", &dp[d].name, i);
+                                    break;;
+                                }
+
+                                unsigned long tswap = sys_info.totalswap;
+                                unsigned long fswap = sys_info.freeswap;
+                                unsigned long uswap = tswap - fswap;
+
+                                if(!strcmp(dp[d].dc[i].dtype, "total")) {
+                                    sprintf(buffer, "%.2f", (float) tswap/1000000000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                if(!strcmp(dp[d].dc[i].dtype, "free")) {
+                                    sprintf(buffer, "%.2f", (float) fswap/1000000000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                else if(!strcmp(dp[d].dc[i].dtype, "used")) {
+                                    sprintf(buffer, "%.2f", (float) uswap/1000000000);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
+                                    float pswap = (float) (((float)uswap/1000000000)/((float)tswap/1000000000)) * 100;
+                                    sprintf(buffer, "%.0f", pswap);
+                                    strcpy(dp[d].dc[i].data1, buffer);
+                                }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s swap cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+                /*
+                * host name from uname()
+                */
+                if(DP_HOSTNAME != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "hostname") && dp[d].page == page) {
+
+                                struct utsname uname_info;
+
+                                if(uname(&uname_info) != 0) {
+                                    printf("%s cmd %d uname failed\n", &dp[d].name, i);
+                                    break;;
+                                }
+
+                                char buffer[sizeof(uname_info.nodename)] = "\0";
+                                sprintf(buffer, "%s", uname_info.nodename);
                                 strcpy(dp[d].dc[i].data1, buffer);
-                                sprintf(buffer, "%.3g", r);
-                                strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s memory cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s hostname cmd %d failed\n", &dp[d].name, i);
                                 }
                             }
                         }
                     }
                 }
-            }
-            /*
-             * open and read governor setting
-             */
-            if(DP_GOVERNOR != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "governor") && dp[d].page == page) {
+                /*
+                * open and read iio
+                */
+                if(DP_IIO != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "iio") && dp[d].page == page) {
+                                for (uint16_t c = 0; c < IIO_ENABLE; c++) {
 
-                            strcpy(governorloc, dp[d].dc[i].device);
-                            if((governor_file = fopen(governorloc, "r")) == NULL) {
-                                printf("\nERROR: Cannot open governor at %s\n", governorloc);
-                                break;
-                            }
+                                    float iio_f = 0;
+                                    char buffer[24] = "\0";
+                                    char strChar[5] = "\0";
+                                    char iio_name[24] = "\0";
+                                    char iioloc[255] = "\0";
+                                    char iiosensor[255] = "\0";
 
-                            char governor[25];
-
-                            fscanf(governor_file, "%s", &governor);
-                            fclose(governor_file);
-
-                            strcpy(dp[d].dc[i].data1, governor);
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s governor cmd %d failed\n", &dp[d].name, i);
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * open and read disk info
-             */
-            if(DP_DISK != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "disk") && dp[d].page == page) {
-
-                            struct statfs stat;
-                            char buffer[25] = {0};
-
-                            if(statfs(dp[d].dc[i].device, &stat) != 0) {
-                                printf("%s cmd %d failed, path %s not found.\n", &dp[d].name, i, dp[d].dc[i].device);
-                                break;;
-                            }
-
-                            uint64_t dsize = stat.f_bsize * stat.f_blocks;
-                            uint64_t davail = stat.f_bsize * stat.f_bavail;
-                            uint64_t dused = stat.f_bsize * (stat.f_blocks-stat.f_bavail);
-
-                            if(!strcmp(dp[d].dc[i].dtype, "total")) {
-                                sprintf(buffer, "%.2f", (float)dsize/1000000000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            else if(!strcmp(dp[d].dc[i].dtype, "free")) {
-                                sprintf(buffer, "%.2f", (float)davail/1000000000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            else if(!strcmp(dp[d].dc[i].dtype, "used")) {
-                                sprintf(buffer, "%.2f", (float)dused/1000000000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
-                                float pused = (float)((float)dused/(float)dsize) * 100;
-                                sprintf(buffer, "%.0f", pused);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s disk cmd %d failed\n", &dp[d].name, i);
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * sysinfo uptime
-             */
-            if(DP_UPTIME != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "uptime") && dp[d].page == page) {
-
-                            struct sysinfo sys_info;
-                            char buffer[127] = "\0";
-
-                            if(sysinfo(&sys_info) != 0) {
-                                printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
-                                break;;
-                            }
-
-                            int16_t days = sys_info.uptime / 86400;
-                            int16_t hours = (sys_info.uptime / 3600) - (days * 24);
-                            int16_t mins = (sys_info.uptime / 60) - (days * 1440) - (hours * 60);
-
-                            if(!strcmp(dp[d].dc[i].dtype, "short")) {
-                                sprintf(buffer, "%d days %d:%d", days, hours, mins);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            else if(!strcmp(dp[d].dc[i].dtype, "long")) {
-                                sprintf(buffer, "%ddays, %dhours, %dminutes", days, hours, mins);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s uptime cmd %d failed\n", &dp[d].name, i);
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * sysinfo system load
-             */
-            if(DP_SYSLOAD != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "sysload") && dp[d].page == page) {
-
-                            struct sysinfo sys_info;
-                            char buffer[127] = "\0";
-
-                            if(sysinfo(&sys_info) != 0) {
-                                printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
-                                break;;
-                            }
-
-                            unsigned long sysil1 = sys_info.loads[0];
-                            unsigned long sysil2 = sys_info.loads[1];
-                            unsigned long sysil3 = sys_info.loads[2];
-
-                            if(!strcmp(dp[d].dc[i].dtype, "short")) {
-                                sprintf(buffer, "[%.2f] [%.2f] [%.2f]", (float)sysil1/100000, (float)sysil2/100000, (float)sysil3/100000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            else if(!strcmp(dp[d].dc[i].dtype, "long")) {
-                                sprintf(buffer, "1min(%.2f) 5min(%.2f) 15min(%.2f)", (float)sysil1/100000, (float)sysil2/100000, (float)sysil3/100000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s sysload cmd %d failed\n", &dp[d].name, i);
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * sysinfo swap
-             */
-            if(DP_SWAP != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "swap") && dp[d].page == page) {
-
-                            struct sysinfo sys_info;
-                            char buffer[127] = "\0";
-
-                            if(sysinfo(&sys_info) != 0) {
-                                printf("%s cmd %d swap failed\n", &dp[d].name, i);
-                                break;;
-                            }
-
-                            unsigned long tswap = sys_info.totalswap;
-                            unsigned long fswap = sys_info.freeswap;
-                            unsigned long uswap = tswap - fswap;
-
-                            if(!strcmp(dp[d].dc[i].dtype, "total")) {
-                                sprintf(buffer, "%.2f", (float) tswap/1000000000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            if(!strcmp(dp[d].dc[i].dtype, "free")) {
-                                sprintf(buffer, "%.2f", (float) fswap/1000000000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            else if(!strcmp(dp[d].dc[i].dtype, "used")) {
-                                sprintf(buffer, "%.2f", (float) uswap/1000000000);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
-                                float pswap = (float) (((float)uswap/1000000000)/((float)tswap/1000000000)) * 100;
-                                sprintf(buffer, "%.0f", pswap);
-                                strcpy(dp[d].dc[i].data1, buffer);
-                            }
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s swap cmd %d failed\n", &dp[d].name, i);
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * host name from uname()
-             */
-            if(DP_HOSTNAME != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "hostname") && dp[d].page == page) {
-
-                            struct utsname uname_info;
-
-                            if(uname(&uname_info) != 0) {
-                                printf("%s cmd %d uname failed\n", &dp[d].name, i);
-                                break;;
-                            }
-
-                            char buffer[sizeof(uname_info.nodename)] = "\0";
-                            sprintf(buffer, "%s", uname_info.nodename);
-                            strcpy(dp[d].dc[i].data1, buffer);
-
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s hostname cmd %d failed\n", &dp[d].name, i);
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * open and read iio
-             */
-            if(DP_IIO != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "iio") && dp[d].page == page) {
-                            for (uint16_t c = 0; c < IIO_ENABLE; c++) {
-
-                                float iio_f = 0;
-                                char buffer[24] = "\0";
-                                char strChar[5] = "\0";
-                                char iio_name[24] = "\0";
-                                char iioloc[255] = "\0";
-                                char iiosensor[255] = "\0";
-
-                                itoa(c,strChar);
-                                strcpy(iioloc,iiopath);
-                                strcat(iioloc,strChar);
-                                strcat(iioloc,"/");
-                                strcat(iioloc,"name");
-                                if((iio_file = fopen(iioloc, "r")) == NULL) {
-                                    printf("\nERROR: Cannot open %s\n", iioloc);
-                                    exit(EXIT_FAILURE);
-                                }
-                                fscanf(iio_file, "%s", &iio_name);
-                                fclose(iio_file);
-
-                                if(!strcmp(dp[d].dc[i].name, iio_name)) {
-                                    strcpy(iiosensor,iiopath);
-                                    strcat(iiosensor,strChar);
-                                    strcat(iiosensor,"/");
-                                    strcat(iiosensor, dp[d].dc[i].device);
-                                    if((iio_file = fopen(iiosensor, "r")) == NULL) {
-                                        printf("\nERROR: Cannot open iio at %s\n", iiosensor);
-                                        break;
-                                    }
-
-                                    fscanf(iio_file, "%f", &iio_f);
-                                    fclose(iio_file);
-                                    if(strcmp(dp[d].dc[i].dtype, "")) {
-                                        char buffer[17];
-                                        long num;
-                                        if(strchr(dp[d].dc[i].dtype, '/') != NULL) {
-                                            strcpy(buffer, strrchr(dp[d].dc[i].dtype, '/') + 1 );
-                                            num = strtol(buffer, (char **) NULL, 0);
-
-                                            sprintf(dp[d].dc[i].data1, "%.2f", iio_f / (float)num);
-                                        }
-                                        if(strchr(dp[d].dc[i].dtype, '*') != NULL) {
-                                            strcpy(buffer, strrchr(dp[d].dc[i].dtype, '*') + 1 );
-                                            num = strtol(buffer, (char **) NULL, 0);
-
-                                            sprintf(dp[d].dc[i].data1, "%.2f", iio_f * (float)num);
-                                        }
-
-                                    }
-                                    else {
-                                        sprintf(dp[d].dc[i].data1, "%.1f", iio_f);
-                                    }
-
-                                    if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s iio cmd %d failed\n", &dp[d].name, i);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * kernel version from uname()
-             */
-            if(DP_KERNEL != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "kernel") && dp[d].page == page) {
-
-                            struct utsname uname_info;
-
-                            if(uname(&uname_info) != 0) {
-                                printf("%s cmd %d uname failed\n", &dp[d].name, i);
-                                break;;
-                            }
-
-                            char buffer[sizeof(uname_info.release)] = "\0";
-                            sprintf(buffer, "%s", uname_info.release);
-                            strcpy(dp[d].dc[i].data1, buffer);
-
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s kernel version cmd %d failed\n", &dp[d].name, i);
-                            }
-                        }
-                    }
-                }
-            }
-            /*
-             * network interface and ip
-             */
-            if(DP_IP != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "ip") && dp[d].page == page) {
-
-                            struct ifaddrs *ifaddr, *ifa;
-                            int s;
-                            char host[NI_MAXHOST];
-
-                            if(getifaddrs(&ifaddr) == -1) {
-                                perror("getifaddrs");
-                                exit(EXIT_FAILURE);
-                            }
-
-                            for(ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-                                if(ifa->ifa_addr == NULL)
-                                    continue;
-
-                                s=getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in),host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-
-                                if(ifa->ifa_addr->sa_family==AF_INET) {
-                                    if(s != 0) {
-                                        printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                                    itoa(c,strChar);
+                                    strcpy(iioloc,iiopath);
+                                    strcat(iioloc,strChar);
+                                    strcat(iioloc,"/");
+                                    strcat(iioloc,"name");
+                                    if((iio_file = fopen(iioloc, "r")) == NULL) {
+                                        printf("\nERROR: Cannot open %s\n", iioloc);
                                         exit(EXIT_FAILURE);
                                     }
-                                    if(!strcmp(dp[d].dc[i].name, ifa->ifa_name)) {
-                                        sprintf(dp[d].dc[i].data1, "%s ", ifa->ifa_name);
-                                        sprintf(dp[d].dc[i].data2, "%s", host);
+                                    fscanf(iio_file, "%s", &iio_name);
+                                    fclose(iio_file);
+
+                                    if(!strcmp(dp[d].dc[i].name, iio_name)) {
+                                        strcpy(iiosensor,iiopath);
+                                        strcat(iiosensor,strChar);
+                                        strcat(iiosensor,"/");
+                                        strcat(iiosensor, dp[d].dc[i].device);
+                                        if((iio_file = fopen(iiosensor, "r")) == NULL) {
+                                            printf("\nERROR: Cannot open iio at %s\n", iiosensor);
+                                            break;
+                                        }
+
+                                        fscanf(iio_file, "%f", &iio_f);
+                                        fclose(iio_file);
+                                        if(strcmp(dp[d].dc[i].dtype, "")) {
+                                            char buffer[17];
+                                            long num;
+                                            if(strchr(dp[d].dc[i].dtype, '/') != NULL) {
+                                                strcpy(buffer, strrchr(dp[d].dc[i].dtype, '/') + 1 );
+                                                num = strtol(buffer, (char **) NULL, 0);
+
+                                                sprintf(dp[d].dc[i].data1, "%.2f", iio_f / (float)num);
+                                            }
+                                            if(strchr(dp[d].dc[i].dtype, '*') != NULL) {
+                                                strcpy(buffer, strrchr(dp[d].dc[i].dtype, '*') + 1 );
+                                                num = strtol(buffer, (char **) NULL, 0);
+
+                                                sprintf(dp[d].dc[i].data1, "%.2f", iio_f * (float)num);
+                                            }
+
+                                        }
+                                        else {
+                                            sprintf(dp[d].dc[i].data1, "%.1f", iio_f);
+                                        }
 
                                         if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                            printf("%s ip cmd %d failed\n", &dp[d].name, i);
+                                            printf("%s iio cmd %d failed\n", &dp[d].name, i);
                                         }
                                     }
                                 }
                             }
-                            freeifaddrs(ifaddr);
                         }
                     }
                 }
-            }
-            /*
-             * display text string
-             */
-            if(DP_TEXT != 0) {
-                for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
-                    for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
-                        if(!strcmp(dp[d].dc[i].cmd, "text") && dp[d].page == page) {
-                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                printf("%s text cmd %d failed\n", &dp[d].name, i);
+                /*
+                * kernel version from uname()
+                */
+                if(DP_KERNEL != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "kernel") && dp[d].page == page) {
+
+                                struct utsname uname_info;
+
+                                if(uname(&uname_info) != 0) {
+                                    printf("%s cmd %d uname failed\n", &dp[d].name, i);
+                                    break;;
+                                }
+
+                                char buffer[sizeof(uname_info.release)] = "\0";
+                                sprintf(buffer, "%s", uname_info.release);
+                                strcpy(dp[d].dc[i].data1, buffer);
+
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s kernel version cmd %d failed\n", &dp[d].name, i);
+                                }
+                            }
+                        }
+                    }
+                }
+                /*
+                * network interface and ip
+                */
+                if(DP_IP != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "ip") && dp[d].page == page) {
+
+                                struct ifaddrs *ifaddr, *ifa;
+                                int s;
+                                char host[NI_MAXHOST];
+
+                                if(getifaddrs(&ifaddr) == -1) {
+                                    perror("getifaddrs");
+                                    exit(EXIT_FAILURE);
+                                }
+
+                                for(ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+                                    if(ifa->ifa_addr == NULL)
+                                        continue;
+
+                                    s=getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in),host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
+                                    if(ifa->ifa_addr->sa_family==AF_INET) {
+                                        if(s != 0) {
+                                            printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                                            exit(EXIT_FAILURE);
+                                        }
+                                        if(!strcmp(dp[d].dc[i].name, ifa->ifa_name)) {
+                                            sprintf(dp[d].dc[i].data1, "%s ", ifa->ifa_name);
+                                            sprintf(dp[d].dc[i].data2, "%s", host);
+
+                                            if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                                printf("%s ip cmd %d failed\n", &dp[d].name, i);
+                                            }
+                                        }
+                                    }
+                                }
+                                freeifaddrs(ifaddr);
+                            }
+                        }
+                    }
+                }
+                /*
+                * display text string
+                */
+                if(DP_TEXT != 0) {
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].cmd, "text") && dp[d].page == page) {
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
+                                    printf("%s text cmd %d failed\n", &dp[d].name, i);
+                                }
                             }
                         }
                     }
@@ -3492,10 +3496,10 @@ int main(uint8_t argc, char **argv) {
             }
         }
     }
+    /*
+     * Build of gnuplot script
+     */
     else {
-        /*
-         * Build of gnuplot script
-         */
         uint16_t i = 0;
         while (i < 11) {
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
@@ -3534,25 +3538,25 @@ int main(uint8_t argc, char **argv) {
         fprintf(gnuplot_file,"%s",gpscript_layout[0]);
 
         /* frequency only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_freq1, "set size 1,1\n");
             strcpy(gpscript_freq2, "set origin 0,0\n");
         }
         /* thermal zone only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
             fprintf(gnuplot_file,"%s", one2one);
             strcpy(gpscript_thermal1, "set size 1,1\n");
             strcpy(gpscript_thermal2, "set origin 0,0\n");
         }
         /* usage only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_usage1, "set size 1,1\n");
             strcpy(gpscript_usage2, "set origin 0,0\n");
         }
         /* power only chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
             fprintf(gnuplot_file,"%s",one2one);
             strcpy(gpscript_power1, "set size 1,1\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
@@ -3565,7 +3569,7 @@ int main(uint8_t argc, char **argv) {
             strcpy(gpscript_thermal1, "set size 1,.5\n");
             strcpy(gpscript_thermal2, "set origin 0,.5\n");
         }
-        /* frequency and useage chart */
+        /* frequency and usage chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_freq1, "set size 1,.5\n");
@@ -3589,7 +3593,7 @@ int main(uint8_t argc, char **argv) {
             strcpy(gpscript_power1, "set size 1,.5\n");
             strcpy(gpscript_power2, "set origin 0,0\n");
         }
-        /* thermal and useage chart */
+        /* thermal and usage chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
             fprintf(gnuplot_file,"%s",two2one);
             strcpy(gpscript_thermal1, "set size 1,.5\n");
@@ -3745,42 +3749,6 @@ int main(uint8_t argc, char **argv) {
             fprintf(gnuplot_file, "\n\n");
         }
         /*
-         * build power chart
-         */
-        if(SP_ENABLE != 0) {
-
-            i = 0;
-            while (i < 11) {
-                if(i != 1 && i != 2) {
-                    fprintf(gnuplot_file,"%s",gpscript_power[i]);
-                    i++;
-                }
-                else {
-                    if(i == 1) {
-                        fprintf(gnuplot_file,"%s",gpscript_power1);
-                        i++;
-                    }
-                    if(i == 2) {
-                        fprintf(gnuplot_file,"%s",gpscript_power2);
-                        i++;
-                    }
-                }
-            }
-
-            fprintf(gnuplot_file, "plot ");
-
-            if(SENSOR_ENABLE == 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+2));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+3));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+4));
-            }
-            else {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+3));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+4));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+5));
-            }
-        }
-        /*
          * build usage chart
          */
         if(USAGE_ENABLE != 0 || MEM_ENABLE != 0) {
@@ -3822,9 +3790,91 @@ int main(uint8_t argc, char **argv) {
             }
             fprintf(gnuplot_file, "\n\n");
         }
+        /*
+         * build power chart
+         */
+        if(SP_ENABLE != 0) {
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_power[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_power1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_power2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+4));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+4));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+5));
+            }
+        }
+        /*
+         * build sensor chart
+         */
+        if(MCP9808_ENABLE !=0) {
+
+        }
+        if(SHT4X_ENABLE !=0) {
+
+        }
+        if(SHTC3_ENABLE !=0) {
+
+        }
+        if(AHT20_ENABLE !=0) {
+
+        }
+        if(HTU31D_ENABLE !=0) {
+
+        }
+        if(BMP180_ENABLE !=0) {
+
+        }
+        if(BMP388_ENABLE !=0) {
+
+        }
+        if(BMP390_ENABLE !=0) {
+
+        }
+        if(BME280_ENABLE !=0) {
+
+        }
+        if(BME680_ENABLE !=0) {
+
+        }
+        if(SCD30_ENABLE !=0) {
+
+        }
+        if(SCD4X_ENABLE !=0) {
+
+        }
+        if(SGP30_ENABLE !=0) {
+
+        }
+
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
     }
+    /*
+     * close all handles and files
+     */
     if (SP_ENABLE != 0) {
         close(pwr_in);
     }
@@ -3845,16 +3895,7 @@ int main(uint8_t argc, char **argv) {
             (void)st7789_deinit(&st7789_handle);
         }
     }
-    if (SCD30_ENABLE == 1 || DP_SCD30 != 0) {
-        (void)scd30_basic_deinit();
-    }
-    if (SCD4X_ENABLE == 1 || DP_SCD4X != 0) {
-        (void)scd4x_shot_deinit();
-    }
-    if (SGP30_ENABLE == 1 || DP_SGP30 != 0) {
-        (void)sgp30_advance_deinit();
-    }
-    if (SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
+    if (BMP180_ENABLE == 1 || DP_BMP180 != 0) {
         (void)bmp180_basic_deinit();
     }
     if (BMP388_ENABLE == 1 || DP_BMP388 != 0) {
@@ -3863,29 +3904,35 @@ int main(uint8_t argc, char **argv) {
     if (BMP390_ENABLE == 1 || DP_BMP390 != 0) {
         (void)bmp390_basic_deinit();
     }
-    if (SENSOR_ENABLE == 1 || DP_BMP180 != 0) {
-        (void)bmp180_basic_deinit();
-    }
-    if (SENSOR_ENABLE == 2 || DP_BME280 != 0) {
+    if (BME280_ENABLE == 2 || DP_BME280 != 0) {
         (void)bme280_basic_deinit();
     }
-    if (SENSOR_ENABLE == 3 || DP_MCP9808 != 0) {
+    if (BME680_ENABLE == 8 || DP_BME680 != 0) {
+        (void)bme680_gas_deinit();
+    }
+    if (MCP9808_ENABLE == 3 || DP_MCP9808 != 0) {
         close(mcp9808_in);
     }
-    if (SENSOR_ENABLE == 4 || DP_SHT4X != 0) {
+    if (SHT4X_ENABLE == 4 || DP_SHT4X != 0) {
         (void)sht4x_basic_deinit();
     }
-    if (SENSOR_ENABLE == 5 || DP_SHTC3 != 0) {
+    if (SHTC3_ENABLE == 5 || DP_SHTC3 != 0) {
         (void)shtc3_basic_deinit();
     }
-    if (SENSOR_ENABLE == 6 || DP_AHT20 != 0) {
+    if (AHT20_ENABLE == 6 || DP_AHT20 != 0) {
         (void)aht20_basic_deinit();
     }
-    if (SENSOR_ENABLE == 7 || DP_HTU31D != 0) {
+    if (HTU31D_ENABLE == 7 || DP_HTU31D != 0) {
         (void)htu31d_basic_deinit();
     }
-    if (SENSOR_ENABLE == 8 || DP_BME680 != 0) {
-        (void)bme680_gas_deinit();
+    if (SCD30_ENABLE == 1 || DP_SCD30 != 0) {
+        (void)scd30_basic_deinit();
+    }
+    if (SCD4X_ENABLE == 1 || DP_SCD4X != 0) {
+        (void)scd4x_shot_deinit();
+    }
+    if (SGP30_ENABLE == 1 || DP_SGP30 != 0) {
+        (void)sgp30_advance_deinit();
     }
 }
 
