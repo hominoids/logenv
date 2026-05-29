@@ -3531,12 +3531,24 @@ int main(uint8_t argc, char **argv) {
         char gpscript_power2[30];
         char gpscript_usage1[30];
         char gpscript_usage2[30];
+        char gpscript_sensor1[30];
+        char gpscript_sensor2[30];
         char one2one[] = "1,1";
         char two2one[] = "2,1";
         char three2one[] = "3,1";
         char four2one[] = "4,1";
 
         uint16_t i = 0;
+        uint8_t sensor_1t = MCP9808_ENABLE;
+        uint8_t sensor_2th = SHT4X_ENABLE + SHTC3_ENABLE + AHT20_ENABLE + HTU31D_ENABLE;
+        uint8_t sensor_2tp = BMP180_ENABLE + BMP388_ENABLE + BMP390_ENABLE;
+        uint8_t sensor_3thp = BME280_ENABLE;
+        uint8_t sensor_4thpv = BME680_ENABLE;
+        uint8_t sensor_3thg = SCD30_ENABLE + SCD4X_ENABLE;
+        uint8_t sensor_2vg = SGP30_ENABLE;
+        uint8_t sensor_count = sensor_1t + sensor_2th + sensor_2tp + sensor_3thp + \
+                sensor_4thpv + sensor_3thg + sensor_2vg;
+        uint8_t power = SP_ENABLE > 0 ? 3 : 0;
 
         while (i < 11) {
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
@@ -3576,27 +3588,91 @@ int main(uint8_t argc, char **argv) {
 
         /* frequency only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
-            fprintf(gnuplot_file,"%s",one2one);
-            strcpy(gpscript_freq1, "set size 1,1\n");
-            strcpy(gpscript_freq2, "set origin 0,0\n");
+
+            uint16_t count = 0;
+            char buffer[5] = "\0";
+            char strChar[5] = {0};
+
+            if(sensor_count != 0) {
+                itoa(sensor_count+1, strChar);
+                strcpy(buffer, strChar);
+                strcat(buffer, ",1");
+                fprintf(gnuplot_file,"%s",buffer);
+                count = sprintf(gpscript_freq1, "set size 1,%d\n", 1/(sensor_count+1));
+                count = sprintf(gpscript_freq2, "set origin 0,%d\n", 1-(1/(sensor_count+1)));
+                count = sprintf(gpscript_sensor1, "set size 1,%d\n", 1/(sensor_count+1));
+                count = sprintf(gpscript_sensor2, "set origin 0,%d\n", (1-(1/(sensor_count+1))-(1/(sensor_count+1))));
+
+            }
+            else {
+                strcpy(buffer, "1,1");
+                fprintf(gnuplot_file,"%s",buffer);
+                strcpy(gpscript_freq1, "set size 1,1\n");
+                strcpy(gpscript_freq2, "set origin 0,0\n");
+            }
         }
         /* thermal zone only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
-            fprintf(gnuplot_file,"%s", one2one);
-            strcpy(gpscript_thermal1, "set size 1,1\n");
-            strcpy(gpscript_thermal2, "set origin 0,0\n");
+
+            char buffer[5] = "\0";
+            char strChar[5] = {0};
+
+            if(sensor_count != 0) {
+                itoa(sensor_count+1, strChar);
+                strcpy(buffer, strChar);
+                strcat(buffer, ",1");
+                fprintf(gnuplot_file,"%s",buffer);
+                strcpy(gpscript_thermal1, "set size 1,.35\n");
+                strcpy(gpscript_thermal2, "set origin 0,.65\n");
+            }
+            else {
+                strcpy(buffer, "1,1");
+                fprintf(gnuplot_file,"%s",buffer);
+                strcpy(gpscript_thermal1, "set size 1,1\n");
+                strcpy(gpscript_thermal2, "set origin 0,0\n");
+            }
         }
         /* usage only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file,"%s",one2one);
-            strcpy(gpscript_usage1, "set size 1,1\n");
-            strcpy(gpscript_usage2, "set origin 0,0\n");
+
+            char buffer[5] = "\0";
+            char strChar[5] = {0};
+
+            if(sensor_count != 0) {
+                itoa(sensor_count+1, strChar);
+                strcpy(buffer, strChar);
+                strcat(buffer, ",1");
+                fprintf(gnuplot_file,"%s",buffer);
+                strcpy(gpscript_usage1, "set size 1,.2\n");
+                strcpy(gpscript_usage2, "set origin 0,.8\n");
+            }
+            else {
+                strcpy(buffer, "1,1");
+                fprintf(gnuplot_file,"%s",buffer);
+                strcpy(gpscript_usage1, "set size 1,1\n");
+                strcpy(gpscript_usage2, "set origin 0,0\n");
+            }
         }
         /* power only chart */
         if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file,"%s",one2one);
-            strcpy(gpscript_power1, "set size 1,1\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+
+            char buffer[5] = "\0";
+            char strChar[5] = {0};
+
+            if(sensor_count != 0) {
+                itoa(sensor_count+1, strChar);
+                strcpy(buffer, strChar);
+                strcat(buffer, ",1");
+                fprintf(gnuplot_file,"%s",buffer);
+                strcpy(gpscript_power1, "set size 1,.3\n");
+                strcpy(gpscript_power2, "set origin 0,.7\n");
+            }
+            else {
+                strcpy(buffer, "1,1");
+                fprintf(gnuplot_file,"%s",buffer);
+                strcpy(gpscript_power1, "set size 1,1\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
         /* frequency and thermal chart*/
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
@@ -3809,21 +3885,22 @@ int main(uint8_t argc, char **argv) {
             }
 
             i = 0;
-            uint8_t power = SP_ENABLE > 0 ? 3 : 0;
+
             fprintf(gnuplot_file, "plot ");
+
             if(USAGE_ENABLE != 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE)+i+3);
                 i++;
                 while (i < USAGE_ENABLE) {
-                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3, i+1);
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE)+i+3, i+1);
                     i++;
                 }
                 if(MEM_ENABLE != 0) {
-                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE)+i+3);
                 }
             }
             if(USAGE_ENABLE == 0 && MEM_ENABLE != 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+2);
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE)+i+2);
             }
             fprintf(gnuplot_file, "\n\n");
         }
@@ -3853,14 +3930,14 @@ int main(uint8_t argc, char **argv) {
             fprintf(gnuplot_file, "plot ");
 
             if(SENSOR_ENABLE == 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+2));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+3));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+4));
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+4));
             }
             else {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+3));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+4));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+5));
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+4));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+5));
             }
         }
         /*
@@ -3868,6 +3945,32 @@ int main(uint8_t argc, char **argv) {
          */
         if(MCP9808_ENABLE !=0) {
 
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_T[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+2));
+            }
+            else {
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+3));
+            }
         }
         if(SHT4X_ENABLE !=0) {
 

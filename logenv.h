@@ -275,7 +275,7 @@ static char gpscript_start[11][75] = {
     "#\n",
     "# GNUPLOT script generated from logenv that plots temperature, frequency,\n",
     "# ambient temperature, power and CPU core usage from a data file\n",
-    "# formated as \"count,freq1-N,thermal1-N,sensor,volts,amps,watts,usage1-N\"\n",
+    "# formated as \"count,freq1-N,thermal1-N,usage1-N,volts,amps,watts,sensor\"\n",
     "#\n\n",
 
     "set term pngcairo size 1280,1024 enhanced font \'Verdana,10\'\n",
@@ -294,7 +294,8 @@ static char gpscript_thermal_title[9][2][32] = {
     {"data_title6 = \"", "Thermal Zone 5"},
     {"data_title7 = \"", "Thermal Zone 6"},
     {"data_title8 = \"", "Thermal Zone 7"},
-    {"data_title9 = \"", "Ambient Temp"} };
+    {"data_title9 = \"", "Ambient Temp"}
+};
 
 static char gpscript_mid[18][45] = {
     "\n# line styles\n",
@@ -376,6 +377,45 @@ static char gpscript_power[11][55] = {
     "set ytics 0,1 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# power x axis\n",
+    "set noxlabel\n\n"};
+
+static char gpscript_sensor_T[11][49] = {
+    "# sensorT plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorT y axis\n",
+    "set ylabel \'Temperature\' font \'Verdana,12\'\n",
+    "set yrange [-25:50]\n",
+    "set ytics 0,2 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorT x axis\n",
+    "set noxlabel\n\n"};
+
+static char gpscript_sensor_TH[11][62] = {
+    "# sensorTH plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorTH y axis\n",
+    "set ylabel \'Temperature and Humidity\' font \'Verdana,12\'\n",
+    "set yrange [0:100]\n",
+    "set ytics 0,2 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorTH x axis\n",
+    "set noxlabel\n\n"};
+
+static char gpscript_sensor_P[11][56] = {
+    "# sensorP plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorP y axis\n",
+    "set ylabel \'Barometric Pressure\' font \'Verdana,12\'\n",
+    "set yrange [870:1084]\n",
+    "set ytics 0,5 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorP x axis\n",
     "set noxlabel\n\n"};
 
 static char gpscript_end[18] = {"unset multiplot\n" };
