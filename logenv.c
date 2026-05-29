@@ -642,144 +642,9 @@ int main(uint8_t argc, char **argv) {
          * ambient temperature option
          */
         if(!strcmp(argv[i], "-a")) {
-            if(!strcmp(argv[i]+1, "--bmp180")) {
+            if(!strcmp(argv[i]+1, "--mcp9808")) {
                 SENSOR_ENABLE = 1;
             }
-            if(!strcmp(argv[i]+1, "--bme280")) {
-                SENSOR_ENABLE = 2;
-            }
-            if(!strcmp(argv[i]+1, "--mcp9808")) {
-                SENSOR_ENABLE = 3;
-            }
-        }
-        /*
-         * bmp280 command line option
-         */
-        if(!strcmp(argv[i], "--bme280")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    if(!strncmp("@", argv[i+1], 1)) {
-
-                    }
-                    else {
-                        interface = argv[i+1];
-                        strcpy(bme280_iic_dev, interface);
-                    }
-                }
-                if(bme280_iic_init == 0) {
-                    if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
-                        printf("\nERROR: Cannot open BME280 at %s\n", interface);
-                        exit(EXIT_FAILURE);
-                    }
-                    bme280_iic_init == 1;
-                }
-            }
-            BME280_ENABLE = 1;
-            OPTIONS_COUNT++;
-        }
-        /*
-         * bme680 command line option
-         */
-        if(!strcmp(argv[i], "--bme680")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    if(strchr(argv[i+1], '@') != NULL) {
-                        char buffer[5];
-                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
-                        bme680_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
-                        strncpy(bme680_iic_dev, argv[i+1], 10);
-                    }
-                    else {
-                        interface = argv[i+1];
-                        strcpy(bme680_iic_dev, interface);
-                    }
-                }
-                if(bme680_iic_init == 0) {
-                    if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
-                        printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
-                        exit(EXIT_FAILURE);
-                    }
-                    bme680_iic_init == 1;
-                }
-            }
-            BME680_ENABLE = 1;
-            OPTIONS_COUNT++;
-        }
-        /*
-         * bmp180 command line option
-         */
-        if(!strcmp(argv[i], "--bmp180")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    interface = argv[i+1];
-                    strcpy(bmp180_iic_dev, interface);
-                }
-                if(bmp180_iic_init == 0) {
-                    if(bmp180_basic_init() != 0) {
-                        printf("\nERROR: Cannot open BMP180 at %s\n", interface);
-                        exit(EXIT_FAILURE);
-                    }
-                    bmp180_iic_init == 1;
-                }
-            }
-            BMP180_ENABLE = 1;
-            OPTIONS_COUNT++;
-        }
-        /*
-         * bmp388 command line option
-         */
-        if(!strcmp(argv[i], "--bmp388")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    if(strchr(argv[i+1], '@') != NULL) {
-                        char buffer[5];
-                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
-                        bmp388_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
-                        strncpy(bmp388_iic_dev, argv[i+1], 10);
-                    }
-                    else {
-                        interface = argv[i+1];
-                        strcpy(bmp388_iic_dev, interface);
-                    }
-                }
-                if(bmp388_iic_init == 0) {
-                    if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
-                        printf("\nERROR: Cannot open BMP388 at %s\n", interface);
-                        exit(EXIT_FAILURE);
-                    }
-                    bmp388_iic_init == 1;
-                }
-            }
-            BMP388_ENABLE = 1;
-            OPTIONS_COUNT++;
-        }
-        /*
-         * bmp390 command line option
-         */
-        if(!strcmp(argv[i], "--bmp390")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    if(strchr(argv[i+1], '@') != NULL) {
-                        char buffer[5];
-                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
-                        bmp390_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
-                        strncpy(bmp390_iic_dev, argv[i+1], 10);
-                    }
-                    else {
-                        interface = argv[i+1];
-                        strcpy(bmp390_iic_dev, interface);
-                    }
-                }
-                if(bmp390_iic_init == 0) {
-                    if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
-                        printf("\nERROR: Cannot open BMP390 at %s\n", interface);
-                        exit(EXIT_FAILURE);
-                    }
-                    bmp390_iic_init == 1;
-                }
-            }
-            BMP390_ENABLE = 1;
-            OPTIONS_COUNT++;
         }
         /*
          * mcp9808 command line option
@@ -920,6 +785,135 @@ int main(uint8_t argc, char **argv) {
                 }
             }
             HTU31D_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bmp180 command line option
+         */
+        if(!strcmp(argv[i], "--bmp180")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                    strcpy(bmp180_iic_dev, interface);
+                }
+                if(bmp180_iic_init == 0) {
+                    if(bmp180_basic_init() != 0) {
+                        printf("\nERROR: Cannot open BMP180 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bmp180_iic_init == 1;
+                }
+            }
+            BMP180_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bmp388 command line option
+         */
+        if(!strcmp(argv[i], "--bmp388")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bmp388_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bmp388_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bmp388_iic_dev, interface);
+                    }
+                }
+                if(bmp388_iic_init == 0) {
+                    if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BMP388 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bmp388_iic_init == 1;
+                }
+            }
+            BMP388_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bmp390 command line option
+         */
+        if(!strcmp(argv[i], "--bmp390")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bmp390_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bmp390_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bmp390_iic_dev, interface);
+                    }
+                }
+                if(bmp390_iic_init == 0) {
+                    if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BMP390 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bmp390_iic_init == 1;
+                }
+            }
+            BMP390_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bme280 command line option
+         */
+        if(!strcmp(argv[i], "--bme280")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(!strncmp("@", argv[i+1], 1)) {
+
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bme280_iic_dev, interface);
+                    }
+                }
+                if(bme280_iic_init == 0) {
+                    if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BME280 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bme280_iic_init == 1;
+                }
+            }
+            BME280_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bme680 command line option
+         */
+        if(!strcmp(argv[i], "--bme680")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bme680_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bme680_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bme680_iic_dev, interface);
+                    }
+                }
+                if(bme680_iic_init == 0) {
+                    if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
+                        exit(EXIT_FAILURE);
+                    }
+                    bme680_iic_init == 1;
+                }
+            }
+            BME680_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
@@ -1771,17 +1765,28 @@ int main(uint8_t argc, char **argv) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
                     exit(EXIT_FAILURE);
                 }
+
+                float volt;
+                float amp;
+                float watt;
+
                 /*
                  * read SmartPower2
                  */
                 if(SP_ENABLE == 2) {
+
+                    char spline[5];
+                    char spline1[5];
+                    char spline2[5];
                     unsigned char temp[18];
                     int8_t sp_read = 0;
+
                     if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
                     temp[sp_read] = 0;
                     sscanf(temp, "%f%s %f%s %f%s", &volt, spline, &amp, spline1, &watt, spline2);
+
                     if(strstr(spline1,"mA")) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                             printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
@@ -1852,6 +1857,23 @@ int main(uint8_t argc, char **argv) {
                  */
                 if(SP_ENABLE == 31 || SP_ENABLE == 32) {
 
+                    double long sp_ms;
+                    uint16_t in_mv;
+                    uint16_t in_ma;
+                    uint16_t in_w;
+                    uint16_t in_on;
+                    uint16_t ch1_mv;
+                    uint16_t ch1_ma;
+                    uint16_t ch1_w;
+                    uint16_t ch1_on;
+                    uint16_t ch1_int;
+                    uint16_t ch2_mv;
+                    uint16_t ch2_ma;
+                    uint16_t ch2_w;
+                    uint16_t ch2_on;
+                    uint16_t ch2_int;
+                    uint16_t chk_comp;
+                    uint16_t chk_xor;
                     unsigned char temp[82];
                     int8_t sp_read = 0;
 
@@ -3500,7 +3522,22 @@ int main(uint8_t argc, char **argv) {
      * Build of gnuplot script
      */
     else {
+
+        char gpscript_freq1[30];
+        char gpscript_freq2[30];
+        char gpscript_thermal1[30];
+        char gpscript_thermal2[30];
+        char gpscript_power1[30];
+        char gpscript_power2[30];
+        char gpscript_usage1[30];
+        char gpscript_usage2[30];
+        char one2one[] = "1,1";
+        char two2one[] = "2,1";
+        char three2one[] = "3,1";
+        char four2one[] = "4,1";
+
         uint16_t i = 0;
+
         while (i < 11) {
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
             i++;

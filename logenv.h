@@ -176,18 +176,10 @@ char governorloc[255] = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governo
 uint8_t iio_counted = 0;
 char iiopath[255] = "/sys/bus/iio/devices/iio:device";
 
-char spfile[255];
-char spline[5];
-char spline1[5];
-char spline2[5];
 char logfile[255];
 char gplotfile[255];
 char jsonfile[255];
 char version[] = "2.0 alpha";
-char one2one[] = "1,1";
-char two2one[] = "2,1";
-char three2one[] = "3,1";
-char four2one[] = "4,1";
 
 static uint32_t INTERACTIVE_ENABLE = 0;
 
@@ -274,36 +266,7 @@ static int32_t humidity;
 static int32_t pressure;
 static int32_t freq;
 static float coretemp;
-static float volt;
-static float amp;
-static float watt;
 
-static double long sp_ms;
-static uint16_t in_mv;
-static uint16_t in_ma;
-static uint16_t in_w;
-static uint16_t in_on;
-static uint16_t ch1_mv;
-static uint16_t ch1_ma;
-static uint16_t ch1_w;
-static uint16_t ch1_on;
-static uint16_t ch1_int;
-static uint16_t ch2_mv;
-static uint16_t ch2_ma;
-static uint16_t ch2_w;
-static uint16_t ch2_on;
-static uint16_t ch2_int;
-static uint16_t chk_comp;
-static uint16_t chk_xor;
-
-static char gpscript_freq1[30];
-static char gpscript_freq2[30];
-static char gpscript_thermal1[30];
-static char gpscript_thermal2[30];
-static char gpscript_power1[30];
-static char gpscript_power2[30];
-static char gpscript_usage1[30];
-static char gpscript_usage2[30];
 static char charttitle[255] = "Main Title";
 
 static char gpscript_start[11][75] = {
