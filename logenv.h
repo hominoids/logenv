@@ -387,7 +387,7 @@ static char gpscript_sensor_T[11][49] = {
     "# sensorT y axis\n",
     "set ylabel \'Temperature\' font \'Verdana,12\'\n",
     "set yrange [-25:50]\n",
-    "set ytics 0,2 border nomirror out\n",
+    "set ytics -25,5 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# sensorT x axis\n",
     "set noxlabel\n\n"};
@@ -400,7 +400,7 @@ static char gpscript_sensor_TH[11][62] = {
     "# sensorTH y axis\n",
     "set ylabel \'Temperature and Humidity\' font \'Verdana,12\'\n",
     "set yrange [0:100]\n",
-    "set ytics 0,2 border nomirror out\n",
+    "set ytics 0,5 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# sensorTH x axis\n",
     "set noxlabel\n\n"};
@@ -413,7 +413,7 @@ static char gpscript_sensor_P[11][56] = {
     "# sensorP y axis\n",
     "set ylabel \'Barometric Pressure\' font \'Verdana,12\'\n",
     "set yrange [870:1084]\n",
-    "set ytics 0,5 border nomirror out\n",
+    "set ytics 0,10 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# sensorP x axis\n",
     "set noxlabel\n\n"};

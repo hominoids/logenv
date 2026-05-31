@@ -2371,6 +2371,12 @@ int main(uint8_t argc, char **argv) {
                             printf("%.2lf,%d", temperature_f, pressure/100);
                         }
                     }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%d", temperature_f, pressure);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%d", temperature_f, pressure/100);
+                    }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%f,%d", temperature_f, pressure);
                     }
@@ -2450,6 +2456,12 @@ int main(uint8_t argc, char **argv) {
                         else {
                             printf("%.2lf,%.2lf", temperature_f, pressure/100);
                         }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, pressure);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, pressure/100);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, pressure);
@@ -2532,6 +2544,12 @@ int main(uint8_t argc, char **argv) {
                         else {
                             printf("%.2lf,%.2lf", temperature_f, pressure/100);
                         }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, pressure);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, pressure/100);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
                         udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, pressure);
@@ -3548,6 +3566,9 @@ int main(uint8_t argc, char **argv) {
         uint8_t sensor_2vg = SGP30_ENABLE;
         uint8_t sensor_count = sensor_1t + sensor_2th + sensor_2tp + sensor_3thp + \
                 sensor_4thpv + sensor_3thg + sensor_2vg;
+        uint8_t sensor_pos = 0;
+        float sensor_org = 0;
+
         uint8_t power = SP_ENABLE > 0 ? 3 : 0;
 
         while (i < 11) {
@@ -3598,11 +3619,12 @@ int main(uint8_t argc, char **argv) {
                 strcpy(buffer, strChar);
                 strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
-                count = sprintf(gpscript_freq1, "set size 1,%d\n", 1/(sensor_count+1));
-                count = sprintf(gpscript_freq2, "set origin 0,%d\n", 1-(1/(sensor_count+1)));
-                count = sprintf(gpscript_sensor1, "set size 1,%d\n", 1/(sensor_count+1));
-                count = sprintf(gpscript_sensor2, "set origin 0,%d\n", (1-(1/(sensor_count+1))-(1/(sensor_count+1))));
-
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
+printf("sensor_count=%d\n", sensor_count);
+printf("set size 1=%.2f\n", (float) 1/(sensor_count+1));
+printf("gpscript_freq1=%s\n", gpscript_freq1);
+printf("gpscript_freq2=%s\n", gpscript_freq2);
             }
             else {
                 strcpy(buffer, "1,1");
@@ -3945,6 +3967,11 @@ int main(uint8_t argc, char **argv) {
          */
         if(MCP9808_ENABLE !=0) {
 
+            uint16_t count = 0;
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
             i = 0;
             while (i < 11) {
                 if(i != 1 && i != 2) {
@@ -3966,11 +3993,13 @@ int main(uint8_t argc, char **argv) {
             fprintf(gnuplot_file, "plot ");
 
             if(SENSOR_ENABLE == 0) {
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+2));
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
             }
             else {
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+3));
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
             }
+            ++sensor_pos;
+            sensor_org = (float) 1/(sensor_count+1);
         }
         if(SHT4X_ENABLE !=0) {
 
@@ -3992,6 +4021,41 @@ int main(uint8_t argc, char **argv) {
         }
         if(BMP390_ENABLE !=0) {
 
+            uint16_t count = 0;
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_P[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
+            }
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) 1/(sensor_count+1);
         }
         if(BME280_ENABLE !=0) {
 
