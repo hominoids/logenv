@@ -3557,6 +3557,7 @@ int main(uint8_t argc, char **argv) {
         char four2one[] = "4,1";
 
         uint16_t i = 0;
+        uint16_t count = 0;
         uint8_t sensor_1t = MCP9808_ENABLE;
         uint8_t sensor_2th = SHT4X_ENABLE + SHTC3_ENABLE + AHT20_ENABLE + HTU31D_ENABLE;
         uint8_t sensor_2tp = BMP180_ENABLE + BMP388_ENABLE + BMP390_ENABLE;
@@ -3568,10 +3569,33 @@ int main(uint8_t argc, char **argv) {
                 sensor_4thpv + sensor_3thg + sensor_2vg;
         uint8_t sensor_pos = 0;
         float sensor_org = 0;
-
+        uint8_t sys_count = 0;
         uint8_t power = SP_ENABLE > 0 ? 3 : 0;
 
-        while (i < 11) {
+        if(SP_ENABLE > 0) ++sys_count;
+        if(FREQ_ENABLE > 0) ++sys_count;
+        if(THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) ++sys_count;
+        if(USAGE_ENABLE > 0 || MEM_ENABLE > 0) ++sys_count;
+
+        while (i < 12) {
+            if(i == 8) {
+                if(sensor_count == 0) {
+                    fprintf(gnuplot_file,"%s","1280,1024");
+                }
+                else if(sys_count == 0) {
+                    char buffer[10] = "\0";
+                    if(sensor_count > 3) {
+                        sprintf(buffer, "%d", sensor_count * 342);
+                        fprintf(gnuplot_file,"%s,%s","1280", buffer);
+                    }
+                    else {
+                        fprintf(gnuplot_file,"%s","1280,1024");
+                    }
+                }
+                else if() {
+
+                }
+            }
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
             i++;
         }
@@ -3610,7 +3634,6 @@ int main(uint8_t argc, char **argv) {
         /* frequency only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
-            uint16_t count = 0;
             char buffer[5] = "\0";
             char strChar[5] = {0};
 
@@ -3621,10 +3644,6 @@ int main(uint8_t argc, char **argv) {
                 fprintf(gnuplot_file,"%s",buffer);
                 count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
                 count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
-printf("sensor_count=%d\n", sensor_count);
-printf("set size 1=%.2f\n", (float) 1/(sensor_count+1));
-printf("gpscript_freq1=%s\n", gpscript_freq1);
-printf("gpscript_freq2=%s\n", gpscript_freq2);
             }
             else {
                 strcpy(buffer, "1,1");
@@ -3644,8 +3663,10 @@ printf("gpscript_freq2=%s\n", gpscript_freq2);
                 strcpy(buffer, strChar);
                 strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
-                strcpy(gpscript_thermal1, "set size 1,.35\n");
-                strcpy(gpscript_thermal2, "set origin 0,.65\n");
+//                strcpy(gpscript_thermal1, "set size 1,.35\n");
+//                strcpy(gpscript_thermal2, "set origin 0,.65\n");
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
             }
             else {
                 strcpy(buffer, "1,1");
@@ -3665,8 +3686,10 @@ printf("gpscript_freq2=%s\n", gpscript_freq2);
                 strcpy(buffer, strChar);
                 strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
-                strcpy(gpscript_usage1, "set size 1,.2\n");
-                strcpy(gpscript_usage2, "set origin 0,.8\n");
+//                strcpy(gpscript_usage1, "set size 1,.2\n");
+//                strcpy(gpscript_usage2, "set origin 0,.8\n");
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
             }
             else {
                 strcpy(buffer, "1,1");
@@ -3686,8 +3709,10 @@ printf("gpscript_freq2=%s\n", gpscript_freq2);
                 strcpy(buffer, strChar);
                 strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
-                strcpy(gpscript_power1, "set size 1,.3\n");
-                strcpy(gpscript_power2, "set origin 0,.7\n");
+//                strcpy(gpscript_power1, "set size 1,.3\n");
+//                strcpy(gpscript_power2, "set origin 0,.7\n");
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
             }
             else {
                 strcpy(buffer, "1,1");

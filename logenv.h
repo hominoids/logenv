@@ -269,7 +269,7 @@ static float coretemp;
 
 static char charttitle[255] = "Main Title";
 
-static char gpscript_start[11][75] = {
+static char gpscript_start[12][75] = {
     "#!/usr/bin/gnuplot --persist\n",
     "#\n",
     "#\n",
@@ -278,7 +278,9 @@ static char gpscript_start[11][75] = {
     "# formated as \"count,freq1-N,thermal1-N,usage1-N,volts,amps,watts,sensor\"\n",
     "#\n\n",
 
-    "set term pngcairo size 1280,1024 enhanced font \'Verdana,10\'\n",
+    "set term pngcairo size ",
+
+    " enhanced font \'Verdana,10\'\n",
     "set output ARG1\n",
     "set datafile separator \",\"\n\n",
 
