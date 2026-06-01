@@ -26,6 +26,14 @@
 extern "C"{
     #endif
 
+#define CHART_X             1280
+#define CHART_Y             1024
+#define GPSIZE_THERMAL1     CHART_Y * .35
+#define GPSIZE_FREQ1        CHART_Y * .2
+#define GPSIZE_USAGE1       CHART_Y * .15
+#define GPSIZE_POWER1       CHART_Y * .3
+#define GPSIZE_SENSOR1      342
+
 void usage(void);
 int16_t itoa(int32_t, char[]);
 int16_t set_tty_attributes(int16_t, int32_t, bool);
