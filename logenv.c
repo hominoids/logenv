@@ -2516,7 +2516,7 @@ int main(uint8_t argc, char **argv) {
                 float temperature_f;
                 float pressure;
 
-                bmp390_interface_delay_ms(100);
+                bmp390_interface_delay_ms(125);
                 uint8_t res = bmp390_basic_read((float *)&temperature_f, (float *)&pressure);
                 if (res != 0) {
                     bmp390_basic_deinit();
@@ -3555,6 +3555,8 @@ int main(uint8_t argc, char **argv) {
         char two2one[] = "2,1";
         char three2one[] = "3,1";
         char four2one[] = "4,1";
+        char buffer[5] = "\0";
+        char strChar[5] = {0};
 
         uint16_t i = 0;
         uint16_t count = 0;
@@ -3570,7 +3572,8 @@ int main(uint8_t argc, char **argv) {
                 sensor_4thpv + sensor_3thg + sensor_2vg;
         uint8_t sensor_pos = 0;
         uint8_t sys_count = 0;
-        uint8_t chart_size = 0;
+        uint16_t chart_size = 0;
+        uint16_t chart_tsize = 0;
 
         uint8_t power = SP_ENABLE > 0 ? 3 : 0;
 
@@ -3583,6 +3586,10 @@ int main(uint8_t argc, char **argv) {
         if(FREQ_ENABLE > 0) ++sys_count;
         if(THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) ++sys_count;
         if(USAGE_ENABLE > 0 || MEM_ENABLE > 0) ++sys_count;
+
+        itoa(sensor_count + sys_count, strChar);
+        strcpy(buffer, strChar);
+        strcat(buffer, ",1");
 
         while (i < 12) {
             /*
@@ -3617,16 +3624,19 @@ int main(uint8_t argc, char **argv) {
             }
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
             i++;
+            chart_tsize = chart_size + (sensor_count * GPSIZE_SENSOR1);
+
         }
         /*
          * get thermal zone names and set titles
          */
-        char strChar[5] = {0};
         for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
+
             itoa(c,strChar);
             strcpy(thermaltype,thermalzone1);
             strcat(thermaltype,strChar);
             strcat(thermaltype,thermaltype1);
+
             if((thermal_type = fopen(thermaltype, "r")) == NULL) {
                 break;
             }
@@ -3634,7 +3644,7 @@ int main(uint8_t argc, char **argv) {
             fclose(thermal_type);
             fprintf(gnuplot_file,"%s%s\"\n", gpscript_thermal_title[c][0], thermalname);
         }
-
+        strcpy(strChar, "\0");
         if(SENSOR_ENABLE != 0) {
             fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[8][0], gpscript_thermal_title[8][1]);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
@@ -3653,14 +3663,8 @@ int main(uint8_t argc, char **argv) {
         /* frequency only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count+1, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
@@ -3675,14 +3679,8 @@ int main(uint8_t argc, char **argv) {
         /* thermal zone only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
@@ -3697,14 +3695,8 @@ int main(uint8_t argc, char **argv) {
         /* usage only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
@@ -3719,14 +3711,8 @@ int main(uint8_t argc, char **argv) {
         /* power only chart */
         if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s", buffer);
 
                 count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
@@ -3741,20 +3727,15 @@ int main(uint8_t argc, char **argv) {
         /* frequency and thermal chart*/
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
-                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_size);
-                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_size);
-                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_size);
-                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_THERMAL1/chart_size) - GPSIZE_FREQ1/chart_size);
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize - (float) GPSIZE_FREQ1/chart_tsize);
+printf("chart_tsize=%d\n", chart_tsize);
             }
             else {
                 fprintf(gnuplot_file,"%s", two2one);
@@ -3767,14 +3748,8 @@ int main(uint8_t argc, char **argv) {
         /* frequency and usage chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_size);
@@ -3793,14 +3768,8 @@ int main(uint8_t argc, char **argv) {
         /* frequency and power chart */
         if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_size);
@@ -3819,14 +3788,8 @@ int main(uint8_t argc, char **argv) {
         /* thermal and power chart */
         if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_size);
@@ -3845,14 +3808,8 @@ int main(uint8_t argc, char **argv) {
         /* thermal and usage chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_size);
@@ -3872,14 +3829,8 @@ int main(uint8_t argc, char **argv) {
         /* usage and power chart */
         if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
-            char buffer[5] = "\0";
-            char strChar[5] = {0};
-
             if(sensor_count != 0) {
 
-                itoa(sensor_count + sys_count, strChar);
-                strcpy(buffer, strChar);
-                strcat(buffer, ",1");
                 fprintf(gnuplot_file,"%s",buffer);
 
                 count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) GPSIZE_USAGE1/chart_size);
@@ -4118,9 +4069,7 @@ int main(uint8_t argc, char **argv) {
          */
         if(MCP9808_ENABLE !=0) {
 
-            uint16_t count = 0;
-
-            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
             count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
 
             i = 0;
@@ -4150,31 +4099,155 @@ int main(uint8_t argc, char **argv) {
                 fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
             }
             ++sensor_pos;
-            sensor_org = (float) 1/(sensor_count+1);
+            sensor_org = (float) GPSIZE_SENSOR1/chart_tsize;
         }
         if(SHT4X_ENABLE !=0) {
 
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
+            }
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
         }
         if(SHTC3_ENABLE !=0) {
 
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
+            }
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
         }
         if(AHT20_ENABLE !=0) {
 
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
+            }
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
         }
         if(HTU31D_ENABLE !=0) {
 
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
+            }
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
         }
         if(BMP180_ENABLE !=0) {
 
-        }
-        if(BMP388_ENABLE !=0) {
-
-        }
-        if(BMP390_ENABLE !=0) {
-
-            uint16_t count = 0;
-
-            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
             count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
 
             i = 0;
@@ -4206,7 +4279,79 @@ int main(uint8_t argc, char **argv) {
                 fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
             }
             sensor_pos = sensor_pos + 2;
-            sensor_org = sensor_org + (float) 1/(sensor_count+1);
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(BMP388_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_P[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
+            }
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(BMP390_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_P[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            if(SENSOR_ENABLE == 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+2));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+            }
+            else {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+3));
+                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+power+sensor_pos+4));
+            }
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
         }
         if(BME280_ENABLE !=0) {
 

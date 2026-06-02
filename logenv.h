@@ -32,7 +32,7 @@ extern "C"{
 #define GPSIZE_FREQ1        CHART_Y * .2
 #define GPSIZE_USAGE1       CHART_Y * .15
 #define GPSIZE_POWER1       CHART_Y * .3
-#define GPSIZE_SENSOR1      342
+#define GPSIZE_SENSOR1      337
 
 void usage(void);
 int16_t itoa(int32_t, char[]);
