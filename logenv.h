@@ -28,11 +28,11 @@ extern "C"{
 
 #define CHART_X             1280
 #define CHART_Y             1024
-#define GPSIZE_THERMAL1     CHART_Y * .35
-#define GPSIZE_FREQ1        CHART_Y * .2
-#define GPSIZE_USAGE1       CHART_Y * .15
-#define GPSIZE_POWER1       CHART_Y * .3
-#define GPSIZE_SENSOR1      337
+#define GPSIZE_THERMAL1     abs(CHART_Y * .35)
+#define GPSIZE_FREQ1        abs(CHART_Y * .2)
+#define GPSIZE_USAGE1       abs(CHART_Y * .15)
+#define GPSIZE_POWER1       abs(CHART_Y * .3)
+#define GPSIZE_SENSOR1      abs(CHART_Y * .3)
 
 void usage(void);
 int16_t itoa(int32_t, char[]);
@@ -327,7 +327,7 @@ static char gpscript_mid[18][45] = {
     "set grid ytics ls 10\n\n",
 
     "# legend top right corner\n",
-    "set key default noauto font \'Verdana,10\'\n\n"};
+    "set key default noauto font \'Verdana,8\'\n\n"};
 
 static char gpscript_layout[3][65] = {
     "set multiplot layout ",
@@ -342,7 +342,7 @@ static char gpscript_xaxis [5][30] = {
     "set mxtics\n\n"};
 
 static char gpscript_thermal[9][55] = {
-    "# temperature plot\n",
+    "# thermal plot\n",
     "set size 1,.5\n",
     "set origin 0,.5\n",
     "set lmargin 11\n",
@@ -389,39 +389,42 @@ static char gpscript_power[11][55] = {
     "# power x axis\n",
     "set noxlabel\n\n"};
 
-static char gpscript_sensor_T[11][49] = {
+static char gpscript_sensor_T[12][49] = {
     "# sensorT plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
     "set lmargin 11\n",
     "# sensorT y axis\n",
-    "set ylabel \'Temperature\' font \'Verdana,12\'\n",
+    "set ylabel \'",
+    " Temperature\' font \'Verdana,12\'\n",
     "set yrange [-25:50]\n",
     "set ytics -25,5 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# sensorT x axis\n",
     "set noxlabel\n\n"};
 
-static char gpscript_sensor_TH[11][62] = {
+static char gpscript_sensor_TH[12][62] = {
     "# sensorTH plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
     "set lmargin 11\n",
     "# sensorTH y axis\n",
-    "set ylabel \'Temperature and Humidity\' font \'Verdana,12\'\n",
+    "set ylabel \'",
+    " Temperature and Humidity\' font \'Verdana,12\'\n",
     "set yrange [0:100]\n",
     "set ytics 0,5 border nomirror out\n",
     "set format y \'%.0f\'\n",
     "# sensorTH x axis\n",
     "set noxlabel\n\n"};
 
-static char gpscript_sensor_P[11][56] = {
+static char gpscript_sensor_P[12][59] = {
     "# sensorP plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
-    "set lmargin 11\n",
+    "set lmargin 10.5\n",
     "# sensorP y axis\n",
-    "set ylabel \'Barometric Pressure\' font \'Verdana,12\'\n",
+    "set ylabel \'",
+    " Barometric Pressure hPa\' font \'Verdana,12\'\n",
     "set yrange [870:1084]\n",
     "set ytics 0,10 border nomirror out\n",
     "set format y \'%.0f\'\n",
