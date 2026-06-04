@@ -473,14 +473,14 @@ static char gpscript_sensor_P[12][45] = {
     "# sensorTH x axis\n",
     "set noxlabel\n\n"};
 
-    static char gpscript_sensor_VG[12][36] = {
+    static char gpscript_sensor_VG[12][41] = {
     "# sensorTH plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
     "set lmargin 11\n",
     "# sensorTHP y axis\n",
     "set ylabel \'",
-    " VOC(ppb), eCO2(ppm)\' font \'Verdana,12\'\n",
+    " VOC, eCO2\' font \'Verdana,12\'\n",
     "set yrange [0:1000]\n",
     "set ytics 0,50 border nomirror out\n",
     "set format y \'%.0f\'\n",
