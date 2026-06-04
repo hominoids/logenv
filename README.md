@@ -1,9 +1,9 @@
 # logenv
 
-This is a development branch and a work in progress that is not fully documented yet.  The original Logenv is available on the classic branch or as release v1.0. 
+This is a development branch and a work in progress that is not fully completed or documented.  The original Logenv is available on the classic branch or as release v1.0. 
 
 ## Introduction
-logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set as well as a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
+logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as providing a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
 
 ![Image](./example/ocl-m2_g610-a76_1.png)
 
@@ -11,9 +11,8 @@ License: GPLv3.
 
 
 ### Prerequisite
-Any OS repository version of cjson should work but gpiod version 2.x is not supported at this time.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
 
-gnuplot
+cjson and gpiod are required to compile logenv while gnuplot is only needed if generating charts. Any OS repository version of cjson should work but gpiod version 1.x is needed until 2.x is supported.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
 
 cjson
 https://github.com/DaveGamble/cJSON
@@ -31,7 +30,7 @@ sudo make install
 sudo ldconfig /usr/local/lib/
 ````
 
-### Install
+### Build
 ```
   git clone https://github.com/hominoids/logenv.git
   cd logenv
@@ -150,7 +149,7 @@ The kernel industrial IO(iio) sensors can be read by using the iio command inste
 ```
 
 ## GNUPlot Charts
-Single or stacked charts are created based on the type and number of datum that are contained in the data set.  Core Frequency, Thermal Zone Temperatures, CPU core usage and SmartPower data can all be charted with the addition of Ambient Temperature when Thermal Zone Temperatures are also charted.  When a GNUPlot Script file is generated, part of it's contents is based on the number of CPU cores and the number and name of thermal Zones.  For this reason the GNUPlot script needs to be generated on the machine the data was collected from if any of those datum are included.  The GNUPlot Scripts or .gpl files can be reused and don't need to be regenerated if the type of data being collected and the machine are the same.
+Single or stacked charts are created based on the type and number of datum that are contained in the data set.  Core Frequency, Thermal Zone Temperatures, CPU core usage memory usage, SmartPower and sensor data can all be charted.  When a GNUPlot Script file is generated, part of it's contents is based on the number of CPU cores and the number and name of thermal Zones.  For this reason the GNUPlot script needs to be generated on the machine the data was collected from if any of those datum are included.  The GNUPlot Scripts or .gpl files can be reused and don't need to be regenerated if the type of data being collected and the machine are the same.
 
 ## UDP Client
 The UDP client -n option is followed by the server host and port <host:port>. The host entry can be either an IP address or host name.  Make sure the port is open if using a firewall.  From the command-line on the server host system, netcat can be used to read the UDP feed.
@@ -159,9 +158,12 @@ The UDP client -n option is followed by the server host and port <host:port>. Th
 netcat -l -u -p <port>
 ```
 
+## Timing accuracy
+The timing accuracy for both the logging and display functions are dependant on the number and type of data being collected.  Some sensors can inject significant latency due to the time it takes for readings.  This is especially true for those sensors that require heaters, e.g. MOX sensors, or other pre-read initialization process.  If the logging, UDP or display functions are simultaneously being used, they share the same data read for each interval which reduces the number of sensor and data reads, and thereby reducing latency.
+ 
 ## Display Configuration
-The display configuration file logenv.json is a JSON formatted file that describes a display, its pages and items for each page.  The current working directory is searched first (./logenv.json) and then /etc/logenv/logenv.json.
-Multiple displays are supported with each capable of multiple pages containing time, date, system information or sensor data.  Each display must contain at least one *page* - page 0. Subsquent page entries are identified by increasing the page number and setting the *seconds* to be displayed.
+The display configuration file logenv.json is a JSON formatted file that describes a display, its pages and content for each page.  The current working directory is searched first (./logenv.json) and then /etc/logenv/logenv.json.
+Multiple displays are supported with each capable of multiple pages containing time, date, system information or sensor data.  Each display must contain at least one *page* - page 0. Subsequent page entries are identified by increasing the page number and setting the *seconds* for that page to be displayed.
 
 ### JSON Format
 
@@ -401,7 +403,7 @@ DESCRIPTION: displays kernel iio sensor at xloc, yloc using font.
 
        NAME: name of sensor as defined in /sys/bus/iio/devices/iio:device0/name
      DEVICE: sensor datum entry to display in /sys/bus/iio/devices/iio:device0/
-      DTYPE: divide / or multiply * sensor datum as post process.
+      DTYPE: divide / or multiply * sensor datum by a single scalar as a post process.
 
     EXAMPLE:
             {

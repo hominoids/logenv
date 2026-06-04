@@ -295,7 +295,7 @@ static char gpscript_start[12][75] = {
     "# title and line style definitions\n\n" };
 
 
-static char gpscript_thermal_title[9][2][32] = {
+static char gpscript_thermal_title[9][2][16] = {
     {"data_title1 = \"", "Thermal Zone 0"},
     {"data_title2 = \"", "Thermal Zone 1"},
     {"data_title3 = \"", "Thermal Zone 2"},
@@ -329,19 +329,19 @@ static char gpscript_mid[18][45] = {
     "# legend top right corner\n",
     "set key default noauto font \'Verdana,8\'\n\n"};
 
-static char gpscript_layout[3][65] = {
+static char gpscript_layout[3][22] = {
     "set multiplot layout ",
     " title \"",
     "\" font \'Verdana,16\'\n\n"};
 
-static char gpscript_xaxis [5][30] = {
+static char gpscript_xaxis [5][29] = {
     "# seconds x axis\n",
     "set xlabel \'Time (seconds)\'\n",
     "set xtics 0,",
     " border nomirror out rotate\n",
     "set mxtics\n\n"};
 
-static char gpscript_thermal[9][55] = {
+static char gpscript_thermal[9][48] = {
     "# thermal plot\n",
     "set size 1,.5\n",
     "set origin 0,.5\n",
@@ -352,7 +352,7 @@ static char gpscript_thermal[9][55] = {
     "set ytics 0,5 border nomirror out\n",
     "set mytics\n\n"};
     
-static char gpscript_freq[9][55] = {
+static char gpscript_freq[9][48] = {
     "# frequency plot\n",
     "set size 1,.2\n",
     "set origin 0,.3\n",
@@ -363,7 +363,7 @@ static char gpscript_freq[9][55] = {
     "set ytics 0,.5 border nomirror out\n",
     "#set format y \'%.1f\'\n\n"};
 
-static char gpscript_usage[11][55] = {
+static char gpscript_usage[11][48] = {
     "# proc stat plot\n",
     "set size 1,.2\n",
     "set origin 0,0\n",
@@ -376,7 +376,7 @@ static char gpscript_usage[11][55] = {
     "# usage x axis\n",
     "set noxlabel\n\n"};
 
-static char gpscript_power[11][55] = {
+static char gpscript_power[11][51] = {
     "# power plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
@@ -389,7 +389,7 @@ static char gpscript_power[11][55] = {
     "# power x axis\n",
     "set noxlabel\n\n"};
 
-static char gpscript_sensor_T[12][49] = {
+static char gpscript_sensor_T[12][37] = {
     "# sensorT plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
@@ -403,7 +403,7 @@ static char gpscript_sensor_T[12][49] = {
     "# sensorT x axis\n",
     "set noxlabel\n\n"};
 
-static char gpscript_sensor_TH[12][62] = {
+static char gpscript_sensor_TH[12][46] = {
     "# sensorTH plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
@@ -417,7 +417,7 @@ static char gpscript_sensor_TH[12][62] = {
     "# sensorTH x axis\n",
     "set noxlabel\n\n"};
 
-static char gpscript_sensor_P[12][59] = {
+static char gpscript_sensor_P[12][45] = {
     "# sensorP plot\n",
     "set size 1,.3\n",
     "set origin 0,0\n",
@@ -430,6 +430,21 @@ static char gpscript_sensor_P[12][59] = {
     "set format y \'%.0f\'\n",
     "# sensorP x axis\n",
     "set noxlabel\n\n"};
+
+    static char gpscript_sensor_THP[12][53] = {
+    "# sensorTH plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorTHP y axis\n",
+    "set ylabel \'",
+    " Temperature, Humidity, Pressure\' font \'Verdana,12\'\n",
+    "set yrange [0:1084]\n",
+    "set ytics 0,10 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorTH x axis\n",
+    "set noxlabel\n\n"};
+
 
 static char gpscript_end[18] = {"unset multiplot\n" };
 
