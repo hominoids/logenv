@@ -445,6 +445,48 @@ static char gpscript_sensor_P[12][45] = {
     "# sensorTH x axis\n",
     "set noxlabel\n\n"};
 
+    static char gpscript_sensor_THPV[12][59] = {
+    "# sensorTH plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorTHP y axis\n",
+    "set ylabel \'",
+    " Temperature, Humidity, Pressure, VOC\' font \'Verdana,12\'\n",
+    "set yrange [0:1084]\n",
+    "set ytics 0,10 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorTH x axis\n",
+    "set noxlabel\n\n"};
+
+    static char gpscript_sensor_THG[12][49] = {
+    "# sensorTH plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorTHP y axis\n",
+    "set ylabel \'",
+    " Temperature, Humidity, CO2\' font \'Verdana,12\'\n",
+    "set yrange [0:100]\n",
+    "set ytics 0,10 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorTH x axis\n",
+    "set noxlabel\n\n"};
+
+    static char gpscript_sensor_VG[12][36] = {
+    "# sensorTH plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorTHP y axis\n",
+    "set ylabel \'",
+    " VOC(ppb), eCO2(ppm)\' font \'Verdana,12\'\n",
+    "set yrange [0:1000]\n",
+    "set ytics 0,50 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorTH x axis\n",
+    "set noxlabel\n\n"};
+
 
 static char gpscript_end[18] = {"unset multiplot\n" };
 

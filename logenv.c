@@ -4207,7 +4207,7 @@ int main(uint8_t argc, char **argv) {
             uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
 
             sensor_pos = sensor_pos + 2;
             sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
@@ -4244,7 +4244,7 @@ int main(uint8_t argc, char **argv) {
             uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
 
             sensor_pos = sensor_pos + 2;
             sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
@@ -4281,7 +4281,7 @@ int main(uint8_t argc, char **argv) {
             uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
 
             sensor_pos = sensor_pos + 2;
             sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
@@ -4318,7 +4318,7 @@ int main(uint8_t argc, char **argv) {
             uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
 
             sensor_pos = sensor_pos + 2;
             sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
@@ -4444,7 +4444,7 @@ int main(uint8_t argc, char **argv) {
             i = 0;
             while (i < 12) {
                 if(i != 1 && i != 2 && i != 5) {
-                    fprintf(gnuplot_file,"%s",gpscript_sensor_P[i]);
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THP[i]);
                     i++;
                 }
                 else {
@@ -4457,7 +4457,7 @@ int main(uint8_t argc, char **argv) {
                         i++;
                     }
                     if(i == 5) {
-                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_P[i], "BME280");
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THP[i], "BME280");
                         i++;
                     }
                 }
@@ -4468,7 +4468,7 @@ int main(uint8_t argc, char **argv) {
             uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
-            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 4);
 
             sensor_pos = sensor_pos + 3;
@@ -4477,14 +4477,158 @@ int main(uint8_t argc, char **argv) {
         }
         if(BME680_ENABLE !=0) {
 
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THPV[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THPV[i], "BME680");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", chart_adj + 4);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 5);
+
+            sensor_pos = sensor_pos + 4;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
         }
         if(SCD30_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THG[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THG[i], "SCD30");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 4);
+
+            sensor_pos = sensor_pos + 3;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
 
         }
         if(SCD4X_ENABLE !=0) {
 
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THG[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THG[i], "SCD4X");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 4);
+
+            sensor_pos = sensor_pos + 3;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
         }
         if(SGP30_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_VG[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_VG[i], "SGP30");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 5 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
 
         }
 
