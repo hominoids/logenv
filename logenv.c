@@ -608,15 +608,7 @@ int main(uint8_t argc, char **argv) {
          * CPU frequency command line option
          */
         if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--frequency") || DP_FREQ >= 1) {
-            if((cpu_online = fopen(cpuonline, "r")) == NULL) {
-                printf("\nERROR: Cannot open %s\n", cpuonline);
-                exit(EXIT_FAILURE);
-            }
-            size_t size = 0;
-            char *line = 0;
-            ssize_t linesize = getline(&line, &size, cpu_online);
-            fclose(cpu_online);
-            FREQ_ENABLE = atoi(&line[2])+1;
+            FREQ_ENABLE = get_nprocs_conf();
             OPTIONS_COUNT++;
         }
         /*
@@ -642,9 +634,8 @@ int main(uint8_t argc, char **argv) {
          * ambient temperature option
          */
         if(!strcmp(argv[i], "-a")) {
-            if(!strcmp(argv[i]+1, "--mcp9808")) {
-                SENSOR_ENABLE = 1;
-            }
+            strcpy(ambient_sensor, argv[i+1]);
+            AMBIENT_ENABLE = 1;
         }
         /*
          * mcp9808 command line option
@@ -945,7 +936,7 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * scd41 command line option
+         * scd4x command line option
          */
         if(!strcmp(argv[i], "--scd40") || !strcmp(argv[i], "--scd41") || !strcmp(argv[i], "--scd43")) {
             scd4x_t chip_type;
@@ -3491,13 +3482,6 @@ int main(uint8_t argc, char **argv) {
             }
             else if(INTERACTIVE_ENABLE != 0 && DISPLAY_ENABLE != 0) {
 
-                if(page < pg_count-1) {
-                    page++;
-                }
-                else {
-                    page = 0;
-                }
-
                 if(SSD1681_ENABLE != 0) {
                     if (ssd1681_gram_clear(&ssd1681_handle, SSD1681_COLOR_BLACK)) {
                         ssd1681_interface_debug_print("ssd1681: gram clear failed.\n");
@@ -3527,9 +3511,18 @@ int main(uint8_t argc, char **argv) {
                     }
                 }
 
+                sleep_ms(INTERACTIVE_ENABLE);
+
                 OPTIONS_COUNT = c;
                 i += (float)INTERACTIVE_ENABLE;
-                sleep_ms(INTERACTIVE_ENABLE);
+
+                if(page < pg_count-1) {
+                    page++;
+                }
+                else {
+                    page = 0;
+                }
+
             }
             else if(INTERACTIVE_ENABLE == 0 && DISPLAY_ENABLE == 0) {
                 break;
@@ -3570,6 +3563,7 @@ int main(uint8_t argc, char **argv) {
         uint8_t sensor_2vg = SGP30_ENABLE;
         uint8_t sensor_count = sensor_1t + sensor_2th + sensor_2tp + sensor_3thp + \
                 sensor_4thpv + sensor_3thg + sensor_2vg;
+        uint8_t sensor_ambient = 0;
         uint8_t sensor_pos = 0;
         uint8_t sys_count = 0;
         uint16_t chart_size = 0;
@@ -3579,12 +3573,28 @@ int main(uint8_t argc, char **argv) {
 
         chart_size = SP_ENABLE > 0 ? GPSIZE_POWER1 : 0;
         chart_size = FREQ_ENABLE > 0 ? chart_size + GPSIZE_FREQ1 : chart_size;
-        chart_size = (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) ? chart_size + GPSIZE_THERMAL1 : chart_size;
+        chart_size = (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) ? chart_size + GPSIZE_THERMAL1 : chart_size;
         chart_size = (USAGE_ENABLE > 0 || MEM_ENABLE > 0) ? chart_size + GPSIZE_USAGE1 : chart_size;
+
+        sensor_ambient = USAGE_ENABLE > 0 ? sensor_ambient + USAGE_ENABLE : sensor_ambient;
+        sensor_ambient = MEM_ENABLE > 0 ? sensor_ambient + MEM_ENABLE : sensor_ambient;
+
+        sensor_ambient = !strcmp(ambient_sensor, "--mcp9808") ? sensor_ambient + 1 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--sht4x") ? sensor_ambient + 2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--shtc3") ? sensor_ambient + 2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--aht20") ? sensor_ambient + 2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--htu31d") ? sensor_ambient + 2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp180") ? sensor_ambient + 2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp388") ? sensor_ambient + 2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp390") ? sensor_ambient + 2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bme280") ? sensor_ambient + 3 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bme680") ? sensor_ambient + 4 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--scd30") ? sensor_ambient + 3 : sensor_ambient;
+        sensor_ambient = (!strcmp(ambient_sensor, "--sht40") || !strcmp(ambient_sensor, "--sht41") || !strcmp(ambient_sensor, "--sht43")) ? sensor_ambient + 3 : sensor_ambient;
 
         if(SP_ENABLE > 0) ++sys_count;
         if(FREQ_ENABLE > 0) ++sys_count;
-        if(THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) ++sys_count;
+        if(THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) ++sys_count;
         if(USAGE_ENABLE > 0 || MEM_ENABLE > 0) ++sys_count;
 
         itoa(sensor_count + sys_count, strChar);
@@ -3648,7 +3658,7 @@ int main(uint8_t argc, char **argv) {
 
         strcpy(strChar, "\0");
 
-        if(SENSOR_ENABLE != 0) {
+        if(AMBIENT_ENABLE != 0) {
             fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[8][0], gpscript_thermal_title[8][1]);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
         }
@@ -3664,7 +3674,7 @@ int main(uint8_t argc, char **argv) {
         fprintf(gnuplot_file,"%s",gpscript_layout[0]);
 
         /* frequency only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
             if(sensor_count != 0) {
 
@@ -3680,7 +3690,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* thermal zone only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
             if(sensor_count != 0) {
 
@@ -3696,7 +3706,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* usage only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3712,7 +3722,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* power only chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
             if(sensor_count != 0) {
 
@@ -3728,7 +3738,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* frequency and thermal chart*/
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
             if(sensor_count != 0) {
 
@@ -3748,7 +3758,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* frequency and usage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3768,7 +3778,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* frequency and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
             if(sensor_count != 0) {
 
@@ -3788,7 +3798,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* thermal and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
             if(sensor_count != 0) {
 
@@ -3808,7 +3818,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* thermal and usage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3827,7 +3837,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3847,7 +3857,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* frequency, thermal and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
             if(sensor_count != 0) {
 
@@ -3871,7 +3881,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* frequency, thermal and usage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3895,7 +3905,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* frequency, usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3919,7 +3929,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* thermal, usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3943,7 +3953,7 @@ int main(uint8_t argc, char **argv) {
             }
         }
         /* frequency, thermal, usage chart and power chart*/
-         if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+         if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
 
             if(sensor_count != 0) {
 
@@ -3986,7 +3996,7 @@ int main(uint8_t argc, char **argv) {
         /*
          * build thermal zone chart
          */
-        if(THERMAL_ENABLE != 0 || SENSOR_ENABLE != 0) {
+        if(THERMAL_ENABLE != 0 || AMBIENT_ENABLE != 0) {
 
             i = 0;
             while (i < 9) {
@@ -4014,12 +4024,12 @@ int main(uint8_t argc, char **argv) {
                     fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(FREQ_ENABLE+2), i+1, i+1);
                     i++;
                 }
-                if(SENSOR_ENABLE != 0) {
-                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(FREQ_ENABLE+2));
+                if(AMBIENT_ENABLE != 0) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", sensor_ambient+i+(FREQ_ENABLE+2));
                 }
             }
-            if(THERMAL_ENABLE == 0 && SENSOR_ENABLE != 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(FREQ_ENABLE+2));
+            if(THERMAL_ENABLE == 0 && AMBIENT_ENABLE != 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", sensor_ambient+i+(FREQ_ENABLE+2));
             }
 
             fprintf(gnuplot_file, "\n\n");
@@ -4084,7 +4094,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+SENSOR_ENABLE;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE;
 
             if(USAGE_ENABLE == 0 && MEM_ENABLE != 0) {
                 fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1", chart_adj + i + 2);
@@ -4129,7 +4139,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", chart_adj + 3);
@@ -4168,7 +4178,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle\n\n", chart_adj + 2);
 
@@ -4204,7 +4214,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
@@ -4241,7 +4251,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
@@ -4278,7 +4288,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
@@ -4315,7 +4325,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
@@ -4352,7 +4362,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
@@ -4389,7 +4399,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
@@ -4427,7 +4437,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
@@ -4465,7 +4475,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
@@ -4504,7 +4514,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
@@ -4544,7 +4554,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
@@ -4583,7 +4593,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
@@ -4622,7 +4632,7 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+SENSOR_ENABLE+MEM_ENABLE+power+sensor_pos;
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
 
             fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 5 axes x1y1 notitle", chart_adj + 2);
             fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
@@ -4701,49 +4711,50 @@ int main(uint8_t argc, char **argv) {
 
 
 void usage (void) {
-        printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024,2025,2026 by Edward A. Kisiel\n", version);
-        printf("logs count or time stamp, CPU frequency, thermal zone temperatures,\n");
-        printf("external sensor temperature, volts, amps and watts and CPU core usage\n\n");
+        printf("\nlogenv - Version %s Copyright (C) 2019-2026 by Edward A. Kisiel\n", version);
+        printf("A utility to log, chart and display time stamped CPU frequency, thermal zone temperatures,\n");
+        printf("CPU and memory usage, a SmartPower's volts, amps and watts, and other environmental sensors\n\n");
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");
-        printf(" -i,  --milliseconds <number> Poll Interval <number> in milliseconds\n");
+        printf(" -i,  --milliseconds <number> Polling Interval <number> in milliseconds\n");
+        printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -a,  --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
-        printf("      --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
-        printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
-        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
-        printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf(" -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1\n");
+        printf(" -m,  --memory                Physical memory usage (total - available, see man free)\n");
+        printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
+        printf("      --smartpower3-ch2 <tty>\n");
+        printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
+        printf(" -a   <sensor>                Ambient Temperature sensor to use (e.g. --bme280) for Thermal chart\n");
         printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
         printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
         printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
         printf("      --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
         printf("      --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0\n");
-        printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
-        printf("      --smartpower3-ch2 <tty>\n");
-        printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
-        printf(" -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1\n");
-        printf(" -m,  --memory                Physical memory usage (total - available, see man free)\n");
-        printf(" -d,  --date                  Date and Time stamp\n");
-        printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
-        printf(" -v,  --verbose               Readable dashboard output\n"); 
-        printf(" -q,  --quiet                 No output to stdout\n");
-        printf(" -o,                          Output to eInk/Oled/LCD display using logenv.json\n");
-        printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
-        printf(" -s,  --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0\n");
+        printf("      --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
+        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0\n");
         printf("      --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0\n");
         printf("      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
+        printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
+        printf(" -q,  --quiet                 No output to stdout\n");
+        printf(" -v,  --verbose               Readable dashboard output\n");
+        printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");
         printf("      --xmtics <number>       Chart x-axis major second tics <number>\n");
+        printf(" -o,                          Display output on eInk/Oled/LCD using configuration logenv.json\n");
         printf("      --version               Version\n");
         printf(" -h,  --help                  Help screen\n\n");
         printf("Example:\n\n");
         printf("Data capture every 2 seconds for frequency, thermal zones, ambient temperature and SmartPower3-ch1:\n");
         printf("logenv -l logfile.csv -i 2000 -f -t -a /dev/i2c-1 -p\n\n");
         printf("Gnuplot script generation for data capture:\n");
-        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -i -f -t -a -p \n\n");
+        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -f -t -a -p \n\n");
         printf("Gnuplot chart creation:\n");
         printf("gnuplot -c gplotscript.gpl chart.png logfile.csv\n\n");
         exit(EXIT_SUCCESS);

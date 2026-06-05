@@ -3,7 +3,7 @@
 This is a development branch and a work in progress that is not fully completed or documented.  The original Logenv is available on the classic branch or as release v1.0. 
 
 ## Introduction
-logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as providing a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
+logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as provide a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
 
 ![Image](./example/ocl-m2_g610-a76_1.png)
 
@@ -43,52 +43,54 @@ sudo ldconfig /usr/local/lib/
 usage: logenv [options]
 
 Options:
- -l,  --log <file>            Log to <file>
- -i,  --milliseconds <number> Poll Interval <number> in milliseconds
- -f,  --frequency             CPU core frequency
- -t,  --temperature           Thermal zone temperature
- -a,  --bme280 <device>       Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0
-      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0
-      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77
-      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77
-      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0
-      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0
-      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
-      --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
-      --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0
- -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
-      --smartpower3-ch2 <tty>
-      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
- -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1
- -m,  --memory                Physical memory usage (total - available, see man free)
- -d,  --date                  Date and Time stamp
- -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
- -v,  --verbose               Readable dashboard output
- -q,  --quiet                 No output to stdout
- -o,                          Output to eInk/Oled/LCD display using logenv.json
- -n,  --udp <host>:<port>     UDP output to <host>:<port>
- -s,  --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0
-      --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0
-      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
- -g,  --gnuplot <file>        Gnuplot script generation
-      --title <string>        Chart title <string>
-      --xmtics <number>       Chart x-axis major second tics <number>
-      --version               Version
- -h,  --help                  Help screen
+        -l,  --log <file>            Log to <file>
+        -i,  --milliseconds <number> Polling Interval <number> in milliseconds
+        -d,  --date                  Date and Time stamp
+        -f,  --frequency             CPU core frequency
+        -t,  --temperature           Thermal zone temperature
+        -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1
+        -m,  --memory                Physical memory usage (total - available, see man free)
+        -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0
+             --smartpower3-ch2 <tty>
+             --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0
+        -a   <sensor>                Ambient Temperature sensor to use (e.g. --bme280) for Thermal chart
+             --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0
+             --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0
+             --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
+             --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
+             --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0
+             --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0
+             --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0
+             --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0
+             --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0
+             --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0
+             --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0
+             --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0
+             --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
+        -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
+        -q,  --quiet                 No output to stdout
+        -v,  --verbose               Readable dashboard output
+        -n,  --udp <host>:<port>     UDP output to <host>:<port>
+        -g,  --gnuplot <file>        Gnuplot script generation
+             --title <string>        Chart title <string>
+             --xmtics <number>       Chart x-axis major second tics <number>
+        -o,                          Display output on eInk/Oled/LCD using configuration logenv.json
+             --version               Version
+        -h,  --help                  Help screen
 ```
 
 
 ## Example
 This example is a typical data collection and charting workflow:
 
-Every 2 seconds collect the CPU frequency, thermal zone temperatures, ambient temperature, CPU usage and SmartPower3 Volt, Amp and Watts
+Every 2 seconds collect the CPU frequency, thermal zone temperatures, CPU usage, SmartPower3 Volt, Amp and Watts, and mcp9808 as ambient temperature. 
 ```
 ./logenv -l ocl-m2_g610-a76_1.csv -i 2000 -f -t --mcp9808 -u -p
 ```
 
 Generate the GNUplot script
 ```
-./logenv -g ocl-m2_g610-a76_1.gpl --title "OpenCL-Benchmark Odroid-M2 GPU-CPU" --xmtics 60 -i -f -t --mcp9808 -u -p
+./logenv -g ocl-m2_g610-a76_1.gpl --title "OpenCL-Benchmark Odroid-M2 GPU-CPU" --xmtics 60 -i -f -t -a --mcp9808 -u -p
 ```
 
 Generate the chart
@@ -697,6 +699,16 @@ DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
             "label": "",
             "unit": ""
             },
+```
+
+
+### Display Font Names
+```
+  DEFAULT_12, DEFAULT_16, DEFAULT_24
+  
+  MONOSPACE_12, MONOSPACE_16, MONOSPACE_20, MONOSPACE_24, MONOSPACE_28,
+  MONOSPACE_36, MONOSPACE_48
+
 ```
 
 

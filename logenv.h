@@ -178,6 +178,7 @@ char *thermalzone2 = "/temp";
 char thermaltype[255];
 char *thermaltype1 = "/type";
 char thermalname[255];
+char ambient_sensor[15] = "\0";
 
 char governorloc[255] = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
 
@@ -201,7 +202,7 @@ static int8_t MEM_ENABLE = 0;
 static int8_t OPTIONS_COUNT = 0;
 static int8_t QUIET_ENABLE = 0;
 static int8_t RAW_ENABLE = 0;
-static int8_t SENSOR_ENABLE = 0;
+static int8_t AMBIENT_ENABLE = 0;
 static int8_t SP_ENABLE = 0;
 static int8_t THERMAL_ENABLE = 0;
 static int8_t UDP_ENABLE = 0;
