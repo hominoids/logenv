@@ -319,20 +319,7 @@
             "device": "",
             "address": 0,
             "dtype": "",
-            "xloc": 5,
-            "yloc": 30,
-            "color": 0,
-            "font": "DEFAULT_12",
-            "label": "",
-            "unit": ""
-            },
-            {
-            "cmd": "iio",
-            "name": "bmp580",
-            "device": "in_pressure_input",
-            "address": 0,
-            "dtype": "*10",
-            "xloc": 70,
+            "xloc": 35,
             "yloc": 30,
             "color": 0,
             "font": "DEFAULT_12",
@@ -364,6 +351,62 @@
             "font": "DEFAULT_12",
             "label": "ir:",
             "unit": ""
+            }
+        ]
+    },
+    {
+        "name": "ssd1306",
+        "device": "/dev/i2c-1",
+        "address": 61,
+        "xsize": 128,
+        "ysize": 64,
+        "rotation": 0,
+        "page": 1,
+        "seconds": 0,
+        "contrast": 125,
+        "segment_column_address": 1,
+        "scan_direction_start": 1,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
+        "content": [
+            {
+            "cmd": "time",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "",
+            "xloc": 15,
+            "yloc": 5,
+            "color": 0,
+            "font": "DEFAULT_24",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "date",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "",
+            "xloc": 35,
+            "yloc": 30,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "iio",
+            "name": "bmp580",
+            "device": "in_pressure_input",
+            "address": 0,
+            "dtype": "*10",
+            "xloc": 5,
+            "yloc": 50,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": " hPa"
             }
         ]
     },

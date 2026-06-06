@@ -364,9 +364,9 @@ uint8_t sh1107_gram_clear(sh1107_handle_t *handle)
         return 3;                                       /* return error */
     }
 
-    for (i = 0; i < 127; i++)                           /* x */
+    for (i = 0; i < 128; i++)                           /* x */
     {
-        for (j = 0; j < 15; j++)                         /* y */
+        for (j = 0; j < 16; j++)                         /* y */
         {
             handle->gram[i][j] = 0x00;                  /* set 0x00 */
         }

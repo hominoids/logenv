@@ -374,9 +374,9 @@ uint8_t ssd1306_gram_clear(ssd1306_handle_t *handle)
         return 3;                                       /* return error */
     }
 
-    for (i = 0; i < 127; i++)                           /* x */
+    for (i = 0; i < 128; i++)                           /* x */
     {
-        for (j = 0; j < 7; j++)                         /* y */
+        for (j = 0; j < 8; j++)                         /* y */
         {
             handle->gram[i][j] = 0x00;                  /* set 0x00 */
         }

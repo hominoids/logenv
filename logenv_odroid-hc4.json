@@ -1,0 +1,198 @@
+{
+"displays": [
+    {
+        "name": "ssd1306",
+        "device": "/dev/i2c-0",
+        "address": 60,
+        "xsize": 128,
+        "ysize": 64,
+        "rotation": 0,
+        "page": 0,
+        "seconds": 10,
+        "contrast": 125,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
+        "content": [
+            {
+            "cmd": "time",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "12",
+            "xloc": 15,
+            "yloc": 0,
+            "color": 0,
+            "font": "MONOSPACE_36",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "date",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "short",
+            "xloc": 27,
+            "yloc": 25,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "disk",
+            "name": "",
+            "device": "/",
+            "address": 0,
+            "dtype": "percent",
+            "xloc": 0,
+            "yloc": 48,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "/ ",
+            "unit": "%"
+            },
+            {
+            "cmd": "disk",
+            "name": "",
+            "device": "/archive",
+            "address": 0,
+            "dtype": "percent",
+            "xloc": 55,
+            "yloc": 48,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "/archive ",
+            "unit": "%"
+            }
+        ]
+    },
+    {
+        "name": "ssd1306",
+        "device": "/dev/i2c-0",
+        "address": 60,
+        "xsize": 128,
+        "ysize": 64,
+        "rotation": 0,
+        "page": 1,
+        "seconds": 20,
+        "contrast": 125,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
+        "content": [
+            {
+            "cmd": "kernel",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "",
+            "xloc": 0,
+            "yloc": 0,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "hostname",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "",
+            "xloc": 0,
+            "yloc": 26,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "host : ",
+            "unit": ""
+            },
+            {
+            "cmd": "ip",
+            "name": "eth0",
+            "device": "",
+            "address": 0,
+            "dtype": "ND",
+            "xloc": 0,
+            "yloc": 38,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": ": ",
+            "unit": ""
+            },
+            {
+            "cmd": "uptime",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "short",
+            "xloc": 0,
+            "yloc": 50,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "  up : ",
+            "unit": ""
+            }
+        ]
+    },
+    {
+        "name": "ssd1306",
+        "device": "/dev/i2c-0",
+        "address": 60,
+        "xsize": 128,
+        "ysize": 64,
+        "rotation": 0,
+        "page": 2,
+        "seconds": 10,
+        "contrast": 125,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
+        "content": [
+            {
+            "cmd": "governor",
+            "name": "",
+            "device": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
+            "address": 0,
+            "dtype": "",
+            "xloc": 0,
+            "yloc": 0,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "CPU:",
+            "unit": ""
+            },
+            {
+            "cmd": "governor",
+            "name": "",
+            "device": "/sys/devices/platform/soc/ffe40000.gpu/devfreq/ffe40000.gpu/governor",
+            "address": 0,
+            "dtype": "",
+            "xloc": 0,
+            "yloc": 14,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "GPU:",
+            "unit": ""
+            },
+            {
+            "cmd": "thermal",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "DN",
+            "xloc": 0,
+            "yloc": 38,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": "c "
+            }
+        ]
+    }
+  ]
+}
