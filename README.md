@@ -27,8 +27,21 @@ cd ./libgpiod-1.6.4/
 ./configure --enable-tools
 make
 sudo make install
-sudo ldconfig /usr/local/lib/
 ````
+
+If the installed library path is not in the ldconfig cache then add the library path(default /usr/local/lib) on a new line at the end of /etc/ld.so.conf or create an entry in the directory /etc/ld.so.conf.d. 
+```
+$ sudo vi /etc/ld.so.conf
+  add /usr/local/lib or installed path
+$ sudo ldconfig
+```
+
+or
+
+```
+$ echo "/usr/local/lib" | sudo tee /etc/ld.so.conf.d/custom.conf
+$ sudo ldconfig
+```
 
 ### Build
 ```
@@ -37,7 +50,6 @@ sudo ldconfig /usr/local/lib/
   make
 ```
 
-  
 ## Usage
 ```
 usage: logenv [options]
@@ -151,7 +163,7 @@ The kernel industrial IO(iio) sensors can be read by using the iio command inste
 ```
 
 ## GNUPlot Charts
-Single or stacked charts are created based on the type and number of datum that are contained in the data set.  Core Frequency, Thermal Zone Temperatures, CPU core usage memory usage, SmartPower and sensor data can all be charted.  When a GNUPlot Script file is generated, part of it's contents is based on the number of CPU cores and the number and name of thermal Zones.  For this reason the GNUPlot script needs to be generated on the machine the data was collected from if any of those datum are included.  The GNUPlot Scripts or .gpl files can be reused and don't need to be regenerated if the type of data being collected and the machine are the same.
+Single or stacked charts are created based on the type and number of datum that are contained in the data set.  Core Frequency, Thermal Zone Temperatures, Ambient Temperature, CPU core usage, memory usage, SmartPower and sensor data can all be charted.  When a GNUPlot Script file is generated, part of it's contents is based on the number of CPU cores and the number and name of thermal Zones.  For this reason the GNUPlot script needs to be generated on the machine the data was collected from if any of those datum are included.  The GNUPlot Scripts or .gpl files can be reused and don't need to be regenerated if the type of data being collected and the machine are the same.
 
 ## UDP Client
 The UDP client -n option is followed by the server host and port <host:port>. The host entry can be either an IP address or host name.  Make sure the port is open if using a firewall.  From the command-line on the server host system, netcat can be used to read the UDP feed.
