@@ -5,7 +5,7 @@ This is a development branch and a work in progress that is not fully completed 
 ## Introduction
 logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as provide a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
 
-![Image](./example/ocl-m2_g610-a76_1.png)
+![Image](./assets/ocl-m2_g610-a76_1.png)
 
 License: GPLv3.
 
@@ -198,6 +198,7 @@ Multiple displays are supported with each capable of multiple pages containing t
         "scan_direction_start": 1,
         "left_right_remap": 0,
         "pin_config_alt": 1,
+        "vcom_deselect": 2,
         "content": [
             {
             "cmd": "time",
@@ -259,9 +260,20 @@ Multiple displays are supported with each capable of multiple pages containing t
 
 ```
 
-Most entries in the json file are self explanatory with the possible exception of the initialization variables *segment_column_address*, *scan_direction_start*, *left_right_remap* and *pin_config_alt*.  They are set to a 0 or 1 value to enable or disable the configuration command.  The first two control the direction and starting column address.  If the oled is displaying upside down, change the *segment_column_address* and *scan_direction_start* values to the opposite.  If they are 0 change them to 1 and retest.
- 
+Most entries in the json file are self explanatory with the possible exception of the initialization variables *segment_column_address*, *scan_direction_start*, *left_right_remap*, *pin_config_alt* and *vcom_deselect*.  These entries only apply to SSD1306 and SH1107 displays and are set to a 0 or 1 value to enable or disable the configuration command with the exception of vcom_deselect.
+
+The first two, *segment_column_address* and *scan_direction_start*, control the direction and starting column address.  If the oled is displaying upside down, change the *segment_column_address* and *scan_direction_start* values to the opposite.  If they are 0 change them to 1 and retest. 
+
+If there are horizontal trace lines on the screen the vcom_deselect may need adjusting:
+
+    0 = deselect level 0.65
+    2 = deselect level 0.77
+    3 = deselect level 0.83
+    
+
 ### Page Content Commands
+Any of the page content command can be used for any display type and can be called more then once.
+
 - date
 - disk
 - frequency

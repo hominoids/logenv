@@ -190,6 +190,11 @@ int main(uint8_t argc, char **argv) {
                     dp[DISPLAY_ENABLE].pin_config_alt = pin_config_alt->valueint;
                     if(VERBOSE_DEBUG) printf("%d\n", dp[DISPLAY_ENABLE].pin_config_alt);
                 }
+                cJSON *vcom_deselect = cJSON_GetObjectItemCaseSensitive(item, "vcom_deselect");
+                if (cJSON_IsNumber(vcom_deselect)) {
+                    dp[DISPLAY_ENABLE].vcom_deselect = vcom_deselect->valueint;
+                    if(VERBOSE_DEBUG) printf("%d\n", dp[DISPLAY_ENABLE].vcom_deselect);
+                }
                 /*
                  * Read display content array entries
                  */

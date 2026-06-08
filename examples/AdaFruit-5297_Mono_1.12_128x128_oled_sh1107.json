@@ -1,0 +1,100 @@
+{
+"displays": [
+    {
+        "name": "sh1107",
+        "device": "/dev/i2c-0",
+        "address": 61,
+        "xsize": 128,
+        "ysize": 128,
+        "rotation": 0,
+        "page": 0,
+        "seconds": 60,
+        "contrast": 125,
+        "segment_column_address": 0,
+        "scan_direction_start": 0,
+        "left_right_remap": 0,
+        "pin_config_alt": 1,
+        "vcom_deselect": 3,
+        "content": [
+            {
+            "cmd": "time",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "12",
+            "xloc": 15,
+            "yloc": 5,
+            "color": 0,
+            "font": "MONOSPACE_36",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "date",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "short",
+            "xloc": 20,
+            "yloc": 30,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "hostname",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "",
+            "xloc": 20,
+            "yloc": 52,
+            "color": 0,
+            "font": "MONOSPACE_16",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "ip",
+            "name": "end0",
+            "device": "",
+            "address": 0,
+            "dtype": "ND",
+            "xloc": 0,
+            "yloc": 70,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "",
+            "unit": ""
+            },
+            {
+            "cmd": "disk",
+            "name": "",
+            "device": "/",
+            "address": 0,
+            "dtype": "percent",
+            "xloc":0,
+            "yloc": 85,
+            "color": 0,
+            "font": "MONOSPACE_12",
+            "label": "/     ",
+            "unit": "%"
+            },
+            {
+            "cmd": "sysload",
+            "name": "",
+            "device": "",
+            "address": 0,
+            "dtype": "short",
+            "xloc": 0,
+            "yloc": 113,
+            "color": 0,
+            "font": "DEFAULT_12",
+            "label": "",
+            "unit": ""
+            }
+        ]
+    }
+  ]
+}

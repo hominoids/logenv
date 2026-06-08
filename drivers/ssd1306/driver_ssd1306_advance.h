@@ -52,7 +52,7 @@ extern "C"{
 /**
  * @brief ssd1306 advance example default definition
  */
-#define SSD1306_ADVANCE_DEFAULT_DESELECT_LEVEL                   SSD1306_DESELECT_LEVEL_0P77                /**< set deselect level 0.77 */
+extern uint8_t SSD1306_ADVANCE_DEFAULT_DESELECT_LEVEL;                                                      /**< set deselect level 0.77 */
 extern uint8_t SSD1306_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP;                                                    /**< disable remap */
 extern uint8_t SSD1306_ADVANCE_DEFAULT_PIN_CONF;                                                            /**< set alternative */
 #define SSD1306_ADVANCE_DEFAULT_PHASE1_PERIOD                    0x01                                       /**< set phase 1 */

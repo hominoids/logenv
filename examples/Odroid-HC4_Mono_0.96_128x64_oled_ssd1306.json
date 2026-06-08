@@ -8,12 +8,13 @@
         "ysize": 64,
         "rotation": 0,
         "page": 0,
-        "seconds": 10,
+        "seconds": 40,
         "contrast": 125,
         "segment_column_address": 0,
         "scan_direction_start": 0,
         "left_right_remap": 0,
         "pin_config_alt": 1,
+        "vcom_deselect": 2,
         "content": [
             {
             "cmd": "time",
@@ -57,14 +58,14 @@
             {
             "cmd": "disk",
             "name": "",
-            "device": "/archive",
+            "device": "/home",
             "address": 0,
             "dtype": "percent",
             "xloc": 55,
             "yloc": 48,
             "color": 0,
             "font": "DEFAULT_12",
-            "label": "/archive ",
+            "label": "/home ",
             "unit": "%"
             }
         ]
@@ -77,12 +78,13 @@
         "ysize": 64,
         "rotation": 0,
         "page": 1,
-        "seconds": 20,
+        "seconds": 10,
         "contrast": 125,
         "segment_column_address": 0,
         "scan_direction_start": 0,
         "left_right_remap": 0,
         "pin_config_alt": 1,
+        "vcom_deselect": 2,
         "content": [
             {
             "cmd": "kernel",
@@ -152,6 +154,7 @@
         "scan_direction_start": 0,
         "left_right_remap": 0,
         "pin_config_alt": 1,
+        "vcom_deselect": 2,
         "content": [
             {
             "cmd": "governor",

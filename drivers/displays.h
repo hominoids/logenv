@@ -98,6 +98,7 @@ struct display {
     uint8_t scan_direction_start;
     uint8_t left_right_remap;
     uint8_t pin_config_alt;
+    uint8_t vcom_deselect;
     uint8_t init;
     uint8_t (*dptr)(struct display *, uint8_t, uint8_t);
     uint8_t dc_count;

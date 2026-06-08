@@ -51,7 +51,7 @@ extern "C"{
 /**
  * @brief sh1107 advance example default definition
  */
-#define SH1107_ADVANCE_DEFAULT_DESELECT_LEVEL                   SH1107_DESELECT_LEVEL_0P83                /**< set deselect level 0.77 */
+extern uint8_t SH1107_ADVANCE_DEFAULT_DESELECT_LEVEL;                                                      /**< set deselect level 0.77 */
 extern uint8_t SH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP;                                                    /**< disable remap */
 #define SH1107_ADVANCE_DEFAULT_PHASE1_PERIOD                    0x01                                       /**< set phase 1 */
 #define SH1107_ADVANCE_DEFAULT_PHASE2_PERIOD                    0x0F                                       /**< set phase F */
@@ -59,7 +59,7 @@ extern uint8_t SH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP;                         
 #define SH1107_ADVANCE_DEFAULT_CLOCK_DIVIDE                     0x00                                       /**< set clock div 0 */
 #define SH1107_ADVANCE_DEFAULT_DISPLAY_OFFSET                   0x00                                       /**< set display offset */
 extern uint8_t SH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO;                                                     /**< set ratio */
-#define SH1107_ADVANCE_DEFAULT_DISPLAY_MODE                     SH1107_DISPLAY_MODE_NORMAL                /**< set normal mode */
+#define SH1107_ADVANCE_DEFAULT_DISPLAY_MODE                     SH1107_DISPLAY_MODE_NORMAL                 /**< set normal mode */
 extern uint8_t SH1107_ADVANCE_DEFAULT_SCAN_DIRECTION;                                                      /**< set scan 1 */
 extern uint8_t SH1107_ADVANCE_DEFAULT_SEGMENT;                                                             /**< set column 127 */
 extern uint8_t SH1107_ADVANCE_DEFAULT_CONTRAST;                                                            /**< set contrast CF */

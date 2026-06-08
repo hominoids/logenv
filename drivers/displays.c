@@ -210,6 +210,7 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         SSD1306_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
         SSD1306_ADVANCE_DEFAULT_PIN_CONF = ptr->pin_config_alt;
         SSD1306_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
+        SSD1306_ADVANCE_DEFAULT_DESELECT_LEVEL = ptr->vcom_deselect;
 
         if(ssd1306_advance_init(SSD1306_INTERFACE_IIC, ptr->address)) {
             printf("\nERROR: Cannot open ssd1306 %d %d\n", SSD1306_INTERFACE_IIC, ptr->address);
@@ -398,6 +399,7 @@ uint8_t sh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         SH1107_ADVANCE_DEFAULT_SCAN_DIRECTION = ptr->scan_direction_start;
         SH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
         SH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
+        SH1107_ADVANCE_DEFAULT_DESELECT_LEVEL = ptr->vcom_deselect;
 
         if(sh1107_advance_init(SSD1306_INTERFACE_IIC, ptr->address)) {
             printf("\nERROR: Cannot open sh1107 %d %d\n", SSD1306_INTERFACE_IIC, ptr->address);
