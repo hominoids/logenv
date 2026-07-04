@@ -496,6 +496,19 @@ static char gpscript_sensor_P[12][45] = {
     "# sensorTH x axis\n",
     "set noxlabel\n\n"};
 
+    static char gpscript_sensor_PM[12][43] = {
+    "# sensorPM plot\n",
+    "set size 1,.3\n",
+    "set origin 0,0\n",
+    "set lmargin 11\n",
+    "# sensorPM y axis\n",
+    "set ylabel \'",
+    " PM1.0, PM2.5, PM10.0\' font \'Verdana,12\'\n",
+    "set yrange [0:500]\n",
+    "set ytics 0,10 border nomirror out\n",
+    "set format y \'%.0f\'\n",
+    "# sensorPM x axis\n",
+    "set noxlabel\n\n"};
 
 static char gpscript_end[18] = {"unset multiplot\n" };
 

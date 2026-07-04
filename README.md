@@ -78,7 +78,10 @@ Options:
              --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0
              --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0
              --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0
+             --scd40 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
              --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
+             --scd43 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
+             --psma003i <device>     Particle Sensor PM1.0, PM2.5, PM10.0 I2C 0x12 default /dev/i2c-0
         -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
         -q,  --quiet                 No output to stdout
         -v,  --verbose               Readable dashboard output
@@ -138,10 +141,12 @@ bmp180 - Barometric Pressure, Altitude and Temperature
 bmp388 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
 bmp390 - Barometric Pressure, Altimeter and Temperature I2C ADD 0x76 or 0x77
 
+sgp30 - VOC and eCO2 I2C ADD 0x58
+
 scd30 - NDIR True CO2 (400ppm – 10,000ppm), Temperature and Humidity Sensor ADD 0x61
 scd40,scd41,scd43 - True CO2, Temperature and Humidity Sensor ADD 0x62
 
-sgp30 - VOC and eCO2 I2C ADD 0x58
+pmsa003i - Particles PM1.0, PM2.5, PM10.0 ug/m^3 I2C ADD 0x12
 ```
 
 ## Kernel Industrial IO Sensor Support
@@ -523,13 +528,16 @@ DESCRIPTION: displays sensor datum at xloc, yloc using font.
 
        NAME: aht20,htu31,sht40,sht41,sht43,sht45,shtc3,mcp9808
              bme280,bme680,bmp180,bmp388,bmp390,
-             scd30,sdc40,scd41,scd43,sgp30
+             scd30,sdc40,scd41,scd43,sgp30,pmsa003i
       DTYPE: C = Celsius
              F = Fahrenheit
              H = Humidity
              P = Pressure
              G = Gas
              V = VOC
+             PM1 = PM1.0
+             PM2.5 = PM2.5
+             PM10 = PM10.0
 
     EXAMPLE:
             {

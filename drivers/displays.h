@@ -80,6 +80,9 @@ struct page_content {
     char data3[30];  // Pressure hPa
     char data4[30];  // CO2 as ppm
     char data5[30];  // TVOC as ppb
+    char data6[30];  // PM1.0 as ug/m^3
+    char data7[30];  // PM2.5 as ug/m^3
+    char data8[30];  // PM10.0 as ug/m^3
     uint8_t read;
     uint8_t prevlen;
 };

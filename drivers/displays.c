@@ -177,6 +177,15 @@ uint8_t ssd1681(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
         }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM1")) {
+            strcat(buffer, ptr->dc[dcidx].data6);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM2.5")) {
+            strcat(buffer, ptr->dc[dcidx].data7);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM10")) {
+            strcat(buffer, ptr->dc[dcidx].data8);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
@@ -367,6 +376,15 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
         }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM1")) {
+            strcat(buffer, ptr->dc[dcidx].data6);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM2.5")) {
+            strcat(buffer, ptr->dc[dcidx].data7);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM10")) {
+            strcat(buffer, ptr->dc[dcidx].data8);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
@@ -555,6 +573,15 @@ uint8_t sh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
         }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM1")) {
+            strcat(buffer, ptr->dc[dcidx].data6);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM2.5")) {
+            strcat(buffer, ptr->dc[dcidx].data7);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM10")) {
+            strcat(buffer, ptr->dc[dcidx].data8);
+        }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);
         }
@@ -722,6 +749,15 @@ uint8_t st7789(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         }
         if(!strcmp(ptr->dc[dcidx].dtype,"V")) {
             strcat(buffer, ptr->dc[dcidx].data5);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM1")) {
+            strcat(buffer, ptr->dc[dcidx].data6);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM2.5")) {
+            strcat(buffer, ptr->dc[dcidx].data7);
+        }
+        if(!strcmp(ptr->dc[dcidx].dtype,"PM10")) {
+            strcat(buffer, ptr->dc[dcidx].data8);
         }
         if(ptr->dc[dcidx].unit) {
             strcat(buffer,ptr->dc[dcidx].unit);

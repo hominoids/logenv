@@ -1023,7 +1023,7 @@ int main(uint8_t argc, char **argv) {
         /*
          * pmsa003i command line option
          */
-        if(!strcmp(argv[i], "--pmsa300i")) {
+        if(!strcmp(argv[i], "--pmsa003i")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
                     if(strchr(argv[i+1], '@') != NULL) {
@@ -3102,68 +3102,75 @@ int main(uint8_t argc, char **argv) {
                     return 1;
                 }
                 if(PMSA003I_ENABLE != 0) {
-                    printf("pm1p0_standard_ug_m3 = %d\n", data.pm1p0_standard_ug_m3);
-                    printf("pm2p5_standard_ug_m3 = %d\n", data.pm2p5_standard_ug_m3);
-                    printf("pm10_standard_ug_m3 = %d\n", data.pm10_standard_ug_m3);
-                    printf("pm1p0_atmospheric_ug_m3 = %d\n", data.pm1p0_atmospheric_ug_m3);
-                    printf("pm2p5_atmospheric_ug_m3 = %d\n", data.pm2p5_atmospheric_ug_m3);
-                    printf("pm10_atmospheric_ug_m3 = %d\n", data.pm10_atmospheric_ug_m3);
-                    printf("beyond_0p3um = %d\n", data.beyond_0p3um);
-                    printf("beyond_0p5um = %d\n", data.beyond_0p5um);
-                    printf("beyond_1p0um = %d\n", data.beyond_1p0um);
-                    printf("beyond_2p5um = %d\n", data.beyond_2p5um);
-                    printf("beyond_5p0um = %d\n", data.beyond_5p0um);
-                    printf("beyond_10um = %d\n", data.beyond_10um);
-                    printf("version = %d\n", data.version);
-                    printf("error_code = %d\n", data.error_code);
-                    /*
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
+                        printf(",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        printf("\n sgp30 VOC = %d ppm\n", tvoc_ppb);
-                        printf("      eCO2 = %d ppm\n", co2_eq_ppm);
+                        printf("\n pmsa003i\n");
+                        printf("  pm1p0_standard_ug_m3 = %d\n", data.pm1p0_standard_ug_m3);
+                        printf("  pm2p5_standard_ug_m3 = %d\n", data.pm2p5_standard_ug_m3);
+                        printf("  pm10_standard_ug_m3 = %d\n", data.pm10_standard_ug_m3);
+                        printf("  pm1p0_atmospheric_ug_m3 = %d\n", data.pm1p0_atmospheric_ug_m3);
+                        printf("  pm2p5_atmospheric_ug_m3 = %d\n", data.pm2p5_atmospheric_ug_m3);
+                        printf("  pm10_atmospheric_ug_m3 = %d\n", data.pm10_atmospheric_ug_m3);
+                        printf("  beyond_0p3um = %d\n", data.beyond_0p3um);
+                        printf("  beyond_0p5um = %d\n", data.beyond_0p5um);
+                        printf("  beyond_1p0um = %d\n", data.beyond_1p0um);
+                        printf("  beyond_2p5um = %d\n", data.beyond_2p5um);
+                        printf("  beyond_5p0um = %d\n", data.beyond_5p0um);
+                        printf("  beyond_10um = %d\n", data.beyond_10um);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
+                        printf(",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%d,%d,", tvoc_ppb, co2_eq_ppm);
+                        printf("%d,%d,%d,", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                         }
                         else {
-                            printf("%d,%d", tvoc_ppb, co2_eq_ppm);
+                        printf("%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                        fprintf(log_file,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                        fprintf(log_file,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d,", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d,", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
                         }
                     }
-                    */
                     OPTIONS_COUNT--;
                 }
                 if(DP_PMSA003I != 0) {
@@ -3174,14 +3181,16 @@ int main(uint8_t argc, char **argv) {
 
                                 char buffer[10];
 
-//                                sprintf(buffer, "%d", co2_eq_ppm);
-//                                strcpy(dp[d].dc[i].data4, buffer);
-//                                sprintf(buffer, "%d", tvoc_ppb);
-//                                strcpy(dp[d].dc[i].data5, buffer);
+                                sprintf(buffer, "%d", data.pm1p0_atmospheric_ug_m3);
+                                strcpy(dp[d].dc[i].data6, buffer);
+                                sprintf(buffer, "%d", data.pm2p5_atmospheric_ug_m3);
+                                strcpy(dp[d].dc[i].data7, buffer);
+                                sprintf(buffer, "%d", data.pm10_atmospheric_ug_m3);
+                                strcpy(dp[d].dc[i].data8, buffer);
 
-//                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-//                                    printf("%s pmsa003i cmd %d failed\n", &dp[d].name, i);
-//                                }
+                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+                                    printf("%s pmsa003i cmd %d failed\n", &dp[d].name, i);
+                                }
                             }
                         }
                     }
@@ -3713,8 +3722,10 @@ int main(uint8_t argc, char **argv) {
         uint8_t sensor_4thpv = BME680_ENABLE;
         uint8_t sensor_3thg = SCD30_ENABLE + SCD4X_ENABLE;
         uint8_t sensor_2vg = SGP30_ENABLE;
+        uint8_t sensor_3pm = PMSA003I_ENABLE;
+
         uint8_t sensor_count = sensor_1t + sensor_2th + sensor_2tp + sensor_3thp + \
-                sensor_4thpv + sensor_3thg + sensor_2vg;
+                sensor_4thpv + sensor_3thg + sensor_2vg + sensor_3pm;
         uint8_t sensor_ambient = 0;
         uint8_t sensor_pos = 0;
         uint8_t sys_count = 0;
@@ -3742,7 +3753,8 @@ int main(uint8_t argc, char **argv) {
         sensor_ambient = !strcmp(ambient_sensor, "--bme280") ? sensor_ambient + 3 : sensor_ambient;
         sensor_ambient = !strcmp(ambient_sensor, "--bme680") ? sensor_ambient + 4 : sensor_ambient;
         sensor_ambient = !strcmp(ambient_sensor, "--scd30") ? sensor_ambient + 3 : sensor_ambient;
-        sensor_ambient = (!strcmp(ambient_sensor, "--sht40") || !strcmp(ambient_sensor, "--sht41") || !strcmp(ambient_sensor, "--sht43")) ? sensor_ambient + 3 : sensor_ambient;
+        sensor_ambient = (!strcmp(ambient_sensor, "--sht40") || !strcmp(ambient_sensor, "--sht41") \
+            || !strcmp(ambient_sensor, "--sht43")) ? sensor_ambient + 3 : sensor_ambient;
 
         if(SP_ENABLE > 0) ++sys_count;
         if(FREQ_ENABLE > 0) ++sys_count;
@@ -3825,6 +3837,22 @@ int main(uint8_t argc, char **argv) {
          */
         fprintf(gnuplot_file,"%s",gpscript_layout[0]);
 
+        /* sensor only chart */
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count > 1) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
+            }
+            else {
+                fprintf(gnuplot_file,"%s", one2one);
+                strcpy(gpscript_freq1, "set size 1,1\n");
+                strcpy(gpscript_freq2, "set origin 0,0\n");
+            }
+        }
         /* frequency only chart */
         if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
 
@@ -4793,6 +4821,45 @@ int main(uint8_t argc, char **argv) {
             sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
 
         }
+        if(PMSA003I_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_PM[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_PM[i], "PMSA003I");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 4);
+
+            sensor_pos = sensor_pos + 3;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
+        }
 
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
@@ -4866,7 +4933,7 @@ int main(uint8_t argc, char **argv) {
 
 
 void usage (void) {
-        printf("\nlogenv - Version %s Copyright (C) 2019-2026 by Edward A. Kisiel\n", version);
+        printf("\nlogenv - Version %s Copyright (C) 2019-Present by Edward A. Kisiel\n", version);
         printf("A utility to log, chart and display time stamped CPU frequency, thermal zone temperatures,\n");
         printf("CPU and memory usage, a SmartPower's volts, amps and watts, and other environmental sensors\n\n");
         printf("usage: logenv [options]\n\n");
@@ -4881,7 +4948,7 @@ void usage (void) {
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
-        printf(" -a   <sensor>                Ambient Temperature and sensor to use (e.g. --bme280) for Thermal chart\n");
+        printf(" -a   <temp sensor>           Ambient Temperature sensor to use (e.g. --bme280) for Thermal chart\n");
         printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
         printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
         printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
@@ -4894,7 +4961,10 @@ void usage (void) {
         printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
         printf("      --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0\n");
         printf("      --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0\n");
+        printf("      --scd40 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
         printf("      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
+        printf("      --scd43 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
+        printf("      --psma003i <device>     Particle Sensor PM1.0, PM2.5, PM10.0 I2C 0x12 default /dev/i2c-0\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -q,  --quiet                 No output to stdout\n");
         printf(" -v,  --verbose               Readable dashboard output\n");
