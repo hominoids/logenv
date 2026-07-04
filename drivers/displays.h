@@ -40,6 +40,7 @@
 #include "./shtc3/driver_shtc3_basic.h"
 #include "./aht20/driver_aht20_basic.h"
 #include "./htu31d/driver_htu31d_basic.h"
+#include "./pmsa003i/driver_pmsa003i_basic.h"
 
 #ifdef __cplusplus
 extern "C"{

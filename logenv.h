@@ -91,7 +91,7 @@ uint8_t ssd1306_iic_init = 0;
 
 uint16_t sh1107_iic_addr = 0x3d << 1;
 char sh1107_iic_dev[14] = "/dev/i2c-0";
-char sh1107_spi_dev[14] = "/dev/spidev0.0";
+char sh1107_spi_dev[18] = "/dev/spidev0.0";
 uint8_t sh1107_iic_init = 0;
 
 int16_t pwr_in;
@@ -152,6 +152,10 @@ uint8_t scd4x_iic_init = 0;
 uint16_t sgp30_iic_addr = 0x58 << 1;
 char sgp30_iic_dev[14] = "/dev/i2c-0";
 uint8_t sgp30_iic_init = 0;
+
+uint16_t pmsa003i_iic_addr = 0x12 << 1;
+char pmsa003i_iic_dev[14] = "/dev/i2c-0";
+uint8_t pmsa003i_iic_init = 0;
 
 char *smartpower = "/dev/ttyUSB0";
 char *sensor = "/dev/i2c-0";
@@ -224,6 +228,7 @@ static int8_t SGP30_ENABLE = 0;
 static int8_t SHTC3_ENABLE = 0;
 static int8_t HTU31D_ENABLE = 0;
 static int8_t SHT4X_ENABLE = 0;
+static int8_t PMSA003I_ENABLE = 0;
 
 static int8_t DISPLAY_ENABLE = 0;
 static int8_t SSD1681_ENABLE = 0;
@@ -270,6 +275,7 @@ static int8_t DP_SCD4X = 0;
 static int8_t DP_SGP30 = 0;
 static int8_t DP_SHT4X = 0;
 static int8_t DP_SHTC3 = 0;
+static int8_t DP_PMSA003I = 0;
 
 static int16_t xmtics = 10;
 static int32_t temperature;

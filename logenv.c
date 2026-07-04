@@ -476,6 +476,16 @@ int main(uint8_t argc, char **argv) {
                             sgp30_iic_init = 1;
                             DP_SGP30++;
                         }
+                        if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].name,"pmsa003i")) {
+                            strcpy(pmsa003i_iic_dev, dp[DISPLAY_ENABLE].dc[ac].device);
+                            pmsa003i_iic_addr = dp[DISPLAY_ENABLE].dc[ac].address << 1;
+                            if (pmsa003i_basic_init()) {
+                                printf("\nERROR: pmsa003i Init failed.\n");
+                                exit(EXIT_FAILURE);
+                            }
+                            pmsa003i_iic_init = 1;
+                            DP_PMSA003I++;
+                        }
                     }
                     ac++;
                 }
@@ -1011,6 +1021,34 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
+         * pmsa003i command line option
+         */
+        if(!strcmp(argv[i], "--pmsa300i")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        pmsa003i_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(pmsa003i_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(pmsa003i_iic_dev, interface);
+                    }
+                }
+                if(pmsa003i_iic_init == 0) {
+                    if (pmsa003i_basic_init()) {
+                        printf("\nERROR: PMSA003I Init failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    pmsa003i_iic_init == 1;
+                 }
+            }
+            PMSA003I_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
          * smartpower command line option
          */
         if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
@@ -1072,6 +1110,7 @@ int main(uint8_t argc, char **argv) {
      * primary poll loop
      */
     if (GNUPLOT_ENABLE == 0) {
+
         double i = 0;
         int8_t c = OPTIONS_COUNT;
 
@@ -1086,14 +1125,18 @@ int main(uint8_t argc, char **argv) {
                 printf("%.3f", i/1000);
             }
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1 && COUNT_ENABLE == 1) {
+
                 now = time((time_t *)NULL);
                 t = localtime(&now);
+
                 printf("%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, \
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
             }
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1 && COUNT_ENABLE == 0) {
+
                 now = time((time_t *)NULL);
                 t = localtime(&now);
+
                 if(OPTIONS_COUNT != 0) {
                     printf("%4d-%02d-%02d %02d:%02d:%02d,", t->tm_year+1900, t->tm_mon+1, \
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
@@ -1186,7 +1229,7 @@ int main(uint8_t argc, char **argv) {
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
                     printf("\nERROR: Cannot open %s\n\n", logfile);
-                exit(EXIT_FAILURE);
+                    exit(EXIT_FAILURE);
                 }
                 if(COUNT_ENABLE && DT_ENABLE == 0) {
                     fprintf(log_file,"%.3f", i/1000);
@@ -1203,8 +1246,10 @@ int main(uint8_t argc, char **argv) {
                     udp_count = sprintf(udp_tx_data,"%.3f", i/1000);
                 }
                 if(DT_ENABLE == 1) {
+
                     now = time((time_t *) NULL);
                     t = localtime(&now);
+
                     if(COUNT_ENABLE >= 1 && OPTIONS_COUNT > 1) {
                         udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
                                 t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
@@ -1231,6 +1276,7 @@ int main(uint8_t argc, char **argv) {
                     printf("\n");
                 }
                 for (uint16_t c = 0; c < FREQ_ENABLE; c++) {
+
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(cpufreq,cpufreq1);
@@ -1310,6 +1356,7 @@ int main(uint8_t argc, char **argv) {
             }
             if(DP_FREQ != 0) {
                 for (uint16_t c = 0; c < FREQ_ENABLE; c++) {
+
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(cpufreq,cpufreq1);
@@ -1353,6 +1400,7 @@ int main(uint8_t argc, char **argv) {
              */
             if(THERMAL_ENABLE != 0) {
                 for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
+
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(thermalzone,thermalzone1);
@@ -1438,6 +1486,7 @@ int main(uint8_t argc, char **argv) {
             }
             if(DP_THERMAL != 0) {
                 for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
+
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(thermalzone,thermalzone1);
@@ -1495,10 +1544,10 @@ int main(uint8_t argc, char **argv) {
                 uint8_t corecnt = 0;
 
                 if(!USAGE_ENABLE) {
-                corecnt = DP_USAGE;
+                    corecnt = DP_USAGE;
                 }
                 else {
-                corecnt = USAGE_ENABLE;
+                    corecnt = USAGE_ENABLE;
                 }
                 if((cpu_use = fopen(cpuusage, "r")) == NULL) {
                     printf("\nERROR: Cannot open %s\n", cpuusage);
@@ -3035,6 +3084,104 @@ int main(uint8_t argc, char **argv) {
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
                                     printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            /*
+             * PMSA003I enabled
+             */
+            if(PMSA003I_ENABLE != 0 || DP_PMSA003I != 0) {
+
+                pmsa003i_data_t data;
+
+                uint8_t res = pmsa003i_basic_read(&data);
+                if (res != 0) {
+                    (void)pmsa003i_basic_deinit();
+                    return 1;
+                }
+                if(PMSA003I_ENABLE != 0) {
+                    printf("pm1p0_standard_ug_m3 = %d\n", data.pm1p0_standard_ug_m3);
+                    printf("pm2p5_standard_ug_m3 = %d\n", data.pm2p5_standard_ug_m3);
+                    printf("pm10_standard_ug_m3 = %d\n", data.pm10_standard_ug_m3);
+                    printf("pm1p0_atmospheric_ug_m3 = %d\n", data.pm1p0_atmospheric_ug_m3);
+                    printf("pm2p5_atmospheric_ug_m3 = %d\n", data.pm2p5_atmospheric_ug_m3);
+                    printf("pm10_atmospheric_ug_m3 = %d\n", data.pm10_atmospheric_ug_m3);
+                    printf("beyond_0p3um = %d\n", data.beyond_0p3um);
+                    printf("beyond_0p5um = %d\n", data.beyond_0p5um);
+                    printf("beyond_1p0um = %d\n", data.beyond_1p0um);
+                    printf("beyond_2p5um = %d\n", data.beyond_2p5um);
+                    printf("beyond_5p0um = %d\n", data.beyond_5p0um);
+                    printf("beyond_10um = %d\n", data.beyond_10um);
+                    printf("version = %d\n", data.version);
+                    printf("error_code = %d\n", data.error_code);
+                    /*
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n sgp30 VOC = %d ppm\n", tvoc_ppb);
+                        printf("      eCO2 = %d ppm\n", co2_eq_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%d,%d,", tvoc_ppb, co2_eq_ppm);
+                        }
+                        else {
+                            printf("%d,%d", tvoc_ppb, co2_eq_ppm);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
+                        }
+                    }
+                    */
+                    OPTIONS_COUNT--;
+                }
+                if(DP_PMSA003I != 0) {
+
+                    for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
+                        for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
+                            if(!strcmp(dp[d].dc[i].name, "pmsa003i") && dp[d].page == page) {
+
+                                char buffer[10];
+
+//                                sprintf(buffer, "%d", co2_eq_ppm);
+//                                strcpy(dp[d].dc[i].data4, buffer);
+//                                sprintf(buffer, "%d", tvoc_ppb);
+//                                strcpy(dp[d].dc[i].data5, buffer);
+
+//                                if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
+//                                    printf("%s pmsa003i cmd %d failed\n", &dp[d].name, i);
+//                                }
                             }
                         }
                     }
@@ -4711,6 +4858,9 @@ int main(uint8_t argc, char **argv) {
     }
     if (SGP30_ENABLE == 1 || DP_SGP30 != 0) {
         (void)sgp30_advance_deinit();
+    }
+    if (PMSA003I_ENABLE == 1 || DP_PMSA003I != 0) {
+        (void)pmsa003i_basic_deinit();
     }
 }
 
