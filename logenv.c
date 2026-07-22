@@ -122,7 +122,7 @@ int main(uint8_t argc, char **argv) {
                 cJSON *name = cJSON_GetObjectItemCaseSensitive(item, "name");
                 if (cJSON_IsString(name) && (name->valuestring != NULL)) {
                     strcpy(dp[DISPLAY_ENABLE].name, name->valuestring);
-                    if(VERBOSE_DEBUG) printf("Displays: %s ", &dp[DISPLAY_ENABLE].name);
+                    if(VERBOSE_DEBUG) printf("Displays: %s ", (char *) &dp[DISPLAY_ENABLE].name);
                 }
                 dp[DISPLAY_ENABLE].dptr = !strcmp(dp[DISPLAY_ENABLE].name,"ssd1681") ? ssd1681 :
                     !strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") ? ssd1306 :
@@ -132,7 +132,7 @@ int main(uint8_t argc, char **argv) {
                 cJSON *device = cJSON_GetObjectItemCaseSensitive(item, "device");
                 if (cJSON_IsString(device) && (device->valuestring)) {
                     strcpy(dp[DISPLAY_ENABLE].device, device->valuestring);
-                    if(VERBOSE_DEBUG) printf("%s ", &dp[DISPLAY_ENABLE].device);
+                    if(VERBOSE_DEBUG) printf("%s ", (char *) &dp[DISPLAY_ENABLE].device);
                 }
                 cJSON *address = cJSON_GetObjectItemCaseSensitive(item, "address");
                 if (cJSON_IsNumber(address)) {
@@ -228,17 +228,17 @@ int main(uint8_t argc, char **argv) {
                     strcpy(dp[DISPLAY_ENABLE].dc[ac].unit, unit->valuestring);
 
                     if(VERBOSE_DEBUG) {
-                        printf("  %s ", &dp[DISPLAY_ENABLE].dc[ac].cmd);
-                        printf("%s", &dp[DISPLAY_ENABLE].dc[ac].name);
-                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].device);
+                        printf("  %s ", (char *) &dp[DISPLAY_ENABLE].dc[ac].cmd);
+                        printf("%s", (char *) &dp[DISPLAY_ENABLE].dc[ac].name);
+                        printf("%s ", (char *) &dp[DISPLAY_ENABLE].dc[ac].device);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].address);
-                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].dtype);
+                        printf("%s ", (char *) &dp[DISPLAY_ENABLE].dc[ac].dtype);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].xloc);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].yloc);
                         printf("%d ", dp[DISPLAY_ENABLE].dc[ac].color);
-                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].font);
-                        printf("%s ", &dp[DISPLAY_ENABLE].dc[ac].label);
-                        printf("%s\n", &dp[DISPLAY_ENABLE].dc[ac].unit);
+                        printf("%s ", (char *) &dp[DISPLAY_ENABLE].dc[ac].font);
+                        printf("%s ", (char *) &dp[DISPLAY_ENABLE].dc[ac].label);
+                        printf("%s\n", (char *) &dp[DISPLAY_ENABLE].dc[ac].unit);
                     }
 
                     if(!strcmp(dp[DISPLAY_ENABLE].dc[ac].cmd,"date")) {
@@ -264,7 +264,7 @@ int main(uint8_t argc, char **argv) {
                         if(iio_counted == 0) {
                             for (uint16_t c = 0; c <= 1024; c++) {
 
-                                char iioloc[255] = "\0";
+                                char iioloc[256] = "\0";
                                 char strChar[5] = "\0";
 
                                 itoa(c,strChar);
@@ -493,10 +493,10 @@ int main(uint8_t argc, char **argv) {
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1681") && dp[DISPLAY_ENABLE].page == 0) {
                     strcpy(ssd1681_spi_dev, dp[DISPLAY_ENABLE].device);
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
-                        printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
+                        printf("%s open failed\n", (char *) &dp[DISPLAY_ENABLE].name);
                         exit(EXIT_FAILURE);
                     }
-                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", (char *) &dp[DISPLAY_ENABLE].name);
                     SSD1681_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "ssd1306") && dp[DISPLAY_ENABLE].page == 0) {
@@ -507,10 +507,10 @@ int main(uint8_t argc, char **argv) {
                         strcpy(ssd1306_iic_dev, dp[DISPLAY_ENABLE].device);
                     }
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
-                        printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
+                        printf("%s open failed\n", (char *) &dp[DISPLAY_ENABLE].name);
                         exit(EXIT_FAILURE);
                     }
-                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", (char *) &dp[DISPLAY_ENABLE].name);
                     SSD1306_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "sh1107") && dp[DISPLAY_ENABLE].page == 0) {
@@ -521,19 +521,19 @@ int main(uint8_t argc, char **argv) {
                         strcpy(sh1107_iic_dev, dp[DISPLAY_ENABLE].device);
                     }
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
-                        printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
+                        printf("%s open failed\n", (char *) &dp[DISPLAY_ENABLE].name);
                         exit(EXIT_FAILURE);
                     }
-                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", (char *) &dp[DISPLAY_ENABLE].name);
                     SH1107_ENABLE = 1;
                 }
                 if(!strcmp(dp[DISPLAY_ENABLE].name, "st7789") && dp[DISPLAY_ENABLE].page == 0) {
                     strcpy(st7789_spi_dev, dp[DISPLAY_ENABLE].device);
                     if(dp[DISPLAY_ENABLE].dptr(&dp[DISPLAY_ENABLE], i, DISPLAY_OPEN)) {
-                        printf("%s open failed\n", &dp[DISPLAY_ENABLE].name);
+                        printf("%s open failed\n", (char *) &dp[DISPLAY_ENABLE].name);
                         exit(EXIT_FAILURE);
                     }
-                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", &dp[DISPLAY_ENABLE].name);
+                    if(VERBOSE_DEBUG) printf("Display: %s open.\n", (char *) &dp[DISPLAY_ENABLE].name);
                     ST7789_ENABLE = 1;
                 }
                 DISPLAY_ENABLE++;
@@ -596,7 +596,7 @@ int main(uint8_t argc, char **argv) {
         }
         if(!strcmp(argv[i], "-n") || !strcmp(argv[i], "--udp")) {
             if((i+1) < argc && !strncmp(":", argv[i+1], 0)) {
-                sscanf(argv[i+1], "%[^':']:%d", udp_name, &udp_port);
+                sscanf(argv[i+1], "%[^':']:%hd", udp_name, &udp_port);
             }
             udp_host = (struct hostent *) gethostbyname((char *)udp_name);
             if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
@@ -1168,7 +1168,7 @@ int main(uint8_t argc, char **argv) {
                             }
                             strcpy(dp[d].dc[i].data1, buffer);
                             if(dp[d].dptr(&dp[d], i, DISPLAY_TIME)){
-                                printf("%s time failed\n", &dp[d].name);
+                                printf("%s time failed\n", (char *) &dp[d].name);
                             }
                         }
                         if(DISPLAY_ENABLE  != 0 && DP_DATE  != 0 && !strcmp(dp[d].dc[i].cmd, "date")) {
@@ -1219,7 +1219,7 @@ int main(uint8_t argc, char **argv) {
 
                             if(dp[d].page == page) {
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_DATE)){
-                                    printf("%s date failed\n", i, &dp[d].name);
+                                    printf("%s date failed\n", (char *) &dp[d].name);
                                 }
                             }
                         }
@@ -1387,7 +1387,7 @@ int main(uint8_t argc, char **argv) {
                                     dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
                                 }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s thermal cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s thermal cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                                 dp[d].dc[i].yloc = yloc_reset;
                             }
@@ -1515,9 +1515,9 @@ int main(uint8_t argc, char **argv) {
                             if(!strcmp(dp[d].dc[i].cmd, "thermal") && dp[d].page == page && (r == -1 || r == c)) {
 
                                 uint16_t yloc_reset = dp[d].dc[i].yloc;
-                                char buffer[25];
+                                char buffer[256];
 
-                                sprintf(buffer, "%s", thermalname);
+                                sprintf(buffer, "%s", (char *) thermalname);
                                 strcpy(dp[d].dc[i].data1, buffer);
                                 sprintf(buffer, "%.2lf", coretemp/1000);
                                 strcpy(dp[d].dc[i].data2, buffer);
@@ -1525,7 +1525,7 @@ int main(uint8_t argc, char **argv) {
                                     dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
                                 }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s thermal cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s thermal cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                                 dp[d].dc[i].yloc = yloc_reset;
                             }
@@ -1685,7 +1685,7 @@ int main(uint8_t argc, char **argv) {
                                         dp[d].dc[i].yloc =  dp[d].dc[i].yloc + c*(fontoi(dp[d].dc[i].font));
                                     }
                                     if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                        printf("%s usage cmd %d failed\n", &dp[d].name, i);
+                                        printf("%s usage cmd %d failed\n", (char *) &dp[d].name, i);
                                     }
                                     dp[d].dc[i].yloc = yloc_reset;
                                 }
@@ -1794,7 +1794,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s memory cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s memory cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -1926,7 +1926,7 @@ int main(uint8_t argc, char **argv) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
                     temp[sp_read] = 0;
-                    sscanf(temp, "%Lf,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
+                    sscanf(temp, "%Lf,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hx,%hx\n",  \
                         &sp_ms, \
                         &in_mv, &in_ma, &in_w, &in_on, \
                         &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
@@ -1986,7 +1986,7 @@ int main(uint8_t argc, char **argv) {
                 if(MCP9808_ENABLE != 0) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%d", temperature);
+                        printf(",%f", temperature);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n MCP9808 Temp = %.2lfc\n", temperature);
@@ -2033,7 +2033,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data1, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s mcp9808 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s mcp9808 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2062,7 +2062,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n sht4x Temp = %.2lf c\n", temperature_f);
-                        printf("       Humd = %.2lf %\n", humidity_f);
+                        printf("       Humd = %.2lf %s\n", humidity_f, "%");
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf,%.2lf", temperature_f, humidity_f);
@@ -2119,7 +2119,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s sht4x cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s sht4x cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2147,7 +2147,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n shtc3 Temp = %.2lf c\n", temperature_f);
-                        printf("       Humd = %.2lf %\n", humidity_f);
+                        printf("       Humd = %.2lf %s\n", humidity_f, "%");
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf,%.2lf", temperature_f, humidity_f);
@@ -2204,7 +2204,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s shtc3 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s shtc3 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2228,49 +2228,49 @@ int main(uint8_t argc, char **argv) {
 
                 if(AHT20_ENABLE != 0) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f,%f", temperature_f, humidity_f);
+                        printf(",%f,%d", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n aht20 Temp = %.2lf c", temperature_f);
-                        printf("       Humd = %.2lf %\n", humidity_f);
+                        printf("       Humd = %.2d %s\n", humidity_f, "%");
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                            printf(",%.2lf,%.2d", temperature_f, humidity_f);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                            printf("%.2lf,%.2d,", temperature_f, humidity_f);
                         }
                         else {
-                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                            printf("%.2lf,%.2d", temperature_f, humidity_f);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                        fprintf(log_file,",%f,%d", temperature_f, humidity_f);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                        fprintf(log_file,",%.2lf,%.2d", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%d", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
                         if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d", temperature_f, humidity_f);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2d", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
                        if(OPTIONS_COUNT > 1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2d,", temperature_f, humidity_f);
                         }
                         else {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2d", temperature_f, humidity_f);
                         }
                     }
                     OPTIONS_COUNT--;
@@ -2289,7 +2289,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s aht20 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s aht20 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2317,7 +2317,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n htu31d Temp = %.2lf c\n", temperature_f);
-                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("        Humd = %.2lf %s\n", humidity_f, "%");
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
                             printf(",%.2lf,%.2lf", temperature_f, humidity_f);
@@ -2374,7 +2374,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data2, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s htu31d cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s htu31d cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2460,7 +2460,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data3, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bmp180 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s bmp180 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2546,7 +2546,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data3, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bmp388 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s bmp388 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2634,7 +2634,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data3, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bmp390 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s bmp390 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2664,7 +2664,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n BME280 Temp = %.2lf c\n", temperature_f);
-                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("        Humd = %.2lf %s\n", humidity_f, "%");
                         printf("        Pres = %.2lf hPa\n", pressure_f/100);
                      }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
@@ -2724,7 +2724,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data3, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bme280 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s bme280 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2759,7 +2759,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n BME680 Temp = %.2lf c\n", temperature_f);
-                        printf("        Humd = %.2lf %\n", humidity_f);
+                        printf("        Humd = %.2lf %s\n", humidity_f, "%");
                         printf("        Pres = %.2lf hPa\n", pressure_f/100);
                         printf("         Gas = %d\n", index);
                     }
@@ -2822,7 +2822,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data5, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s bme680 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s bme680 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2843,11 +2843,11 @@ int main(uint8_t argc, char **argv) {
                 }
                 if(SCD30_ENABLE != 0) {
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%f,%f,%f", data.co2_ppm);
+                        printf(",%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n scd30 Temp = %.2lf c\n", data.temperature_deg);
-                        printf("       Humd = %.2lf %\n", data.humidity_percent);
+                        printf("       Humd = %.2lf %s\n", data.humidity_percent, "%");
                         printf("        CO2 = %.2lf ppm\n", data.co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
@@ -2908,7 +2908,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data4, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s scd30 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s scd30 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -2935,7 +2935,7 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n scd4x Temp = %.2lf c\n", temperature_f);
-                        printf("       Humd = %.2lf %\n", humidity_f);
+                        printf("       Humd = %.2lf %s\n", humidity_f, "%");
                         printf("        CO2 = %d ppm\n", co2_ppm);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
@@ -2998,7 +2998,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data4, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s scd41 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3082,7 +3082,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data5, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s scd41 cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s scd41 cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3189,7 +3189,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data8, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_SENSOR)){
-                                    printf("%s pmsa003i cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s pmsa003i cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3216,12 +3216,12 @@ int main(uint8_t argc, char **argv) {
 
                                 char governor[25];
 
-                                fscanf(governor_file, "%s", &governor);
+                                fscanf(governor_file, "%s", (char *) &governor);
                                 fclose(governor_file);
 
                                 strcpy(dp[d].dc[i].data1, governor);
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s governor cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s governor cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3239,7 +3239,7 @@ int main(uint8_t argc, char **argv) {
                                 char buffer[25] = {0};
 
                                 if(statfs(dp[d].dc[i].device, &stat) != 0) {
-                                    printf("%s cmd %d failed, path %s not found.\n", &dp[d].name, i, dp[d].dc[i].device);
+                                    printf("%s cmd %d failed, path %s not found.\n", (char *) &dp[d].name, i, dp[d].dc[i].device);
                                     break;;
                                 }
 
@@ -3265,7 +3265,7 @@ int main(uint8_t argc, char **argv) {
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s disk cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s disk cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3283,7 +3283,7 @@ int main(uint8_t argc, char **argv) {
                                 char buffer[127] = "\0";
 
                                 if(sysinfo(&sys_info) != 0) {
-                                    printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
+                                    printf("%s cmd %d sysinfo failed\n", (char *) &dp[d].name, i);
                                     break;;
                                 }
 
@@ -3300,7 +3300,7 @@ int main(uint8_t argc, char **argv) {
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s uptime cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s uptime cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3318,7 +3318,7 @@ int main(uint8_t argc, char **argv) {
                                 char buffer[127] = "\0";
 
                                 if(sysinfo(&sys_info) != 0) {
-                                    printf("%s cmd %d sysinfo failed\n", &dp[d].name, i);
+                                    printf("%s cmd %d sysinfo failed\n", (char *) &dp[d].name, i);
                                     break;;
                                 }
 
@@ -3335,7 +3335,7 @@ int main(uint8_t argc, char **argv) {
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s sysload cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s sysload cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3353,7 +3353,7 @@ int main(uint8_t argc, char **argv) {
                                 char buffer[127] = "\0";
 
                                 if(sysinfo(&sys_info) != 0) {
-                                    printf("%s cmd %d swap failed\n", &dp[d].name, i);
+                                    printf("%s cmd %d swap failed\n", (char *) &dp[d].name, i);
                                     break;;
                                 }
 
@@ -3379,7 +3379,7 @@ int main(uint8_t argc, char **argv) {
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s swap cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s swap cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3396,7 +3396,7 @@ int main(uint8_t argc, char **argv) {
                                 struct utsname uname_info;
 
                                 if(uname(&uname_info) != 0) {
-                                    printf("%s cmd %d uname failed\n", &dp[d].name, i);
+                                    printf("%s cmd %d uname failed\n", (char *) &dp[d].name, i);
                                     break;;
                                 }
 
@@ -3405,7 +3405,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data1, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s hostname cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s hostname cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3424,8 +3424,8 @@ int main(uint8_t argc, char **argv) {
                                     char buffer[24] = "\0";
                                     char strChar[5] = "\0";
                                     char iio_name[24] = "\0";
-                                    char iioloc[255] = "\0";
-                                    char iiosensor[255] = "\0";
+                                    char iioloc[256] = "\0";
+                                    char iiosensor[256] = "\0";
 
                                     itoa(c,strChar);
                                     strcpy(iioloc,iiopath);
@@ -3436,7 +3436,7 @@ int main(uint8_t argc, char **argv) {
                                         printf("\nERROR: Cannot open %s\n", iioloc);
                                         exit(EXIT_FAILURE);
                                     }
-                                    fscanf(iio_file, "%s", &iio_name);
+                                    fscanf(iio_file, "%s", (char *) &iio_name);
                                     fclose(iio_file);
 
                                     if(!strcmp(dp[d].dc[i].name, iio_name)) {
@@ -3473,7 +3473,7 @@ int main(uint8_t argc, char **argv) {
                                         }
 
                                         if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                            printf("%s iio cmd %d failed\n", &dp[d].name, i);
+                                            printf("%s iio cmd %d failed\n", (char *) &dp[d].name, i);
                                         }
                                     }
                                 }
@@ -3492,7 +3492,7 @@ int main(uint8_t argc, char **argv) {
                                 struct utsname uname_info;
 
                                 if(uname(&uname_info) != 0) {
-                                    printf("%s cmd %d uname failed\n", &dp[d].name, i);
+                                    printf("%s cmd %d uname failed\n", (char *) &dp[d].name, i);
                                     break;;
                                 }
 
@@ -3501,7 +3501,7 @@ int main(uint8_t argc, char **argv) {
                                 strcpy(dp[d].dc[i].data1, buffer);
 
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s kernel version cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s kernel version cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3540,7 +3540,7 @@ int main(uint8_t argc, char **argv) {
                                             sprintf(dp[d].dc[i].data2, "%s", host);
 
                                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                                printf("%s ip cmd %d failed\n", &dp[d].name, i);
+                                                printf("%s ip cmd %d failed\n", (char *) &dp[d].name, i);
                                             }
                                         }
                                     }
@@ -3558,7 +3558,7 @@ int main(uint8_t argc, char **argv) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].cmd, "text") && dp[d].page == page) {
                                 if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
-                                    printf("%s text cmd %d failed\n", &dp[d].name, i);
+                                    printf("%s text cmd %d failed\n", (char *) &dp[d].name, i);
                                 }
                             }
                         }
@@ -3585,7 +3585,7 @@ int main(uint8_t argc, char **argv) {
                 for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                     if(dp[d].page == page) {
                         if(dp[d].dptr(&dp[d], i, DISPLAY_UPDATE)){
-                            printf("%s update failed\n", &dp[d].name);
+                            printf("%s update failed\n", (char *) &dp[d].name);
                         }
                     }
                 }

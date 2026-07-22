@@ -165,7 +165,7 @@ char *cpuusage = "/proc/stat";
 
 static double long use[10][256] = {0};
 
-char cpufreq[255];
+char cpufreq[256];
 char *cpufreq1 = "/sys/devices/system/cpu/cpu";
 char *cpufreq2 = "/cpufreq/scaling_cur_freq";
 
@@ -177,23 +177,23 @@ char *mem_buffers = "Buffers:";
 char *mem_cached = "Cached:";
 char *mem_srec = "SReclaimable:";
 
-char thermalzone[255];
+char thermalzone[256];
 char *thermalzone1 = "/sys/devices/virtual/thermal/thermal_zone";
 char *thermalzone2 = "/temp";
 
-char thermaltype[255];
+char thermaltype[256];
 char *thermaltype1 = "/type";
-char thermalname[255];
+char thermalname[256];
 char ambient_sensor[15] = "\0";
 
-char governorloc[255] = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
+char governorloc[256] = "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor";
 
 uint8_t iio_counted = 0;
-char iiopath[255] = "/sys/bus/iio/devices/iio:device";
+char iiopath[256] = "/sys/bus/iio/devices/iio:device";
 
-char logfile[255];
-char gplotfile[255];
-char jsonfile[255];
+char logfile[256];
+char gplotfile[256];
+char jsonfile[256];
 char version[] = "2.0 alpha";
 
 static uint32_t INTERACTIVE_ENABLE = 0;
@@ -284,7 +284,7 @@ static int32_t pressure;
 static int32_t freq;
 static float coretemp;
 
-static char charttitle[255] = "Main Title";
+static char charttitle[256] = "Main Title";
 
 static char gpscript_start[12][75] = {
     "#!/usr/bin/gnuplot --persist\n",

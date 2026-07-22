@@ -187,6 +187,7 @@ void bmp390_interface_delay_ms(uint32_t ms)
 void bmp390_interface_debug_print(const char *const fmt, ...)
 {
     char str[256];
+    uint16_t len;
     va_list args;
     
     memset((char *)str, 0, sizeof(char) * 256); 
@@ -194,7 +195,8 @@ void bmp390_interface_debug_print(const char *const fmt, ...)
     vsnprintf((char *)str, 255, (char const *)fmt, args);
     va_end(args);
     
-    (void)printf((uint8_t *)str);
+    len = strlen((char *)str);
+    (void)printf((uint8_t *)str, len);
 }
 
 /**

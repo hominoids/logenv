@@ -2,7 +2,8 @@ CC=gcc
 CFLAG=-Wall -g -std=c11
 LDFLAG=-lm -lpthread -lgpiod -lcjson
 
-OBJGROUP=drivers/ssd1681/driver_ssd1681.o drivers/ssd1681/driver_ssd1681_interface.o \
+OBJGROUP=logenv.o \
+	 drivers/ssd1681/driver_ssd1681.o drivers/ssd1681/driver_ssd1681_interface.o \
 	 drivers/ssd1681/driver_ssd1681_basic.o \
 	 drivers/ssd1306/driver_ssd1306.o drivers/ssd1306/driver_ssd1306_interface.o \
 	 drivers/ssd1306/driver_ssd1306_advance.o \
@@ -37,13 +38,12 @@ OBJGROUP=drivers/ssd1681/driver_ssd1681.o drivers/ssd1681/driver_ssd1681_interfa
 	 drivers/pmsa003i/driver_pmsa003i.o drivers/pmsa003i/driver_pmsa003i_basic.o \
 	 drivers/pmsa003i/driver_pmsa003i_interface.o \
 	 drivers/interface/iic.o drivers/interface/spi.o drivers/interface/wire.o \
-	 drivers/interface/uart.o drivers/mcp9808/mcp9808.o \
-	 drivers/displays.o logenv.o
+	 drivers/interface/uart.o drivers/mcp9808/mcp9808.o drivers/displays.o
 
 all: logenv
 
 logenv: $(OBJGROUP)
-	$(CC) $(CFLAG) -o logenv $(LDFLAG) $(OBJGROUP)
+	$(CC) $(CFLAG) -o logenv $(OBJGROUP) $(LDFLAG)
 
 clean:
 	rm *.o logenv drivers/*.o drivers/interface/*.o \
