@@ -3108,9 +3108,6 @@ int main(uint8_t argc, char **argv) {
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                         printf("\n pmsa003i\n");
-                        printf("  pm1p0_standard_ug_m3 = %d\n", data.pm1p0_standard_ug_m3);
-                        printf("  pm2p5_standard_ug_m3 = %d\n", data.pm2p5_standard_ug_m3);
-                        printf("  pm10_standard_ug_m3 = %d\n", data.pm10_standard_ug_m3);
                         printf("  pm1p0_atmospheric_ug_m3 = %d\n", data.pm1p0_atmospheric_ug_m3);
                         printf("  pm2p5_atmospheric_ug_m3 = %d\n", data.pm2p5_atmospheric_ug_m3);
                         printf("  pm10_atmospheric_ug_m3 = %d\n", data.pm10_atmospheric_ug_m3);
@@ -4965,7 +4962,7 @@ void usage (void) {
         printf("      --scd40 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
         printf("      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
         printf("      --scd43 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
-        printf("      --psma003i <device>     Particle Sensor PM1.0, PM2.5, PM10.0 I2C 0x12 default /dev/i2c-0\n");
+        printf("      --pmsa003i <device>     Particle Sensor PM1.0, PM2.5, PM10.0 I2C 0x12 default /dev/i2c-0\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
         printf(" -q,  --quiet                 No output to stdout\n");
         printf(" -v,  --verbose               Readable dashboard output\n");
