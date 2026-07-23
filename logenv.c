@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024,2025,2026 Edward A. Kisiel
+    logenv Copyright 2019-present Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -3537,7 +3537,8 @@ int main(uint8_t argc, char **argv) {
                                         }
                                         if(!strcmp(dp[d].dc[i].name, ifa->ifa_name)) {
                                             sprintf(dp[d].dc[i].data1, "%s ", ifa->ifa_name);
-                                            sprintf(dp[d].dc[i].data2, "%s", host);
+//                                            sprintf(dp[d].dc[i].data2, "%s", host);
+                                            strncpy(dp[d].dc[i].data2, host, 29);
 
                                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
                                                 printf("%s ip cmd %d failed\n", (char *) &dp[d].name, i);

@@ -1,7 +1,5 @@
 # logenv
 
-This is a development branch and a work in progress that is not fully completed or documented.  The original Logenv is available on the classic branch or as release v1.0. 
-
 ## Introduction
 logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as provide a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
 
@@ -12,14 +10,19 @@ License: GPLv3.
 
 ### Prerequisite
 
-cjson and gpiod are required to compile logenv while gnuplot is only needed if generating charts. Any OS repository version of cjson should work but gpiod version 1.x is needed until 2.x is supported.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
+cjson and gpiod are required to compile logenv while gnuplot is only needed if generating charts post process. Any OS repository version of cjson should work but gpiod version 1.x is needed until 2.x is supported.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
 
-cjson
-https://github.com/DaveGamble/cJSON
 
-gpiod v1.x
-https://libgpiod.readthedocs.io/en/stable/
+Ubuntu 20 - Ubuntu 24
+```
+sudo apt install libgpiod-dev libcjson-dev build-essential
+```
 
+Ubuntu 26
+```
+sudo apt install libcjson-dev build-essential
+```
+Ubuntu 26 repository has gpiod 2.x so build and install gpiod 1.64.
 ````
 wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.4.tar.xz
 tar -xvf ./libgpiod-1.6.4.tar.xz

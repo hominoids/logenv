@@ -194,7 +194,7 @@ char iiopath[256] = "/sys/bus/iio/devices/iio:device";
 char logfile[256];
 char gplotfile[256];
 char jsonfile[256];
-char version[] = "2.0 alpha";
+char version[] = "2.0 beta";
 
 static uint32_t INTERACTIVE_ENABLE = 0;
 
