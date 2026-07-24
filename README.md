@@ -8,7 +8,7 @@ logenv is a Linux command-line utility for the aggregating, logging, charting an
 License: GPLv3.
 
 
-### Prerequisite
+## Prerequisite
 
 cjson and gpiod are required to compile logenv while gnuplot is only needed if generating charts post process. Any OS repository version of cjson should work but gpiod version 1.x is needed until 2.x is supported.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
 
@@ -46,7 +46,7 @@ $ echo "/usr/local/lib" | sudo tee /etc/ld.so.conf.d/custom.conf
 $ sudo ldconfig
 ```
 
-### Build
+## Build
 ```
   git clone https://github.com/hominoids/logenv.git
   cd logenv
@@ -84,7 +84,7 @@ Options:
              --scd40 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
              --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
              --scd43 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0
-             --psma003i <device>     Particle Sensor PM1.0, PM2.5, PM10.0 I2C 0x12 default /dev/i2c-0
+             --pmsa003i <device>     Particle Sensor PM1.0, PM2.5, PM10.0 I2C 0x12 default /dev/i2c-0
         -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35
         -q,  --quiet                 No output to stdout
         -v,  --verbose               Readable dashboard output
@@ -98,12 +98,12 @@ Options:
 ```
 
 
-## Example
+### Example
 This example is a typical data collection and charting workflow:
 
 Every 2 seconds collect the CPU frequency, thermal zone temperatures, CPU usage, SmartPower3 Volt, Amp and Watts, and mcp9808 as ambient temperature. 
 ```
-./logenv -l ocl-m2_g610-a76_1.csv -i 2000 -f -t --mcp9808 -u -p
+./logenv -l ocl-m2_g610-a76_1.csv -i 2000 -f -t -a --mcp9808 -u -p
 ```
 
 Generate the GNUplot script
@@ -117,7 +117,7 @@ gnuplot -c ocl-m2_g610-a76_1.gpl ocl-m2_g610-a76_1.png ocl-m2_g610-a76_1.csv
 ```
 
 
-## SmartPower Settings
+### SmartPower Settings
 Settings for the Hard Kernel SmartPower3 and SmartPower2 are baud rate 115200,8N1 with no HW or SW control.
 
 ## Builtin Sensor Support
@@ -746,6 +746,13 @@ DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
 
 ```
 
+### Display systemd Service
+The display can be started at boot time by using the included systemd service file *logenv-display.service.* Copy it to */etc/systemd/system/* but before enabling and starting it, place the display json configuration file *logenv.json* in the directory */etc/logenv/* after configuring the display and page content.
+
+```
+sudo systemctl enable logenv-display
+sudo systemctl start logenv-display
+``` 
 
 ### Tested Displays
 Basic display capability has not been fully implemented so only limited display tests have been performed.  More testing will occur as development proceeds.

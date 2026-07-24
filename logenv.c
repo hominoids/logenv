@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019-present Edward A. Kisiel
+    logenv Copyright 2019-Present Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
