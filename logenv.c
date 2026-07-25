@@ -3740,19 +3740,19 @@ int main(uint8_t argc, char **argv) {
         sensor_ambient = USAGE_ENABLE > 0 ? sensor_ambient + USAGE_ENABLE : sensor_ambient;
         sensor_ambient = MEM_ENABLE > 0 ? sensor_ambient + MEM_ENABLE : sensor_ambient;
 
-        sensor_ambient = !strcmp(ambient_sensor, "--mcp9808") ? sensor_ambient + 1 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--sht4x") ? sensor_ambient + 2 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--shtc3") ? sensor_ambient + 2 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--aht20") ? sensor_ambient + 2 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--htu31d") ? sensor_ambient + 2 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--bmp180") ? sensor_ambient + 2 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--bmp388") ? sensor_ambient + 2 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--bmp390") ? sensor_ambient + 2 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--bme280") ? sensor_ambient + 3 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--bme680") ? sensor_ambient + 4 : sensor_ambient;
-        sensor_ambient = !strcmp(ambient_sensor, "--scd30") ? sensor_ambient + 3 : sensor_ambient;
-        sensor_ambient = (!strcmp(ambient_sensor, "--sht40") || !strcmp(ambient_sensor, "--sht41") \
-            || !strcmp(ambient_sensor, "--sht43")) ? sensor_ambient + 3 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--mcp9808") ? sensor_ambient : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--sht4x") ? sensor_ambient + 2 ? SHT4X_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--shtc3") ? sensor_ambient + 2 ? SHTC3_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--aht20") ? sensor_ambient + 2 ? AHT20_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--htu31d") ? sensor_ambient + 2 ? HTU31D_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp180") ? sensor_ambient + 2 ? BMP180_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp388") ? sensor_ambient + 2 ? BMP388_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp390") ? sensor_ambient + 2 ? BMP390_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bme280") ? sensor_ambient + 3 ? BME280_ENABLE != 0 : sensor_ambient +3 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bme680") ? sensor_ambient + 4 ? BME680_ENABLE != 0 : sensor_ambient +4 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--scd30") ? sensor_ambient + 3 ? SCD30_ENABLE != 0 : sensor_ambient +3 : sensor_ambient;
+        sensor_ambient = (!strcmp(ambient_sensor, "--scd40") || !strcmp(ambient_sensor, "--scd41") \
+            || !strcmp(ambient_sensor, "--scd43")) ? sensor_ambient + 3 ? SCD4X_ENABLE != 0 : sensor_ambient +3 : sensor_ambient;
 
         if(SP_ENABLE > 0) ++sys_count;
         if(FREQ_ENABLE > 0) ++sys_count;
