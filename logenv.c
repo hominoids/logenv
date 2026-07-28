@@ -180,6 +180,11 @@ int main(uint8_t argc, char **argv) {
                     dp[DISPLAY_ENABLE].scan_direction_start = scan_direction_start->valueint;
                     if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].scan_direction_start);
                 }
+                cJSON *display_offset = cJSON_GetObjectItemCaseSensitive(item, "display_offset");
+                if (cJSON_IsNumber(scan_direction_start)) {
+                    dp[DISPLAY_ENABLE].display_offset = display_offset->valueint;
+                    if(VERBOSE_DEBUG) printf("%d ", dp[DISPLAY_ENABLE].display_offset);
+                }
                 cJSON *left_right_remap = cJSON_GetObjectItemCaseSensitive(item, "left_right_remap");
                 if (cJSON_IsNumber(left_right_remap)) {
                     dp[DISPLAY_ENABLE].left_right_remap = left_right_remap->valueint;

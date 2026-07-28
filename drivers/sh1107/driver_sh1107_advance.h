@@ -57,7 +57,7 @@ extern uint8_t SH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP;                         
 #define SH1107_ADVANCE_DEFAULT_PHASE2_PERIOD                    0x0F                                       /**< set phase F */
 #define SH1107_ADVANCE_DEFAULT_OSCILLATOR_FREQUENCY             0x08                                       /**< set 8 */
 #define SH1107_ADVANCE_DEFAULT_CLOCK_DIVIDE                     0x00                                       /**< set clock div 0 */
-#define SH1107_ADVANCE_DEFAULT_DISPLAY_OFFSET                   0x00                                       /**< set display offset */
+extern int8_t SH1107_ADVANCE_DEFAULT_DISPLAY_OFFSET;                                                      /**< set display offset */
 extern uint8_t SH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO;                                                     /**< set ratio */
 #define SH1107_ADVANCE_DEFAULT_DISPLAY_MODE                     SH1107_DISPLAY_MODE_NORMAL                 /**< set normal mode */
 extern uint8_t SH1107_ADVANCE_DEFAULT_SCAN_DIRECTION;                                                      /**< set scan 1 */

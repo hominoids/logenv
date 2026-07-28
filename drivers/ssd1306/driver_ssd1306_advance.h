@@ -59,7 +59,7 @@ extern uint8_t SSD1306_ADVANCE_DEFAULT_PIN_CONF;                                
 #define SSD1306_ADVANCE_DEFAULT_PHASE2_PERIOD                    0x0F                                       /**< set phase F */
 #define SSD1306_ADVANCE_DEFAULT_OSCILLATOR_FREQUENCY             0x08                                       /**< set 8 */
 #define SSD1306_ADVANCE_DEFAULT_CLOCK_DIVIDE                     0x00                                       /**< set clock div 0 */
-#define SSD1306_ADVANCE_DEFAULT_DISPLAY_OFFSET                   0x00                                       /**< set display offset */
+extern int8_t SSD1306_ADVANCE_DEFAULT_DISPLAY_OFFSET;                                                      /**< set display offset */
 extern uint8_t SSD1306_ADVANCE_DEFAULT_MULTIPLEX_RATIO;                                                     /**< set ratio */
 #define SSD1306_ADVANCE_DEFAULT_DISPLAY_MODE                     SSD1306_DISPLAY_MODE_NORMAL                /**< set normal mode */
 extern uint8_t SSD1306_ADVANCE_DEFAULT_SCAN_DIRECTION;                                                      /**< set scan 1 */

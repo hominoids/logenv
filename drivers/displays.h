@@ -100,6 +100,7 @@ struct display {
     uint8_t contrast;
     uint8_t segment_column_address;
     uint8_t scan_direction_start;
+    int8_t display_offset;
     uint8_t left_right_remap;
     uint8_t pin_config_alt;
     uint8_t vcom_deselect;

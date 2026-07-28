@@ -12,6 +12,7 @@
         "contrast": 125,
         "segment_column_address": 0,
         "scan_direction_start": 0,
+        "display_offset": 0,
         "left_right_remap": 0,
         "pin_config_alt": 1,
         "vcom_deselect": 3,

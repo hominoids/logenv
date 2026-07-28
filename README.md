@@ -152,24 +152,6 @@ scd40,scd41,scd43 - True CO2, Temperature and Humidity Sensor ADD 0x62
 pmsa003i - Particles PM1.0, PM2.5, PM10.0 ug/m^3 I2C ADD 0x12
 ```
 
-## Kernel Industrial IO Sensor Support
-The kernel industrial IO(iio) sensors can be read by using the iio command instead of the sensor command.  The iio sensor name, as presented in the device tree and in */sys/bus/iio/devices/iio:device0/name*, is used to identify the correct sensor entry since the iio device number is not persistent across system boots. The JSON device entry is used to identify the file system file name to read for the sensor datum e.g. */sys/bus/iio/devices/iio:device0/in_illuminance_input*
-```
-    {
-    "cmd": "iio",
-    "name": "tsl2591",
-    "device": "in_illuminance_input",
-    "address": 0,
-    "dtype": "",
-    "xloc": 10,
-    "yloc": 40,
-    "color": 0,
-    "font": "MONOSPACE_16",
-    "label": "illum: ",
-    "unit": ""
-    },
-```
-
 ## GNUPlot Charts
 Single or stacked charts are created based on the type and number of datum that are contained in the data set.  Core Frequency, Thermal Zone Temperatures, Ambient Temperature, CPU core usage, memory usage, SmartPower and sensor data can all be charted.  When a GNUPlot Script file is generated, part of it's contents is based on the number of CPU cores and the number and name of thermal Zones.  For this reason the GNUPlot script needs to be generated on the machine the data was collected from if any of those datum are included.  The GNUPlot Scripts or .gpl files can be reused and don't need to be regenerated if the type of data being collected and the machine are the same.
 
@@ -204,6 +186,7 @@ Multiple displays are supported with each capable of multiple pages containing t
         "contrast": 125,
         "segment_column_address": 1,
         "scan_direction_start": 1,
+        "display_offset": 0,
         "left_right_remap": 0,
         "pin_config_alt": 1,
         "vcom_deselect": 2,
@@ -268,18 +251,18 @@ Multiple displays are supported with each capable of multiple pages containing t
 
 ```
 
-Most entries in the json file are self explanatory with the possible exception of the initialization variables *segment_column_address*, *scan_direction_start*, *left_right_remap*, *pin_config_alt* and *vcom_deselect*.  These entries only apply to SSD1306 and SH1107 displays and are set to a 0 or 1 value to enable or disable the configuration command with the exception of vcom_deselect.
+Most entries in the json file are self explanatory with the possible exception of the initialization variables *segment_column_address*, *scan_direction_start*, *display_offset* *left_right_remap*, *pin_config_alt* and *vcom_deselect*.  These entries only apply to SSD1306 and SH1107 displays and are set to a 0 or 1 value to enable or disable the configuration command with the exception of vcom_deselect.
 
-The first two, *segment_column_address* and *scan_direction_start*, control the direction and starting column address.  If the oled is displaying upside down, change the *segment_column_address* and *scan_direction_start* values to the opposite.  If they are 0 change them to 1 and retest. 
-
-If there are horizontal trace lines on the screen the vcom_deselect may need adjusting:
+The first two, *segment_column_address* and *scan_direction_start*, control the direction and starting column address.  If the oled is displaying upside down, change the *segment_column_address* and *scan_direction_start* values to the opposite.  If they are 0 change them to 1 and retest. The third, *display_offset*, is used to shift the display. If there are horizontal trace lines on the screen the vcom_deselect may need adjusting:
 
     0 = deselect level 0.65
     2 = deselect level 0.77
     3 = deselect level 0.83
     
 
-### Page Content Commands
+For further information see the technical datasheets for the ssd1306 and sh1107 display controllers in the assets directory.
+ 
+### Page Content
 Any of the page content command can be used for any display type and can be called more then once.
 
 - date
@@ -299,6 +282,26 @@ Any of the page content command can be used for any display type and can be call
 - time
 - uptime
 - usage
+
+### Kernel Industrial IO Sensor Support
+The kernel industrial IO(iio) sensors can be read by using the iio command instead of the sensor command.  The iio sensor name, as presented in the device tree and in */sys/bus/iio/devices/iio:device0/name*, is used to identify the correct sensor entry since the iio device number is not persistent across system boots. The JSON device entry is used to identify the file system file name to read for the sensor datum e.g. */sys/bus/iio/devices/iio:device0/in_illuminance_input*
+```
+    {
+    "cmd": "iio",
+    "name": "tsl2591",
+    "device": "in_illuminance_input",
+    "address": 0,
+    "dtype": "",
+    "xloc": 10,
+    "yloc": 40,
+    "color": 0,
+    "font": "MONOSPACE_16",
+    "label": "illum: ",
+    "unit": ""
+    },
+```
+
+### Page Commands
 
 ***date***
 ```

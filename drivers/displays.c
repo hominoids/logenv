@@ -216,6 +216,7 @@ uint8_t ssd1306(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         SSD1306_ADVANCE_DEFAULT_CONTRAST = ptr->contrast;
         SSD1306_ADVANCE_DEFAULT_SEGMENT = ptr->segment_column_address;
         SSD1306_ADVANCE_DEFAULT_SCAN_DIRECTION = ptr->scan_direction_start;
+        SSD1306_ADVANCE_DEFAULT_DISPLAY_OFFSET = ptr->display_offset;
         SSD1306_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
         SSD1306_ADVANCE_DEFAULT_PIN_CONF = ptr->pin_config_alt;
         SSD1306_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
@@ -415,6 +416,7 @@ uint8_t sh1107(struct display *ptr, uint8_t dcidx, uint8_t cmd) {
         SH1107_ADVANCE_DEFAULT_CONTRAST = ptr->contrast;
         SH1107_ADVANCE_DEFAULT_SEGMENT = ptr->segment_column_address;
         SH1107_ADVANCE_DEFAULT_SCAN_DIRECTION = ptr->scan_direction_start;
+        SH1107_ADVANCE_DEFAULT_DISPLAY_OFFSET = ptr->display_offset;
         SH1107_ADVANCE_DEFAULT_LEFT_RIGHT_REMAP = ptr->left_right_remap;
         SH1107_ADVANCE_DEFAULT_MULTIPLEX_RATIO = ptr->ysize-1;
         SH1107_ADVANCE_DEFAULT_DESELECT_LEVEL = ptr->vcom_deselect;
