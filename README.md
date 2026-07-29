@@ -74,11 +74,11 @@ Options:
              --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
              --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0
              --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0
-             --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0
-             --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0
+             --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x76
+             --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77
              --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0
-             --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0
-             --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0
+             --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77
+             --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77
              --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0
              --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0
              --scd40 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0

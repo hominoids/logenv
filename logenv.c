@@ -18,7 +18,7 @@
     logenv - A Linux command-line utility for the aggregating, logging,
              charting and displaying of timestamped CPU core frequencies,
              thermal zone temperatures, ambient temperature, CPU core usage,
-             memory usage, sensors data and volts, amps and watts, from a
+             memory usage, sensor data and volts, amps and watts, from a
              HardKernel SmartPower2 or SmartPower3, as a single-shot or
              continuos interval based feed.
 
@@ -45,12 +45,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/sysinfo.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/statvfs.h>
+#include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
-#include <sys/vfs.h>
 #include <termios.h>
 #include <threads.h>
 #include <time.h>
@@ -3203,7 +3203,7 @@ int main(uint8_t argc, char **argv) {
              */
             if(DISPLAY_ENABLE) {
                 /*
-                * open and read governor setting
+                * governor setting
                 */
                 if(DP_GOVERNOR != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
@@ -3230,35 +3230,43 @@ int main(uint8_t argc, char **argv) {
                     }
                 }
                 /*
-                * open and read disk info
+                * disk info
                 */
                 if(DP_DISK != 0) {
                     for(uint8_t d = 0; d <= DISPLAY_ENABLE-1; d++) {
                         for(uint8_t i = 0; i <= dp[d].dc_count-1; i++) {
                             if(!strcmp(dp[d].dc[i].cmd, "disk") && dp[d].page == page) {
 
-                                struct statfs stat;
+                                struct statvfs stat;
                                 char buffer[25] = {0};
 
-                                if(statfs(dp[d].dc[i].device, &stat) != 0) {
+                                if(statvfs(dp[d].dc[i].device, &stat) != 0) {
                                     printf("%s cmd %d failed, path %s not found.\n", (char *) &dp[d].name, i, dp[d].dc[i].device);
                                     break;;
                                 }
 
-                                uint64_t dsize = stat.f_bsize * stat.f_blocks;
-                                uint64_t davail = stat.f_bsize * stat.f_bavail;
-                                uint64_t dused = stat.f_bsize * (stat.f_blocks-stat.f_bavail);
-
+                                uint64_t dsize = stat.f_blocks * stat.f_bsize;
+                                uint64_t davail = stat.f_bavail * stat.f_bsize;
+                                uint64_t dfree = stat.f_bfree * stat.f_bsize;
+                                uint64_t dused = (stat.f_blocks-stat.f_bavail) * stat.f_bsize;
+                                if(VERBOSE_DEBUG) {
+                                    printf("stat.f_bsize=%lu\n", stat.f_bsize);
+                                    printf("stat.f_blocks=%lu\n", stat.f_blocks);
+                                    printf("stat.f_bfree=%lu\n", stat.f_bfree);
+                                    printf("stat.f_bavail=%lu\n", stat.f_bavail);
+                                    printf("dsize=%lu\n", dsize);
+                                    printf("davail=%lu\n\n", davail);
+                                }
                                 if(!strcmp(dp[d].dc[i].dtype, "total")) {
-                                    sprintf(buffer, "%.2f", (float)dsize/1000000000);
+                                    sprintf(buffer, "%.2f", (float)dsize/1073741824);
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 else if(!strcmp(dp[d].dc[i].dtype, "free")) {
-                                    sprintf(buffer, "%.2f", (float)davail/1000000000);
+                                    sprintf(buffer, "%.2f", (float)davail/1073741824);
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 else if(!strcmp(dp[d].dc[i].dtype, "used")) {
-                                    sprintf(buffer, "%.2f", (float)dused/1000000000);
+                                    sprintf(buffer, "%.2f", (float)dused/1073741824);
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
@@ -3364,19 +3372,19 @@ int main(uint8_t argc, char **argv) {
                                 unsigned long uswap = tswap - fswap;
 
                                 if(!strcmp(dp[d].dc[i].dtype, "total")) {
-                                    sprintf(buffer, "%.2f", (float) tswap/1000000000);
+                                    sprintf(buffer, "%.2f", (float) tswap/1073741824);
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 if(!strcmp(dp[d].dc[i].dtype, "free")) {
-                                    sprintf(buffer, "%.2f", (float) fswap/1000000000);
+                                    sprintf(buffer, "%.2f", (float) fswap/1073741824);
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 else if(!strcmp(dp[d].dc[i].dtype, "used")) {
-                                    sprintf(buffer, "%.2f", (float) uswap/1000000000);
+                                    sprintf(buffer, "%.2f", (float) uswap/1073741824);
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
                                 else if(!strcmp(dp[d].dc[i].dtype, "percent")) {
-                                    float pswap = (float) (((float)uswap/1000000000)/((float)tswap/1000000000)) * 100;
+                                    float pswap = (float) (((float)uswap/1073741824)/((float)tswap/1073741824)) * 100;
                                     sprintf(buffer, "%.0f", pswap);
                                     strcpy(dp[d].dc[i].data1, buffer);
                                 }
@@ -3539,7 +3547,6 @@ int main(uint8_t argc, char **argv) {
                                         }
                                         if(!strcmp(dp[d].dc[i].name, ifa->ifa_name)) {
                                             sprintf(dp[d].dc[i].data1, "%s ", ifa->ifa_name);
-//                                            sprintf(dp[d].dc[i].data2, "%s", host);
                                             strncpy(dp[d].dc[i].data2, host, 29);
 
                                             if(dp[d].dptr(&dp[d], i, DISPLAY_WRITE)){
@@ -4957,11 +4964,11 @@ void usage (void) {
         printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
         printf("      --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
         printf("      --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0\n");
-        printf("      --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
-        printf("      --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x76\n");
+        printf("      --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77\n");
         printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
-        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
-        printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0\n");
+        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77\n");
+        printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77\n");
         printf("      --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0\n");
         printf("      --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0\n");
         printf("      --scd40 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
