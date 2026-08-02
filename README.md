@@ -3,14 +3,12 @@
 ## Introduction
 logenv is a Linux command-line utility for the aggregating, logging, charting and displaying of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as provide a UDP network stream. Local display of data on small oled and eInk displays is supported for the SSD1306, SH1107 and SSD1681 controllers. 
 
-![Image](./assets/ocl-m2_g610-a76_1.png)
-
 License: GPLv3.
 
 
 ## Prerequisite
 
-cjson and gpiod are required to compile logenv while gnuplot is only needed if generating charts post process. Any OS repository version of cjson should work but gpiod version 1.x is needed until 2.x is supported.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
+cjson and gpiod are required for logenv while gnuplot is only needed if generating charts post process. Any OS repository version of cjson should work but gpiod version 1.x is needed until 2.x is supported.  If gpiod version 1.x is not available in your repository then compile gpiod v1.64 from source.
 
 
 Ubuntu 20 - Ubuntu 24
@@ -22,7 +20,7 @@ Ubuntu 26
 ```
 sudo apt install libcjson-dev build-essential
 ```
-Ubuntu 26 repository has gpiod 2.x so build and install gpiod 1.64.
+Ubuntu 26 uses gpiod 2.x so build and install gpiod 1.64.
 ````
 wget https://mirrors.edge.kernel.org/pub/software/libs/libgpiod/libgpiod-1.6.4.tar.xz
 tar -xvf ./libgpiod-1.6.4.tar.xz
@@ -32,7 +30,7 @@ make
 sudo make install
 ````
 
-If the installed library path is not in the ldconfig cache then add the library path(default /usr/local/lib) on a new line at the end of /etc/ld.so.conf or create an entry in the directory /etc/ld.so.conf.d. 
+After building gpiod, if the installed library path is not in the ldconfig cache then add the library path(build default /usr/local/lib) on a new line at the end of /etc/ld.so.conf or create an entry in the directory /etc/ld.so.conf.d. 
 ```
 $ sudo vi /etc/ld.so.conf
   add /usr/local/lib or installed path
@@ -116,12 +114,11 @@ Generate the chart
 gnuplot -c ocl-m2_g610-a76_1.gpl ocl-m2_g610-a76_1.png ocl-m2_g610-a76_1.csv
 ```
 
+![Image](./assets/ocl-m2_g610-a76_1.png)
 
-### SmartPower Settings
-Settings for the Hard Kernel SmartPower3 and SmartPower2 are baud rate 115200,8N1 with no HW or SW control.
 
 ## Builtin Sensor Support
-Many types of sensors are directly supported using built in drivers and require no other setup.  At this time only I2C access is available for those that also have a SPI interface.  The I2C device and or the address can follow any sensor argument while using the command line interface, otherwise the default values are used.  The I2C address follows standard C language notation for decimal, hex or octal e.g. 119, 0x77, 0167 
+Many types of sensors are directly supported using built in drivers and require no other setup.  At this time only I2C access is available for those that also have a SPI interface.  The I2C device and or the address can follow any sensor argument while using the command line interface, otherwise the default values are used.  The command line I2C address follows standard C language notation for decimal, hex or octal e.g. 119, 0x77, 0167 
 ```
 logenv --bme680
        --bme680 /dev/i2c-0
@@ -162,9 +159,9 @@ The UDP client -n option is followed by the server host and port <host:port>. Th
 netcat -l -u -p <port>
 ```
 
-## Timing accuracy
-The timing accuracy for both the logging and display functions are dependant on the number and type of data being collected.  Some sensors can inject significant latency due to the time it takes for readings.  This is especially true for those sensors that require heaters, e.g. MOX sensors, or other pre-read initialization process.  If the logging, UDP or display functions are simultaneously being used, they share the same data read for each interval which reduces the number of sensor and data reads, and thereby reducing latency.
- 
+## SmartPower Settings
+Settings for the Hard Kernel SmartPower3 and SmartPower2 are baud rate 115200,8N1 with no HW or SW control.
+
 ## Display Configuration
 The display configuration file logenv.json is a JSON formatted file that describes a display, its pages and content for each page.  The current working directory is searched first (./logenv.json) and then /etc/logenv/logenv.json.
 Multiple displays are supported with each capable of multiple pages containing time, date, system information or sensor data.  Each display must contain at least one *page* - page 0. Subsequent page entries are identified by increasing the page number and setting the *seconds* for that page to be displayed.
@@ -283,22 +280,23 @@ Any of the page content command can be used for any display type and can be call
 - uptime
 - usage
 
-### Kernel Industrial IO Sensor Support
-The kernel industrial IO(iio) sensors can be read by using the iio command instead of the sensor command.  The iio sensor name, as presented in the device tree and in */sys/bus/iio/devices/iio:device0/name*, is used to identify the correct sensor entry since the iio device number is not persistent across system boots. The JSON device entry is used to identify the file system file name to read for the sensor datum e.g. */sys/bus/iio/devices/iio:device0/in_illuminance_input*
+### Industrial IO Sensor Support
+The kernel's Industrial IO(iio) sensors can be read and displayed by using the iio command.  The iio sensor name, as presented in the device tree and in */sys/bus/iio/devices/iio:device0/name*, is used to identify the correct sensor entry since the iio device number is not persistent across system boots. The JSON device entry is used to identify the file system file name to read for the sensor datum e.g. */sys/bus/iio/devices/iio:device0/in_pressure_input*.  A single action basic multiply or divide is supported under *dtype* to scale the datum if necessary e.g. *10 or /10.
+ 
 ```
     {
     "cmd": "iio",
-    "name": "tsl2591",
-    "device": "in_illuminance_input",
+    "name": "bmp580",
+    "device": "in_pressure_input",
     "address": 0,
-    "dtype": "",
-    "xloc": 10,
-    "yloc": 40,
+    "dtype": "*10",
+    "xloc": 5,
+    "yloc": 50,
     "color": 0,
-    "font": "MONOSPACE_16",
-    "label": "illum: ",
-    "unit": ""
-    },
+    "font": "DEFAULT_12",
+    "label": "",
+    "unit": " hPa"
+    }
 ```
 
 ### Page Commands
@@ -510,6 +508,10 @@ DESCRIPTION: displays kernel version at xloc, yloc using font.
 ```
     COMMAND: memory
 DESCRIPTION: displays memory usage at xloc, yloc using font.
+      DTYPE: D = datum
+             N = name
+            DN = datum name
+            ND = name datum
 
     EXAMPLE:
             {
@@ -517,7 +519,7 @@ DESCRIPTION: displays memory usage at xloc, yloc using font.
             "name": "",
             "device": "",
             "address": 0,
-            "dtype": "",
+            "dtype": "D",
             "xloc": 10,
             "yloc": 40,
             "color": 0,
@@ -739,7 +741,6 @@ DESCRIPTION: displays CPU and core usage at xloc, yloc using font.
             },
 ```
 
-
 ### Display Font Names
 ```
   DEFAULT_12, DEFAULT_16, DEFAULT_24
@@ -757,8 +758,28 @@ sudo systemctl enable logenv-display
 sudo systemctl start logenv-display
 ``` 
 
+### SPI Displays
+SPI displays may require some code modification to identify the gpiochips and lines for any given SBC.  It is currently setup for the RK3588S Odroid-M2 which uses multiple gpiochips in it's design. The definitions are in *./drivers/interface/wire.c*
+
+```
+/**
+ * @brief gpio device name definition
+ */
+#define GPIO_DEVICE_NAME "/dev/gpiochip3"        /**< gpio device name BUSY*/
+#define GPIO_DEVICE_NAME_CLOCK "/dev/gpiochip3"  /**< gpio device clock line name RESET*/
+#define GPIO_DEVICE_NAME_CS "/dev/gpiochip0"     /**< gpio device cs line name DC*/
+
+/**
+ * @brief gpio device line definition
+ */
+#define GPIO_DEVICE_LINE 28                      /**< gpio device line */
+#define GPIO_DEVICE_CLOCK_LINE 29                /**< gpio device clock line */
+#define GPIO_DEVICE_CS_LINE 28                   /**< gpio device cs line */
+
+```
+
 ### Tested Displays
-Basic display capability has not been fully implemented so only limited display tests have been performed.  More testing will occur as development proceeds.
+Basic display functionality has been tested on the following displays:
 
  ssd1681 AdaFruit 4196 1.54" Monochrome 200x200 eInk / ePaper Display
  
@@ -768,8 +789,10 @@ Basic display capability has not been fully implemented so only limited display 
  
  sh1107 AdaFruit 5297 Monochrome 1.12" 128x128 OLED graphic display
  
- st7789 AdaFruit 3787 Color 1.54" 240x240 Wide Angle TFT LCD display
- 
+ st7789 AdaFruit 3787 Color 1.54" 240x240 Wide Angle TFT LCD display (experimental) 
+
+## Timing accuracy
+The timing accuracy for both the logging and display functions are dependant on the number and type of data being collected.  Some sensors can inject significant latency due to the time it takes for readings.  This is especially true for those sensors that require heaters, e.g. MOX sensors, or other pre-read initialization process.  If the logging, UDP or display functions are simultaneously being used, they share the same data read for each interval which reduces the number of sensor and data reads, and thereby reducing latency.
  
 ## Compatibility
 logenv has been tested with both a HardKernel SmartPower2 and SmartPower3, including MCP9808 and BME280 sensors.  Several architectures have been test including Armv7, Armv8, Armv9 and different generations of INTEL and AMD processor up to 32 cores.  The current limitation is 256 cores.  It has also been used on several Linux distributions including Ubuntu, Debian, Manjaro and Arch.  It should run on just about anything that runs Linux.
