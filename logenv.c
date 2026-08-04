@@ -3701,7 +3701,7 @@ int main(uint8_t argc, char **argv) {
         }
     }
     /*
-     * Build of gnuplot script
+     * Build gnuplot script
      */
     else {
 
@@ -4178,6 +4178,11 @@ int main(uint8_t argc, char **argv) {
          * set x axis major tic value
          */
         fprintf(gnuplot_file,"%s",gpscript_xaxis[0]);
+        if(DT_ENABLE) {
+            fprintf(gnuplot_file,"%s", "set xdata time\n");
+            fprintf(gnuplot_file,"%s", "set timefmt \"%Y-%m-%d %H:%M:%S\"\n");
+            fprintf(gnuplot_file,"%s", "set format x \"%Y-%m-%d\\n%H:%M:%S\"\n");
+        }
         fprintf(gnuplot_file,"%s",gpscript_xaxis[1]);
         fprintf(gnuplot_file,"%s",gpscript_xaxis[2]);
         fprintf(gnuplot_file,"%d",xmtics);
