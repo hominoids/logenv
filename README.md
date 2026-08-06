@@ -1,7 +1,7 @@
 # logenv
 
 ## Introduction
-logenv classic is a Linux command-line utility for the aggregating, logging, and charting of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as provide a UDP network stream.
+logenv is a Linux command-line utility for the aggregating, logging, and charting of timestamped CPU core frequencies, thermal zone temperatures, ambient temperature, CPU core usage, memory usage, sensors data and volts, amps and watts, from a HardKernel SmartPower2 or SmartPower3, as a single-shot or continuos interval based feed.  Many sensors are supported and logenv can also generate GNUplot scripts for any collected data set, as well as provide a UDP network stream.
 
 ![Image](./assets/ocl-m2_g610-a76_1.png)
 
@@ -10,7 +10,7 @@ License: GPLv3.
 
 ### Build
 ```
-  git clone https://github.com/hominoids/logenv.git
+  git clone https://github.com/hominoids/logenv.git -b classic
   cd logenv
   make
 ```
