@@ -1,5 +1,5 @@
 /*
-    logenv Copyright 2019,2020,2024,2025,2026 Edward A. Kisiel
+    logenv Copyright 2019-Present Edward A. Kisiel
     hominoid @ cablemi . com
 
     This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     Code released under GPLv3: http://www.gnu.org/licenses/gpl.html
 
-   logenv - logs count or time stamp, thermal zone temperature, cpu frequency,
-            air temperature(BME280, BMP180, MCP9808),
-            volts, amps and watts (HK SmartPower2 or SmartPower3 output)
-
+    logenv - A Linux command-line utility for the aggregating, logging,
+             charting and displaying of timestamped CPU core frequencies,
+             thermal zone temperatures, ambient temperature, CPU core usage,
+             memory usage, sensors data and volts, amps and watts, from a
+             HardKernel SmartPower2 or SmartPower3, as a single-shot or
+             continuos interval based feed.
 
     void usage (void)
     int16_t itoa(int32_t n, char s[])
@@ -32,7 +34,9 @@
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <ifaddrs.h>
 #include <linux/i2c-dev.h>
+#include <math.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
@@ -41,26 +45,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/sysinfo.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/utsname.h>
+#include <sys/vfs.h>
 #include <termios.h>
 #include <threads.h>
 #include <time.h>
 #include <unistd.h>
-#include "bme280/bmp180.h"
-#include "bme280/bme280.h"
-#include "bme280/bme280-i2c.h"
 #include "logenv.h"
 
 int main(uint8_t argc, char **argv) {
 
     signal(SIGINT, sig_handler);
+
     if(argc == 1) {
         usage();
     }
     /*
-     * check if creating gnuplot script
+     * check if creating gnuplot script or using displays
      */
     uint8_t i = argc;
     while (i-- > 1) {
@@ -74,9 +79,16 @@ int main(uint8_t argc, char **argv) {
             }
             GNUPLOT_ENABLE = 1;
         }
+
+        /*
+         * check for debug output
+         */
+        if(!strcmp(argv[i], "--debug")) {
+            VERBOSE_DEBUG = 1;
+        }
     }
     /*
-     * parse command line options
+     * parse command line option
      */
     i = argc;
     while (i-- > 1) {
@@ -85,7 +97,7 @@ int main(uint8_t argc, char **argv) {
         }
         if(!strcmp(argv[i], "--version")) {
             printf("\nlogenv version %s\n", version);
-            exit(0);
+            exit(EXIT_SUCCESS);
         }
         if(!strcmp(argv[i], "-d") || !strcmp(argv[i], "--date")) {
             DT_ENABLE = 1;
@@ -100,21 +112,23 @@ int main(uint8_t argc, char **argv) {
         if(!strcmp(argv[i], "-u") || !strcmp(argv[i], "--usage")) {
             if((cpu_online = fopen(cpuonline, "r")) == NULL) {
                 printf("\nERROR: Cannot open %s\n", cpuonline);
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             size_t size = 0;
             char *line = 0;
             ssize_t linesize = getline(&line, &size, cpu_online);
             fclose(cpu_online);
-            USAGE_ENABLE = atoi(&line[2])+1;
-            OPTIONS_COUNT++;
+            if(!strcmp(argv[i], "-u") || !strcmp(argv[i], "--usage")) {
+                USAGE_ENABLE = atoi(&line[2])+1;
+                OPTIONS_COUNT++;
+            }
         }
         if(!strcmp(argv[i], "-m") || !strcmp(argv[i], "--memory")) {
             MEM_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         if(!strcmp(argv[i], "-i") || !strcmp(argv[i], "--milliseconds")) {
-            INTERACTIVE_ENABLE = atol(argv[i+1]);
+            INTERACTIVE_ENABLE = atoi(argv[i+1]);
             COUNT_ENABLE = 1;
         }
         if(!strcmp(argv[i], "-l") || !strcmp(argv[i], "--log")) {
@@ -123,12 +137,12 @@ int main(uint8_t argc, char **argv) {
         }
         if(!strcmp(argv[i], "-n") || !strcmp(argv[i], "--udp")) {
             if((i+1) < argc && !strncmp(":", argv[i+1], 0)) {
-                sscanf(argv[i+1], "%[^':']:%d", udp_name, &udp_port);
+                sscanf(argv[i+1], "%[^':']:%hd", udp_name, &udp_port);
             }
             udp_host = (struct hostent *) gethostbyname((char *)udp_name);
             if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
                 printf("\nERROR: Cannot open UDP socket for %s on port %d\n", udp_name, udp_port);
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             udp_server_addr.sin_family = AF_INET;
             udp_server_addr.sin_port = htons(udp_port);
@@ -147,22 +161,14 @@ int main(uint8_t argc, char **argv) {
             strcpy(charttitle, argv[i+1]);
         }
         /*
-         * CPU frequency command line options
+         * CPU frequency command line option
          */
         if(!strcmp(argv[i], "-f") || !strcmp(argv[i], "--frequency")) {
-            if((cpu_online = fopen(cpuonline, "r")) == NULL) {
-                printf("\nERROR: Cannot open %s\n", cpuonline);
-                exit(1);
-            }
-            size_t size = 0;
-            char *line = 0;
-            ssize_t linesize = getline(&line, &size, cpu_online);
-            fclose(cpu_online);
-            FREQ_ENABLE = atoi(&line[2])+1;
+            FREQ_ENABLE = get_nprocs_conf();
             OPTIONS_COUNT++;
         }
         /*
-         * thermal zones command line options
+         * thermal zones command line option
          */
         if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temperature")) {
 
@@ -181,79 +187,410 @@ int main(uint8_t argc, char **argv) {
             OPTIONS_COUNT++;
         }
         /*
-         * ambient temperature command line options
+         * ambient temperature option
          */
-        if(!strcmp(argv[i], "-a") || !strcmp(argv[i], "--bme280")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
-                }
-                if(bme280_begin(sensor) < 0) {
-                    printf("\nERROR: Cannot open BME280 at %s\n", sensor);
-                    exit(1);
-                }
-                if(bme280_set_power_mode(BME280_NORMAL_MODE) < 0) {
-                    printf("\nERROR: Cannot set power mode for BME280 at %s\n", sensor);
-                    exit(1);
-                }
-            }
-            SENSOR_ENABLE = 2;
-            OPTIONS_COUNT++;
+        if(!strcmp(argv[i], "-a")) {
+            strcpy(ambient_sensor, argv[i+1]);
+            AMBIENT_ENABLE = 1;
         }
-        if(!strcmp(argv[i], "--bmp180")) {
-            if(GNUPLOT_ENABLE != 1) {
-                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
-                }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
-                }
-                if(bmp180_begin(sensor) < 0) {
-                    printf("\nERROR: Cannot open BMP180 at %s\n", sensor);
-                    exit(1);
-                }
-            }
-            SENSOR_ENABLE = 1;
-            OPTIONS_COUNT++;
-        }
+        /*
+         * mcp9808 command line option
+         */
         if(!strcmp(argv[i], "--mcp9808")) {
             if(GNUPLOT_ENABLE != 1) {
                 if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
-                    sensor = argv[i+1];
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        mcp9808_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(mcp9808_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(mcp9808_iic_dev, interface);
+                    }
                 }
-                if((i+2) < argc && !strncmp("/dev/", argv[i+2], 5)) {
-                    sensor = argv[i+2];
+                if(mcp9808_iic_init == 0) {
+                    if((mcp9808_in = open(sensor, O_RDWR)) < 0) {
+                        printf("\nERROR: Cannot open MCP9808 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    mcp9808_open();
+                    mcp9808_iic_init == 1;
                 }
-                if((sensor_in = open(sensor, O_RDWR)) < 0) {
-                    printf("\nERROR: Cannot open MCP9808 at %s\n", sensor);
-                    exit(1);
-                }
-                ioctl(sensor_in, I2C_SLAVE, 0x18);
-                /*
-                 * Select configuration register(0x01)
-                 * Continuous conversion mode, Power-up default(0x00, 0x00)
-                 */
-                char config[3] = {0};
-                config[0] = 0x01;
-                config[1] = 0x00;
-                config[2] = 0x00;
-                write(sensor_in, config, 3);
-                /*
-                 * Select resolution register(0x08)
-                 * Resolution = +0.0625 / C(0x03)
-                 */
-                config[0] = 0x08;
-                config[1] = 0x03;
-                write(sensor_in, config, 2);
             }
-            SENSOR_ENABLE = 3;
+            MCP9808_ENABLE = 1;
             OPTIONS_COUNT++;
         }
         /*
-         * smartpower options command line options
+         * sht4x command line option
+         */
+        if(!strcmp(argv[i], "--sht4x")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        sht4x_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(sht4x_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(sht4x_iic_dev, interface);
+                    }
+                }
+                if(sht4x_iic_init == 0) {
+                    if(sht4x_basic_init(sht4x_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open SHT4x at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    sht4x_iic_init == 1;
+                }
+            }
+            SCD4X_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * shtc3 command line option
+         */
+        if(!strcmp(argv[i], "--shtc3")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        shtc3_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(shtc3_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(shtc3_iic_dev, interface);
+                    }
+                }
+                if(shtc3_iic_init == 0) {
+                    if(shtc3_basic_init() != 0) {
+                        printf("\nERROR: Cannot open SHTC3 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    shtc3_iic_init == 1;
+                }
+            }
+            SHTC3_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * aht20 command line option
+         */
+        if(!strcmp(argv[i], "--aht20")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        aht20_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(aht20_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(aht20_iic_dev, interface);
+                    }
+                }
+                if(aht20_iic_init == 0) {
+                    if(aht20_basic_init() != 0) {
+                        printf("\nERROR: Cannot open AHT20 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    aht20_iic_init == 1;
+                }
+            }
+            AHT20_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * htu31d command line option
+         */
+        if(!strcmp(argv[i], "--htu31d")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        htu31d_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(htu31d_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(htu31d_iic_dev, interface);
+                    }
+                }
+                if(htu31d_iic_init == 0) {
+                    if(htu31d_basic_init(htu31d_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open HTU31D at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    htu31d_iic_init == 1;
+                }
+            }
+            HTU31D_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bmp180 command line option
+         */
+        if(!strcmp(argv[i], "--bmp180")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    interface = argv[i+1];
+                    strcpy(bmp180_iic_dev, interface);
+                }
+                if(bmp180_iic_init == 0) {
+                    if(bmp180_basic_init() != 0) {
+                        printf("\nERROR: Cannot open BMP180 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bmp180_iic_init == 1;
+                }
+            }
+            BMP180_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bmp388 command line option
+         */
+        if(!strcmp(argv[i], "--bmp388")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bmp388_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bmp388_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bmp388_iic_dev, interface);
+                    }
+                }
+                if(bmp388_iic_init == 0) {
+                    if(bmp388_basic_init(BMP388_INTERFACE_IIC, bmp388_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BMP388 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bmp388_iic_init == 1;
+                }
+            }
+            BMP388_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bmp390 command line option
+         */
+        if(!strcmp(argv[i], "--bmp390")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bmp390_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bmp390_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bmp390_iic_dev, interface);
+                    }
+                }
+                if(bmp390_iic_init == 0) {
+                    if(bmp390_basic_init(BMP390_INTERFACE_IIC, bmp390_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BMP390 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bmp390_iic_init == 1;
+                }
+            }
+            BMP390_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bme280 command line option
+         */
+        if(!strcmp(argv[i], "--bme280")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(!strncmp("@", argv[i+1], 1)) {
+
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bme280_iic_dev, interface);
+                    }
+                }
+                if(bme280_iic_init == 0) {
+                    if(bme280_basic_init(BME280_INTERFACE_IIC, bme280_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BME280 at %s\n", interface);
+                        exit(EXIT_FAILURE);
+                    }
+                    bme280_iic_init == 1;
+                }
+            }
+            BME280_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * bme680 command line option
+         */
+        if(!strcmp(argv[i], "--bme680")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bme680_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bme680_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(bme680_iic_dev, interface);
+                    }
+                }
+                if(bme680_iic_init == 0) {
+                    if(bme680_gas_init(BME680_INTERFACE_IIC, bme680_iic_addr) != 0) {
+                        printf("\nERROR: Cannot open BME680 at %s address %d\n", interface, bme680_iic_addr);
+                        exit(EXIT_FAILURE);
+                    }
+                    bme680_iic_init == 1;
+                }
+            }
+            BME680_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * scd30 command line option
+         */
+        if(!strcmp(argv[i], "--scd30")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        bme680_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(bme680_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(scd30_iic_dev, interface);
+                    }
+                }
+                if(scd30_iic_init == 0) {
+                    if (scd30_basic_init(SCD30_INTERFACE_IIC,0)) {
+                        printf("\nERROR: SCD30 Init failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    scd30_iic_init == 1;
+                }
+            }
+            SCD30_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * scd4x command line option
+         */
+        if(!strcmp(argv[i], "--scd40") || !strcmp(argv[i], "--scd41") || !strcmp(argv[i], "--scd43")) {
+            scd4x_t chip_type;
+            if(!strcmp(argv[i], "--scd40")) {
+                chip_type = SCD40;
+            } 
+            else if (!strcmp(argv[i], "--scd41")) {
+                chip_type = SCD41;
+            }
+            else if (!strcmp(argv[i], "--scd43")) {
+                chip_type = SCD43;
+            }
+            if (scd4x_shot_init(chip_type)) {
+                printf("\nERROR: SCD4x Init failed.\n");
+                exit(EXIT_FAILURE);
+            }
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        scd4x_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(scd4x_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(scd4x_iic_dev, interface);
+                    }
+                }
+                if(scd4x_iic_init == 0) {
+                    if (scd4x_shot_init(chip_type)) {
+                        printf("\nERROR: SCD41 Init failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    scd4x_iic_init == 1;
+                }
+            }
+            SCD4X_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * sgp30 command line option
+         */
+        if(!strcmp(argv[i], "--sgp30")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        sgp30_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(sgp30_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(sgp30_iic_dev, interface);
+                    }
+                }
+                if(sgp30_iic_init == 0) {
+                    if (sgp30_advance_init()) {
+                        printf("\nERROR: SGP30 Init failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    sgp30_iic_init == 1;
+                 }
+            }
+            SGP30_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * pmsa003i command line option
+         */
+        if(!strcmp(argv[i], "--pmsa003i")) {
+            if(GNUPLOT_ENABLE != 1) {
+                if((i+1) < argc && !strncmp("/dev/", argv[i+1], 5)) {
+                    if(strchr(argv[i+1], '@') != NULL) {
+                        char buffer[5];
+                        strcpy(buffer, strrchr(argv[i+1], '@') + 1 );
+                        pmsa003i_iic_addr = (uint16_t) strtol(buffer, (char **) NULL, 0) << 1;
+                        strncpy(pmsa003i_iic_dev, argv[i+1], 10);
+                    }
+                    else {
+                        interface = argv[i+1];
+                        strcpy(pmsa003i_iic_dev, interface);
+                    }
+                }
+                if(pmsa003i_iic_init == 0) {
+                    if (pmsa003i_basic_init()) {
+                        printf("\nERROR: PMSA003I Init failed.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    pmsa003i_iic_init == 1;
+                 }
+            }
+            PMSA003I_ENABLE = 1;
+            OPTIONS_COUNT++;
+        }
+        /*
+         * smartpower command line option
          */
         if(!strcmp(argv[i], "-p") || !strcmp(argv[i], "--smartpower3-ch1")) {
             if(GNUPLOT_ENABLE != 1) {
@@ -265,7 +602,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
@@ -283,7 +620,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 set_tty_attributes(pwr_in, B115200, true);
                 close(pwr_in);
@@ -301,7 +638,7 @@ int main(uint8_t argc, char **argv) {
                 }
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 set_tty_attributes(pwr_in, B115200, false);
                 close(pwr_in);
@@ -310,12 +647,16 @@ int main(uint8_t argc, char **argv) {
            OPTIONS_COUNT++;
         }
     }
+    /*
+     * primary poll loop
+     */
     if (GNUPLOT_ENABLE == 0) {
-        /*
-         * primary poll loop
-         */
+
         double i = 0;
         int8_t c = OPTIONS_COUNT;
+
+        if(VERBOSE_DEBUG) printf("Primary Polling Loop\n");
+
         while(i >= 0 && go != -1) {
             int8_t udp_count = 0;
             /*
@@ -325,14 +666,18 @@ int main(uint8_t argc, char **argv) {
                 printf("%.3f", i/1000);
             }
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1 && COUNT_ENABLE == 1) {
+
                 now = time((time_t *)NULL);
                 t = localtime(&now);
+
                 printf("%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, t->tm_mon+1, \
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
             }
             if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 0 && DT_ENABLE == 1 && COUNT_ENABLE == 0) {
+
                 now = time((time_t *)NULL);
                 t = localtime(&now);
+
                 if(OPTIONS_COUNT != 0) {
                     printf("%4d-%02d-%02d %02d:%02d:%02d,", t->tm_year+1900, t->tm_mon+1, \
                         t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
@@ -346,13 +691,13 @@ int main(uint8_t argc, char **argv) {
             if(LOG_ENABLE == 1) {
                 if((log_file = fopen(logfile, "a")) == NULL) {
                     printf("\nERROR: Cannot open %s\n\n", logfile);
-                exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 if(COUNT_ENABLE && DT_ENABLE == 0) {
                     fprintf(log_file,"%.3f", i/1000);
                 }
                 else {
-                    now = time((time_t *)NULL);
+                    now = time((time_t *) NULL);
                     t = localtime(&now);
                     fprintf(log_file,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
                             t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
@@ -363,8 +708,10 @@ int main(uint8_t argc, char **argv) {
                     udp_count = sprintf(udp_tx_data,"%.3f", i/1000);
                 }
                 if(DT_ENABLE == 1) {
-                    now = time((time_t *)NULL);
+
+                    now = time((time_t *) NULL);
                     t = localtime(&now);
+
                     if(COUNT_ENABLE >= 1 && OPTIONS_COUNT > 1) {
                         udp_count = sprintf(udp_tx_data,"%4d-%02d-%02d %02d:%02d:%02d", t->tm_year+1900, \
                                 t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
@@ -391,6 +738,7 @@ int main(uint8_t argc, char **argv) {
                     printf("\n");
                 }
                 for (uint16_t c = 0; c < FREQ_ENABLE; c++) {
+
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(cpufreq,cpufreq1);
@@ -398,7 +746,7 @@ int main(uint8_t argc, char **argv) {
                     strcat(cpufreq,cpufreq2);
                     if((cpu_freq = fopen(cpufreq, "r")) == NULL) {
                         printf("\nERROR: Cannot open %s\n", cpufreq);
-                        exit(1);
+                        exit(EXIT_FAILURE);
                     } 
                     fscanf(cpu_freq, "%d", &freq);
                     fclose(cpu_freq);
@@ -472,8 +820,8 @@ int main(uint8_t argc, char **argv) {
              * open and read each thermal zone file
              */
             if(THERMAL_ENABLE != 0) {
-
                 for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
+
                     char strChar[5] = {0};
                     itoa(c,strChar);
                     strcpy(thermalzone,thermalzone1);
@@ -484,18 +832,19 @@ int main(uint8_t argc, char **argv) {
                     }
                     fscanf(cpu_thermal, "%f", &coretemp);
                     fclose(cpu_thermal);
+
+                    strcpy(thermaltype,thermalzone1);
+                    strcat(thermaltype,strChar);
+                    strcat(thermaltype,thermaltype1);
+                    if((thermal_type = fopen(thermaltype, "r")) == NULL) {
+                        break;
+                    }
+                    fscanf(thermal_type, "%s", thermalname);
+                    fclose(thermal_type);
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
                         printf(",%.0f", coretemp);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                        strcpy(thermaltype,thermalzone1);
-                        strcat(thermaltype,strChar);
-                        strcat(thermaltype,thermaltype1);
-                        if((thermal_type = fopen(thermaltype, "r")) == NULL) {
-                            break;
-                        }
-                        fscanf(thermal_type, "%s", thermalname);
-                        fclose(thermal_type);
                         printf("\n %s = %.2fc", thermalname, coretemp/1000);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
@@ -557,184 +906,249 @@ int main(uint8_t argc, char **argv) {
                 OPTIONS_COUNT--;
             }
             /*
-             * read mcp9808 temperature sensor
+             * read proc stat
              */
-            if(SENSOR_ENABLE == 3) {
-                /*
-                 * Read 2 bytes of data from register(0x05)
-                 * temp msb, temp lsb
-                 */
-                char reg[1] = {0x05};
-                write(sensor_in, reg, 1);
-                char data[2] = {0};
-                if(read(sensor_in, data, 2) != 2) {
-                    printf("ERROR : MCP9808 Read Error \n");
-                    exit(1);
+            if(USAGE_ENABLE != 0) {
+
+                float r = 0;
+                float s = 0;
+                float sum = 0;
+                uint8_t corecnt = 0;
+
+                corecnt = USAGE_ENABLE;
+
+                if((cpu_use = fopen(cpuusage, "r")) == NULL) {
+                    printf("\nERROR: Cannot open %s\n", cpuusage);
+                    exit(EXIT_FAILURE);
                 }
-                /*
-                 * Convert the data to 13-bits
-                 */
-                uint32_t temp = ((data[0] & 0x1F) * 256 + data[1]);
-                if(temp > 4095) {
-                    temp -= 8192;
-                }
-                temperature = temp * 0.0625;
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%d", temperature);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n MCP9808 Sensor = %.2lfc", (double)temp * 0.0625);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", (double)temp * 0.0625);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", (double)temp * 0.0625);
+                for (uint16_t c = 0; c <= corecnt; c++) {
+                    char t[20];
+                    char us[10][256] = {0};
+                    double long u[10][256] = {0};
+                    char *endptr;
+
+                    if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
+                        &us[2][c], &us[3][c], &us[4][c], &us[5][c], &us[6][c], &us[7][c], &us[8][c], &us[9][c])) != 11) {
+                        printf("\nERROR: Reading %s\n", cpuusage);
+                        exit(EXIT_FAILURE);
                     }
-                    else {
-                        printf("%.2lf", (double)temp * 0.0625);
+
+                    u[0][c] = strtoll(&us[0][c], &endptr, 10);
+                    u[1][c] = strtoll(&us[1][c], &endptr, 10);
+                    u[2][c] = strtoll(&us[2][c], &endptr, 10);
+                    u[3][c] = strtoll(&us[3][c], &endptr, 10);
+                    u[4][c] = strtoll(&us[4][c], &endptr, 10);
+                    u[5][c] = strtoll(&us[5][c], &endptr, 10);
+                    u[6][c] = strtoll(&us[6][c], &endptr, 10);
+                    u[7][c] = strtoll(&us[7][c], &endptr, 10);
+                    u[8][c] = strtoll(&us[8][c], &endptr, 10);
+                    u[9][c] = strtoll(&us[9][c], &endptr, 10);
+
+                    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
+                        + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
+                    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
+                        + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c];
+
+                    r = i == 0 && INTERACTIVE_ENABLE != 0 ? (s-sum) : u[3][c] - use[3][c];
+                    r /= (s-sum);
+                    r = 1 - r;
+                    r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
+
+                    if(USAGE_ENABLE != 0) {
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                            printf(",%Lf", u[3][c]);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                            if(c == 0) {
+                                printf("CPU = %.2f%% ", r);
+                                if(c == USAGE_ENABLE) {
+                                    printf("\n");
+                                }
+                            }
+                            else {
+                                printf("core%d = %.2f%% ", c, r);
+                                if(c == USAGE_ENABLE) {
+                                    printf("\n");
+                                }
+                            }
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                                printf(",%.2f", r);
+                        }
+                        if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                                printf("%.2f,", r);
+                            }
+                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    printf("%.2f,", r);
+                                }
+                                else {
+                                    printf("%.2f", r);
+                                }
+                            }
+                        }
+                        if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                            fprintf(log_file,",%Lf", u[3][c]);
+                        }
+                        if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                            fprintf(log_file,",%.2f", r);
+                        }
+
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%Lf", u[3][c]);
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
+                            }
+                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
+                                }
+                                else {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%Lf", u[3][c]);
+                                }
+                            }
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,",%.2f", r);
+                        }
+                        if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                            if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
+                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
+                            }
+                            if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
+                                if(OPTIONS_COUNT > 1) {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
+                                }
+                                else {
+                                    udp_count += sprintf(udp_tx_data + udp_count,"%.2f", r);
+                                }
+                            }
+                        }
                     }
+                    use[0][c] = u[0][c];
+                    use[1][c] = u[1][c];
+                    use[2][c] = u[2][c];
+                    use[3][c] = u[3][c];
+                    use[4][c] = u[4][c];
+                    use[5][c] = u[5][c];
+                    use[6][c] = u[6][c];
+                    use[7][c] = u[7][c];
+                    use[8][c] = u[8][c];
+                    use[9][c] = u[9][c];
                 }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%.2lf", (double)temp * 0.0625);
+                if(USAGE_ENABLE != 0) {
+                    OPTIONS_COUNT--;
                 }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", (double)temp * 0.0625);
-                }
-                if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temp * 0.0625);
-                }
-                if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temp * 0.0625);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temp * 0.0625);
-                    }
-                }
-                OPTIONS_COUNT--;
+                fclose(cpu_use);
             }
             /*
-             * read bme280
+             * Read memory usage
              */
-            if(SENSOR_ENABLE == 2) {
+            if(MEM_ENABLE != 0) {
 
-                bme280_read_pressure_temperature_humidity(&pressure, &temperature, &humidity);
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%d", temperature);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BME280 Sensor = %.2lfc", (double)temperature/100);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.2lf", (double)temperature/100);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", (double)temperature/100);
-                    }
-                    else {
-                        printf("%.2lf", (double)temperature/100);
-                    }
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%d", temperature);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.2lf", (double)temperature/100);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
-                    }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
-                    }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
-                    }
-                }
-            OPTIONS_COUNT--;
-            }
-            /*
-             * read bmp180
-             */
-            if(SENSOR_ENABLE == 1) {
+                float mt;
+                float r = 0;
+                float nd;
+                char field[30];
 
-                temperature = BMP180_readTemperature();
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%d", temperature);
+                if((mem_load = fopen(memload, "r")) == NULL) {
+                    printf("\nERROR: Cannot open %s\n", memload);
+                    exit(EXIT_FAILURE);
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n BMP180 Sensor = %.2lfc", (double)temperature/100);
+                while(feof(mem_load) == 0) {
+                    fscanf(mem_load, "%29s %f %*s", field, &nd);
+                    if (strcmp(mem_total , field) == 0) mt = nd;
+                    if (strcmp(mem_avail , field) == 0) r -= nd;
                 }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                    printf(",%.2lf", (double)temperature);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.2lf,", (double)temperature);
+                r /= mt;
+                r += 1;
+                r *= 100;
+
+                if(MEM_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%.3g", r);
                     }
-                    else {
-                        printf("%.2lf,", (double)temperature);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n RAM Use = %.3g%%", r);
                     }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%d", temperature);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d,", temperature);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.3g", r);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%d", temperature);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.3g,", r);
+                        }
+                        else {
+                            printf("%.3g", r);
+                        }
+
                     }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", (double)temperature/100);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", (double)temperature/100);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%.3g", r);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", (double)temperature/100);
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.3g", r);
                     }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
-            OPTIONS_COUNT--;
+                fclose(mem_load);
             }
             /*
              * SmartPower enabled
              */
-            if(SP_ENABLE > 0) {
+            if(SP_ENABLE != 0) {
 
                 if((pwr_in = open(smartpower, O_RDONLY | O_NOCTTY | O_SYNC)) < 0) {
                     printf("\nERROR: Cannot open SmartPower at %s\n\n", smartpower);
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
+
+                float volt;
+                float amp;
+                float watt;
+
                 /*
                  * read SmartPower2
                  */
                 if(SP_ENABLE == 2) {
+
+                    char spline[5];
+                    char spline1[5];
+                    char spline2[5];
                     unsigned char temp[18];
-                    uint8_t sp_read = 0;
+                    int8_t sp_read = 0;
+
                     if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
                     temp[sp_read] = 0;
                     sscanf(temp, "%f%s %f%s %f%s", &volt, spline, &amp, spline1, &watt, spline2);
+
                     if(strstr(spline1,"mA")) {
                         if(QUIET_ENABLE == 0 && VERBOSE_ENABLE == 1) {
                             printf("\n\n Volts = %.2f\n Amps = .%.0f\n Watts = %.2f\n\n", volt, amp, watt);
@@ -805,14 +1219,31 @@ int main(uint8_t argc, char **argv) {
                  */
                 if(SP_ENABLE == 31 || SP_ENABLE == 32) {
 
+                    double long sp_ms;
+                    uint16_t in_mv;
+                    uint16_t in_ma;
+                    uint16_t in_w;
+                    uint16_t in_on;
+                    uint16_t ch1_mv;
+                    uint16_t ch1_ma;
+                    uint16_t ch1_w;
+                    uint16_t ch1_on;
+                    uint16_t ch1_int;
+                    uint16_t ch2_mv;
+                    uint16_t ch2_ma;
+                    uint16_t ch2_w;
+                    uint16_t ch2_on;
+                    uint16_t ch2_int;
+                    uint16_t chk_comp;
+                    uint16_t chk_xor;
                     unsigned char temp[82];
-                    uint8_t sp_read = 0;
+                    int8_t sp_read = 0;
 
                     if((sp_read = read(pwr_in, temp, sizeof(temp) - 1)) < 0) {
                         printf("Error from read: %d: %s\n", sp_read, strerror(errno));
                     }
                     temp[sp_read] = 0;
-                    sscanf(temp, "%Lf,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%x,%x\n",  \
+                    sscanf(temp, "%Lf,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hd,%hx,%hx\n",  \
                         &sp_ms, \
                         &in_mv, &in_ma, &in_w, &in_on, \
                         &ch1_mv, &ch1_ma, &ch1_w, &ch1_on, &ch1_int, \
@@ -863,208 +1294,927 @@ int main(uint8_t argc, char **argv) {
                 close(pwr_in);
             }
             /*
-             * read proc stat
+             * read mcp9808 temperature sensor
              */
-            if(USAGE_ENABLE != 0) {
+            if(MCP9808_ENABLE != 0) {
 
-                float r = 0;
-                float s = 0;
-                float sum = 0;
+                float temperature = mcp9808_read();
 
-                if((cpu_use = fopen(cpuusage, "r")) == NULL) {
-                    printf("\nERROR: Cannot open %s\n", cpuusage);
-                    exit(1);
-                }
-                for (uint16_t c = 0; c <= USAGE_ENABLE; c++) {
-                    char t[20];
-                    char us[10][256] = {0};
-                    double long u[10][256] = {0};
-                    char *endptr;
-
-                    if((fscanf(cpu_use, "%s %s %s %s %s %s %s %s %s %s %s\n", t, &us[0][c], &us[1][c], \
-                        &us[2][c], &us[3][c], &us[4][c], &us[5][c], &us[6][c], &us[7][c], &us[8][c], &us[9][c])) != 11) {
-                        printf("\nERROR: Reading %s\n", cpuusage);
-                        exit(1);
-                    }
-
-                    u[0][c] = strtoll(&us[0][c], &endptr, 10);
-                    u[1][c] = strtoll(&us[1][c], &endptr, 10);
-                    u[2][c] = strtoll(&us[2][c], &endptr, 10);
-                    u[3][c] = strtoll(&us[3][c], &endptr, 10);
-                    u[4][c] = strtoll(&us[4][c], &endptr, 10);
-                    u[5][c] = strtoll(&us[5][c], &endptr, 10);
-                    u[6][c] = strtoll(&us[6][c], &endptr, 10);
-                    u[7][c] = strtoll(&us[7][c], &endptr, 10);
-                    u[8][c] = strtoll(&us[8][c], &endptr, 10);
-                    u[9][c] = strtoll(&us[9][c], &endptr, 10);
-
-                    s = u[0][c] + u[1][c] + u[2][c] + u[3][c] + u[4][c] \
-                        + u[5][c] + u[6][c] + u[7][c] + u[8][c] + u[9][c];
-                    sum = use[0][c] + use[1][c] + use[2][c] + use[3][c] + use[4][c] \
-                        + use[5][c] + use[6][c] + use[7][c] + use[8][c] + use[9][c];
-
-                    r = i == 0 && INTERACTIVE_ENABLE != 0 ? (s-sum) : u[3][c] - use[3][c];
-                    r /= (s-sum);
-                    r = 1 - r;
-                    r = r < 0 ? 0 : r * 100;  /* filter out any negative numbers */
+                if(MCP9808_ENABLE != 0) {
 
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                        printf(",%Lf", u[3][c]);
+                        printf(",%f", temperature);
                     }
-                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE ==1) {
-                        if(c == 0) {
-                            printf("CPU = %.2f%% ", r);
-                            if(c == USAGE_ENABLE) {
-                                printf("\n");
-                            }
-                        }
-                        else {
-                            printf("core%d = %.2f%% ", c, r);
-                            if(c == USAGE_ENABLE) {
-                                printf("\n");
-                            }
-                        }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n MCP9808 Temp = %.2lfc\n", temperature);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                            printf(",%.2f", r);
+                            printf(",%.2lf", temperature);
                     }
                     if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
-                            printf("%.2f,", r);
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,", temperature);
                         }
-                        if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
-                            if(OPTIONS_COUNT > 1) {
-                                printf("%.2f,", r);
-                            }
-                            else {
-                                printf("%.2f", r);
-                            }
+                        else {
+                            printf("%.2lf", temperature);
                         }
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                        fprintf(log_file,",%Lf", u[3][c]);
+                        fprintf(log_file,",%.2lf",temperature);
                     }
                     if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                        fprintf(log_file,",%.2f", r);
+                        fprintf(log_file,",%.2lf", temperature);
                     }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf", temperature);
+                    }
+                    if(UDP_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,", temperature);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf", temperature);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+            * SHT4x enabled
+            */
+            if(SHT4X_ENABLE != 0) {
 
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = sht4x_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)sht4x_basic_deinit();
+                    printf("ERROR: sht4x read failed.\n");
+                    return 1;
+                }
+
+                if(SHT4X_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n sht4x Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %s\n", humidity_f, "%");
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%Lf", u[3][c]);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
                         }
-                        if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
-                            if(OPTIONS_COUNT > 1) {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%Lf,", u[3][c]);
-                            }
-                            else {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%Lf", u[3][c]);
-                            }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
                         }
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,",%.2f", r);
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
                     }
                     if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                        if(OPTIONS_COUNT >= 1 && c <= USAGE_ENABLE-1) {
-                            udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
                         }
-                        if(OPTIONS_COUNT >= 1 && c == USAGE_ENABLE-1) {
-                            if(OPTIONS_COUNT > 1) {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f,", r);
-                            }
-                            else {
-                                udp_count += sprintf(udp_tx_data + udp_count,"%.2f", r);
-                            }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
                         }
                     }
-
-                    use[0][c] = u[0][c];
-                    use[1][c] = u[1][c];
-                    use[2][c] = u[2][c];
-                    use[3][c] = u[3][c];
-                    use[4][c] = u[4][c];
-                    use[5][c] = u[5][c];
-                    use[6][c] = u[6][c];
-                    use[7][c] = u[7][c];
-                    use[8][c] = u[8][c];
-                    use[9][c] = u[9][c];
+                    OPTIONS_COUNT--;
                 }
-                OPTIONS_COUNT--;
-                fclose(cpu_use);
             }
             /*
-             * Read memory usage
+            * SHTC3 enabled
+            */
+            if(SHTC3_ENABLE != 0) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = shtc3_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)shtc3_basic_deinit();
+                    printf("ERROR: shtc3 read failed.\n");
+                    return 1;
+                }
+
+                if(SHTC3_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n shtc3 Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %s\n", humidity_f, "%");
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+            * aht20 enabled
+            */
+            if(AHT20_ENABLE != 0) {
+
+                float temperature_f;
+                uint8_t humidity_f;
+
+                uint8_t res = aht20_basic_read((float *)&temperature_f, (uint8_t *)&humidity_f);
+                if (res != 0) {
+                    (void)aht20_basic_deinit();
+                    printf("ERROR: aht20 read failed.\n");
+                    return 1;
+                }
+
+                if(AHT20_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%d", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n aht20 Temp = %.2lf c", temperature_f);
+                        printf("       Humd = %.2d %s\n", humidity_f, "%");
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2d", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2d,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2d", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%d", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2d", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%d", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d", temperature_f, humidity_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2d", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2d,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2d", temperature_f, humidity_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+            * htu31d enabled
+            */
+            if(HTU31D_ENABLE != 0) {
+
+                float temperature_f;
+                float humidity_f;
+
+                uint8_t res = htu31d_basic_read((float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)htu31d_basic_deinit();
+                    printf("ERROR: htu31d read failed.\n");
+                    return 1;
+                }
+
+                if(HTU31D_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n htu31d Temp = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %s\n", humidity_f, "%");
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, humidity_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, humidity_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, humidity_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, humidity_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+             * read bmp180
              */
-            if(MEM_ENABLE == 1) {
+            if(BMP180_ENABLE != 0) {
 
-                float mt;
-                float r = 0;
-                float nd;
-                char field[30];
+                float temperature_f;
+                uint32_t pressure;
 
-                if((mem_load = fopen(memload, "r")) == NULL) {
-                    printf("\nERROR: Cannot open %s\n", memload);
-                    exit(1);
+                uint8_t res = bmp180_basic_read((float *)&temperature_f, (uint32_t *)&pressure);
+                if (res != 0) {
+                    bmp180_basic_deinit();
+                    printf("ERROR: bmp180 read failed.\n");
+                    return 1;
                 }
-                while(feof(mem_load) == 0) {
-                    fscanf(mem_load, "%29s %f %*s", field, &nd);
-                    if (strcmp(mem_total , field) == 0) mt = nd;
-                    if (strcmp(mem_avail , field) == 0) r -= nd;
-                }
-                r /= mt;
-                r += 1;
-                r *= 100;
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
-                    printf(",%.3g", r);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
-                    printf("\n\n RAM load = %.3g%%", r);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
-                        printf(",%.3g", r);
-                }
-                if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        printf("%.3g,", r);
-                    }
-                    else {
-                        printf("%.3g", r);
-                    }
 
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
-                    fprintf(log_file,",%.3g", r);
-                }
-                if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
-                    fprintf(log_file,",%.3g", r);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
-                    if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
+                if(BMP180_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%d", temperature_f, pressure);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n\n BMP180 Temp = %.2lf c\n", temperature_f);
+                        printf("          Pres = %d hPa\n", pressure/100);
                     }
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
-                    udp_count += sprintf(udp_tx_data + udp_count,",%.3g", r);
-                }
-                if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
-                   if(OPTIONS_COUNT > 1) {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g,", r);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf, %d", temperature_f, pressure/100);
                     }
-                    else {
-                        udp_count += sprintf(udp_tx_data + udp_count,"%.3g", r);
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%d,", temperature_f, pressure/100);
+                        }
+                        else {
+                            printf("%.2lf,%d", temperature_f, pressure/100);
+                        }
                     }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%d", temperature_f, pressure);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%d", temperature_f, pressure/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%d", temperature_f, pressure);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d,", temperature_f, pressure);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%d", temperature_f, pressure);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%d", temperature_f, pressure/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%d,", temperature_f, pressure/100);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%d", temperature_f, pressure/100);
+                        }
+                    }
+                    OPTIONS_COUNT--;
                 }
-                OPTIONS_COUNT--;
-                fclose(mem_load);
+            }
+            /*
+             * read bmp388
+             */
+            if(BMP388_ENABLE != 0) {
+
+                float temperature_f;
+                float pressure;
+
+                uint8_t res = bmp388_basic_read((float *)&temperature_f, (float *)&pressure);
+                if (res != 0) {
+                    bmp388_basic_deinit();
+                    printf("ERROR: bmp388 read failed.\n");
+                    return 1;
+                }
+
+                if(BMP388_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, pressure);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n BMP388 Temp = %.2lf c\n", temperature_f);
+                        printf("        Pres = %.2lf hPa\n", pressure/100);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf,%.2lf", temperature_f, pressure/100);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, pressure/100);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, pressure/100);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, pressure);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, pressure/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, pressure);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, pressure);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, pressure);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, pressure/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, pressure/100);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, pressure/100);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+             * read bmp390
+             */
+            if(BMP390_ENABLE != 0) {
+
+                float temperature_f;
+                float pressure;
+
+                bmp390_interface_delay_ms(100);
+                uint8_t res = bmp390_basic_read((float *)&temperature_f, (float *)&pressure);
+                if (res != 0) {
+                    bmp390_basic_deinit();
+                    printf("ERROR: bmp390 read failed.\n");
+
+                    return 1;
+                }
+
+                if(BMP390_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f", temperature_f, pressure);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n BMP390 Temp = %.2lf c\n", temperature_f);
+                        printf("        Pres = %.2lf hPa\n", pressure/100);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%.2lf,%.2lf", temperature_f, pressure/100);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,", temperature_f, pressure/100);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf", temperature_f, pressure/100);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f", temperature_f, pressure);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf", temperature_f, pressure/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f", temperature_f, pressure);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,", temperature_f, pressure);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f", temperature_f, pressure);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf", temperature_f, pressure/100);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,", temperature_f, pressure/100);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf", temperature_f, pressure/100);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+             * read bme280
+             */
+            if(BME280_ENABLE != 0) {
+
+                float temperature_f;
+                float humidity_f;
+                float pressure_f;
+
+                uint8_t res = bme280_basic_read((float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)bme280_basic_deinit();
+                    printf("ERROR: bme280 read failed.\n");
+                    return 1;
+                }
+
+                if(BME280_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f,%f", temperature_f, humidity_f, pressure_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n BME280 Temp = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %s\n", humidity_f, "%");
+                        printf("        Pres = %.2lf hPa\n", pressure_f/100);
+                     }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,%.2lf,", temperature_f, humidity_f, pressure_f);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f,%f", temperature_f, humidity_f, pressure_f);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f,%f", temperature_f, humidity_f, pressure_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,", temperature_f, humidity_f, pressure_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f", temperature_f, humidity_f, pressure_f);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,", temperature_f, humidity_f, pressure_f);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf", temperature_f, humidity_f, pressure_f);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+             * read bme680
+             */
+            if(BME680_ENABLE != 0) {
+
+                float temperature_f;
+                float humidity_f;
+                float pressure_f;
+                float idac_ma = 5.0f;
+                float degree_celsius = 200.0f;
+                float ohms;
+                uint8_t index = 0;
+                uint16_t gas_wait_ms = 150;
+
+                uint8_t res = bme680_gas_read(idac_ma, degree_celsius, gas_wait_ms, index, \
+                    (float *)&temperature_f, (float *)&pressure_f, (float *)&humidity_f,(float *)&ohms);
+                if (res != 0) {
+                    (void)bme680_gas_deinit();
+                    printf("ERROR: bme680 read failed.\n");
+                    return 1;
+                }
+                if(BME680_ENABLE != 0) {
+
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n BME680 Temp = %.2lf c\n", temperature_f);
+                        printf("        Humd = %.2lf %s\n", humidity_f, "%");
+                        printf("        Pres = %.2lf hPa\n", pressure_f/100);
+                        printf("         Gas = %d\n", index);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f, index);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,%.2lf,%d,", temperature_f, humidity_f, pressure_f, index);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f, index);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f/100, index);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,%d,", temperature_f, humidity_f, pressure_f, index);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,%d", temperature_f, humidity_f, pressure_f, index);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f/100, index);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,%d,", temperature_f, humidity_f, pressure_f/100, index);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,%d", temperature_f, humidity_f, pressure_f/100, index);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+            * SCD30 enabled
+            */
+            if(SCD30_ENABLE != 0) {
+
+                scd30_data_t data;
+
+                uint8_t res = scd30_basic_read((scd30_data_t *)&data);
+                if (res != 0) {
+                    (void)scd30_basic_deinit();
+                    return 1;
+                }
+                if(SCD30_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n scd30 Temp = %.2lf c\n", data.temperature_deg);
+                        printf("       Humd = %.2lf %s\n", data.humidity_percent, "%");
+                        printf("        CO2 = %.2lf ppm\n", data.co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,%.2lf,", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f,", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%f,%f,%f", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf,", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%.2lf", data.temperature_deg, data.humidity_percent, data.co2_ppm);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+            * SCD4x enabled
+            */
+            if(SCD4X_ENABLE != 0) {
+
+                float temperature_f;
+                float humidity_f;
+                uint16_t co2_ppm;
+
+                uint8_t res = scd4x_shot_read((uint16_t *)&co2_ppm, (float *)&temperature_f, (float *)&humidity_f);
+                if (res != 0) {
+                    (void)scd4x_shot_deinit();
+                    return 1;
+                }
+                if(SCD4X_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d", co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n scd4x Temp = %.2lf c\n", temperature_f);
+                        printf("       Humd = %.2lf %s\n", humidity_f, "%");
+                        printf("        CO2 = %d ppm\n", co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%.2lf,%.2lf,%d,", temperature_f, humidity_f, co2_ppm);
+                        }
+                        else {
+                            printf("%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d,", temperature_f, humidity_f, co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d,", temperature_f, humidity_f, co2_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%.2lf,%.2lf,%d", temperature_f, humidity_f, co2_ppm);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+             * SGP30 enabled
+             */
+            if(SGP30_ENABLE != 0) {
+
+                uint16_t co2_eq_ppm = 0;
+                uint16_t tvoc_ppb = 0;
+
+                uint8_t res = sgp30_advance_read((uint16_t *)&co2_eq_ppm, (uint16_t *)&tvoc_ppb);
+                if (res != 0) {
+                    (void)sgp30_advance_deinit();
+                    return 1;
+                }
+
+                if(SGP30_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n sgp30 VOC = %d ppm\n", tvoc_ppb);
+                        printf("      eCO2 = %d ppm\n", co2_eq_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                            printf(",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            printf("%d,%d,", tvoc_ppb, co2_eq_ppm);
+                        }
+                        else {
+                            printf("%d,%d", tvoc_ppb, co2_eq_ppm);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d", tvoc_ppb, co2_eq_ppm);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,", tvoc_ppb, co2_eq_ppm);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d", tvoc_ppb, co2_eq_ppm);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
+            }
+            /*
+             * PMSA003I enabled
+             */
+            if(PMSA003I_ENABLE != 0) {
+
+                pmsa003i_data_t data;
+
+                uint8_t res = pmsa003i_basic_read(&data);
+                if (res != 0) {
+                    (void)pmsa003i_basic_deinit();
+                    return 1;
+                }
+                if(PMSA003I_ENABLE != 0) {
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 1) {
+                        printf(",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && VERBOSE_ENABLE == 1) {
+                        printf("\n pmsa003i\n");
+                        printf("  pm1p0_atmospheric_ug_m3 = %d\n", data.pm1p0_atmospheric_ug_m3);
+                        printf("  pm2p5_atmospheric_ug_m3 = %d\n", data.pm2p5_atmospheric_ug_m3);
+                        printf("  pm10_atmospheric_ug_m3 = %d\n", data.pm10_atmospheric_ug_m3);
+                        printf("  beyond_0p3um = %d\n", data.beyond_0p3um);
+                        printf("  beyond_0p5um = %d\n", data.beyond_0p5um);
+                        printf("  beyond_1p0um = %d\n", data.beyond_1p0um);
+                        printf("  beyond_2p5um = %d\n", data.beyond_2p5um);
+                        printf("  beyond_5p0um = %d\n", data.beyond_5p0um);
+                        printf("  beyond_10um = %d\n", data.beyond_10um);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 1 && VERBOSE_ENABLE == 0) {
+                        printf(",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                    }
+                    if(QUIET_ENABLE == 0 && RAW_ENABLE == 0 && COUNT_ENABLE == 0 && VERBOSE_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                        printf("%d,%d,%d,", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                        }
+                        else {
+                        printf("%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                        }
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 1) {
+                        fprintf(log_file,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                    }
+                    if(LOG_ENABLE == 1 && RAW_ENABLE == 0) {
+                        fprintf(log_file,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 1 && COUNT_ENABLE == 0) {
+                        if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d,", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                        }
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 1) {
+                        udp_count += sprintf(udp_tx_data + udp_count,",%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                    }
+                    if(UDP_ENABLE == 1 && RAW_ENABLE == 0 && COUNT_ENABLE == 0) {
+                       if(OPTIONS_COUNT > 1) {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d,", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                        }
+                        else {
+                            udp_count += sprintf(udp_tx_data + udp_count,"%d,%d,%d", data.pm1p0_atmospheric_ug_m3, \
+                            data.pm2p5_atmospheric_ug_m3, data.pm10_atmospheric_ug_m3);
+                        }
+                    }
+                    OPTIONS_COUNT--;
+                }
             }
             /*
              * eol for stdout and log file
@@ -1085,32 +2235,140 @@ int main(uint8_t argc, char **argv) {
             /*
              * break if one and done or sleep
              */
-            if(INTERACTIVE_ENABLE == 0) {
+            if(INTERACTIVE_ENABLE != 0) {
+
+                OPTIONS_COUNT = c;
+                i += (float)INTERACTIVE_ENABLE;
+
+                sleep_ms(INTERACTIVE_ENABLE);
+            }
+            else {
                 break;
             }
-            OPTIONS_COUNT = c;
-            i += (float)INTERACTIVE_ENABLE;
-            sleep_ms(INTERACTIVE_ENABLE);
         }
     }
+    /*
+     * Build gnuplot script
+     */
     else {
-        /*
-         * Build of gnuplot script
-         */
+
+        char gpscript_freq1[30];
+        char gpscript_freq2[30];
+        char gpscript_thermal1[30];
+        char gpscript_thermal2[30];
+        char gpscript_power1[30];
+        char gpscript_power2[30];
+        char gpscript_usage1[30];
+        char gpscript_usage2[30];
+        char gpscript_sensor1[30];
+        char gpscript_sensor2[30];
+        char one2one[] = "1,1";
+        char two2one[] = "2,1";
+        char three2one[] = "3,1";
+        char four2one[] = "4,1";
+        char buffer[5] = "\0";
+        char strChar[5] = {0};
+
         uint16_t i = 0;
-        while (i < 11) {
+        uint16_t count = 0;
+        float sensor_org = 0;
+        uint8_t sensor_1t = MCP9808_ENABLE;
+        uint8_t sensor_2th = SHT4X_ENABLE + SHTC3_ENABLE + AHT20_ENABLE + HTU31D_ENABLE;
+        uint8_t sensor_2tp = BMP180_ENABLE + BMP388_ENABLE + BMP390_ENABLE;
+        uint8_t sensor_3thp = BME280_ENABLE;
+        uint8_t sensor_4thpv = BME680_ENABLE;
+        uint8_t sensor_3thg = SCD30_ENABLE + SCD4X_ENABLE;
+        uint8_t sensor_2vg = SGP30_ENABLE;
+        uint8_t sensor_3pm = PMSA003I_ENABLE;
+
+        uint8_t sensor_count = sensor_1t + sensor_2th + sensor_2tp + sensor_3thp + \
+                sensor_4thpv + sensor_3thg + sensor_2vg + sensor_3pm;
+        uint8_t sensor_ambient = 0;
+        uint8_t sensor_pos = 0;
+        uint8_t sys_count = 0;
+        uint16_t chart_size = 0;
+        uint16_t chart_tsize = 0;
+
+        uint8_t power = SP_ENABLE > 0 ? 3 : 0;
+
+        chart_size = SP_ENABLE > 0 ? GPSIZE_POWER1 : 0;
+        chart_size = FREQ_ENABLE > 0 ? chart_size + GPSIZE_FREQ1 : chart_size;
+        chart_size = (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) ? chart_size + GPSIZE_THERMAL1 : chart_size;
+        chart_size = (USAGE_ENABLE > 0 || MEM_ENABLE > 0) ? chart_size + GPSIZE_USAGE1 : chart_size;
+
+        sensor_ambient = USAGE_ENABLE > 0 ? sensor_ambient + USAGE_ENABLE : sensor_ambient;
+        sensor_ambient = MEM_ENABLE > 0 ? sensor_ambient + MEM_ENABLE : sensor_ambient;
+
+        sensor_ambient = !strcmp(ambient_sensor, "--mcp9808") ? sensor_ambient : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--sht4x") ? sensor_ambient + 2 ? SHT4X_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--shtc3") ? sensor_ambient + 2 ? SHTC3_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--aht20") ? sensor_ambient + 2 ? AHT20_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--htu31d") ? sensor_ambient + 2 ? HTU31D_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp180") ? sensor_ambient + 2 ? BMP180_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp388") ? sensor_ambient + 2 ? BMP388_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bmp390") ? sensor_ambient + 2 ? BMP390_ENABLE != 0 : sensor_ambient +2 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bme280") ? sensor_ambient + 3 ? BME280_ENABLE != 0 : sensor_ambient +3 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--bme680") ? sensor_ambient + 4 ? BME680_ENABLE != 0 : sensor_ambient +4 : sensor_ambient;
+        sensor_ambient = !strcmp(ambient_sensor, "--scd30") ? sensor_ambient + 3 ? SCD30_ENABLE != 0 : sensor_ambient +3 : sensor_ambient;
+        sensor_ambient = (!strcmp(ambient_sensor, "--scd40") || !strcmp(ambient_sensor, "--scd41") \
+            || !strcmp(ambient_sensor, "--scd43")) ? sensor_ambient + 3 ? SCD4X_ENABLE != 0 : sensor_ambient +3 : sensor_ambient;
+
+        if(SP_ENABLE > 0) ++sys_count;
+        if(FREQ_ENABLE > 0) ++sys_count;
+        if(THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) ++sys_count;
+        if(USAGE_ENABLE > 0 || MEM_ENABLE > 0) ++sys_count;
+
+        itoa(sensor_count + sys_count, strChar);
+        strcpy(buffer, strChar);
+        strcat(buffer, ",1");
+
+        /*
+        *  set chart size based on data collected
+        */
+        while (i < 12) {
+
+            if(i == 8) {
+                char buffer[10] = "\0";
+                char strChrx[6] = {0};
+                char strChry[6] = {0};
+
+                itoa(CHART_X,strChrx);
+                itoa(CHART_Y,strChry);
+
+                if(sensor_count == 0) {
+                    fprintf(gnuplot_file,"%s,%s", strChrx, strChry);
+                }
+                else if(sys_count == 0) {
+
+                    if(sensor_count > 3) {
+                        sprintf(buffer, "%d", sensor_count * GPSIZE_SENSOR1);
+                        fprintf(gnuplot_file,"%s,%s", strChrx, buffer);
+                    }
+                    else {
+                        fprintf(gnuplot_file,"%s,%s", strChrx, strChry);
+                    }
+                }
+                else {
+
+                    sprintf(buffer, "%d", chart_size + (sensor_count * GPSIZE_SENSOR1));
+                    fprintf(gnuplot_file,"%s,%s", strChrx, buffer);
+                }
+            }
             fprintf(gnuplot_file,"%s",gpscript_start[i]);
             i++;
+            chart_tsize = chart_size + (sensor_count * GPSIZE_SENSOR1);
+
         }
         /*
          * get thermal zone names and set titles
          */
-        char strChar[5] = {0};
         for (uint16_t c = 0; c < THERMAL_ENABLE; c++) {
+
             itoa(c,strChar);
             strcpy(thermaltype,thermalzone1);
             strcat(thermaltype,strChar);
             strcat(thermaltype,thermaltype1);
+
             if((thermal_type = fopen(thermaltype, "r")) == NULL) {
                 break;
             }
@@ -1119,7 +2377,9 @@ int main(uint8_t argc, char **argv) {
             fprintf(gnuplot_file,"%s%s\"\n", gpscript_thermal_title[c][0], thermalname);
         }
 
-        if(SENSOR_ENABLE != 0) {
+        strcpy(strChar, "\0");
+
+        if(AMBIENT_ENABLE != 0) {
             fprintf(gnuplot_file,"%s%s\"", gpscript_thermal_title[8][0], gpscript_thermal_title[8][1]);
             fprintf(gnuplot_file,"\n%s", gpscript_thermal_title[8][2]);
         }
@@ -1134,129 +2394,328 @@ int main(uint8_t argc, char **argv) {
          */
         fprintf(gnuplot_file,"%s",gpscript_layout[0]);
 
+        /* sensor only chart */
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count > 1) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
+            }
+            else {
+                fprintf(gnuplot_file,"%s", one2one);
+                strcpy(gpscript_freq1, "set size 1,1\n");
+                strcpy(gpscript_freq2, "set origin 0,0\n");
+            }
+        }
         /* frequency only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file,"%s",one2one);
-            strcpy(gpscript_freq1, "set size 1,1\n");
-            strcpy(gpscript_freq2, "set origin 0,0\n");
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
+            }
+            else {
+                fprintf(gnuplot_file,"%s", one2one);
+                strcpy(gpscript_freq1, "set size 1,1\n");
+                strcpy(gpscript_freq2, "set origin 0,0\n");
+            }
         }
         /* thermal zone only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file,"%s", one2one);
-            strcpy(gpscript_thermal1, "set size 1,1\n");
-            strcpy(gpscript_thermal2, "set origin 0,0\n");
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
+            }
+            else {
+                fprintf(gnuplot_file,"%s", one2one);
+                strcpy(gpscript_thermal1, "set size 1,1\n");
+                strcpy(gpscript_thermal2, "set origin 0,0\n");
+            }
         }
         /* usage only chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file,"%s",one2one);
-            strcpy(gpscript_usage1, "set size 1,1\n");
-            strcpy(gpscript_usage2, "set origin 0,0\n");
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
+            }
+            else {
+                fprintf(gnuplot_file,"%s", one2one);
+                strcpy(gpscript_usage1, "set size 1,1\n");
+                strcpy(gpscript_usage2, "set origin 0,0\n");
+            }
         }
         /* power only chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file,"%s",one2one);
-            strcpy(gpscript_power1, "set size 1,1\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE == 0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s", buffer);
+
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) 1/(sensor_count+1));
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", 1 - (float) 1/(sensor_count+1));
+            }
+            else {
+                fprintf(gnuplot_file,"%s", one2one);
+                strcpy(gpscript_power1, "set size 1,1\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
         /* frequency and thermal chart*/
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file,"%s", two2one);
-            strcpy(gpscript_freq1, "set size 1,.5\n");
-            strcpy(gpscript_freq2, "set origin 0,0\n");
-            strcpy(gpscript_thermal1, "set size 1,.5\n");
-            strcpy(gpscript_thermal2, "set origin 0,.5\n");
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize - (float) GPSIZE_FREQ1/chart_tsize);
+            }
+            else {
+                fprintf(gnuplot_file,"%s", two2one);
+                strcpy(gpscript_thermal1, "set size 1,.5\n");
+                strcpy(gpscript_thermal2, "set origin 0,.5\n");
+                strcpy(gpscript_freq1, "set size 1,.5\n");
+                strcpy(gpscript_freq2, "set origin 0,0\n");
+            }
         }
-        /* frequency and useage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file,"%s",two2one);
-            strcpy(gpscript_freq1, "set size 1,.5\n");
-            strcpy(gpscript_freq2, "set origin 0,.5\n");
-            strcpy(gpscript_usage1, "set size 1,.5\n");
-            strcpy(gpscript_usage2, "set origin 0,0\n");
+        /* frequency and usage chart */
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_size);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_FREQ1/chart_size);
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) GPSIZE_USAGE1/chart_size);
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_FREQ1/chart_size) - (float) GPSIZE_USAGE1/chart_size);
+            }
+            else {
+                fprintf(gnuplot_file,"%s",two2one);
+                strcpy(gpscript_freq1, "set size 1,.5\n");
+                strcpy(gpscript_freq2, "set origin 0,.5\n");
+                strcpy(gpscript_usage1, "set size 1,.5\n");
+                strcpy(gpscript_usage2, "set origin 0,0\n");
+            }
         }
         /* frequency and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file,"%s",two2one);
-            strcpy(gpscript_freq1, "set size 1,.5\n");
-            strcpy(gpscript_freq2, "set origin 0,.5\n");
-            strcpy(gpscript_power1, "set size 1,.5\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_size);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_FREQ1/chart_size);
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) GPSIZE_POWER1/chart_size);
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_FREQ1/chart_size) - (float) GPSIZE_POWER1/chart_size);
+            }
+            else {
+                fprintf(gnuplot_file,"%s",two2one);
+                strcpy(gpscript_freq1, "set size 1,.5\n");
+                strcpy(gpscript_freq2, "set origin 0,.5\n");
+                strcpy(gpscript_power1, "set size 1,.5\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
         /* thermal and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file,"%s",two2one);
-            strcpy(gpscript_thermal1, "set size 1,.5\n");
-            strcpy(gpscript_thermal2, "set origin 0,.5\n");
-            strcpy(gpscript_power1, "set size 1,.5\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_size);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_size);
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) GPSIZE_POWER1/chart_size);
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_THERMAL1/chart_size) - (float) GPSIZE_POWER1/chart_size);
+            }
+            else {
+                fprintf(gnuplot_file,"%s",two2one);
+                strcpy(gpscript_thermal1, "set size 1,.5\n");
+                strcpy(gpscript_thermal2, "set origin 0,.5\n");
+                strcpy(gpscript_power1, "set size 1,.5\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
-        /* thermal and useage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file,"%s",two2one);
-            strcpy(gpscript_thermal1, "set size 1,.5\n");
-            strcpy(gpscript_thermal2, "set origin 0,.5\n");
-            strcpy(gpscript_usage1, "set size 1,.5\n");
-            strcpy(gpscript_usage2, "set origin 0,0\n");
+        /* thermal and usage chart */
+        if(SP_ENABLE == 0 && FREQ_ENABLE == 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_size);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_size);
+            }
+            else {
+
+                fprintf(gnuplot_file,"%s",two2one);
+                strcpy(gpscript_thermal1, "set size 1,.5\n");
+                strcpy(gpscript_thermal2, "set origin 0,.5\n");
+                strcpy(gpscript_usage1, "set size 1,.5\n");
+                strcpy(gpscript_usage2, "set origin 0,0\n");
+            }
         }
         /* usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file,"%s",two2one);
-            strcpy(gpscript_usage1, "set size 1,.5\n");
-            strcpy(gpscript_usage2, "set origin 0,.5\n");
-            strcpy(gpscript_power1, "set size 1,.5\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+        if(SP_ENABLE > 0 && FREQ_ENABLE == 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) GPSIZE_USAGE1/chart_size);
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_USAGE1/chart_size);
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) GPSIZE_POWER1/chart_size);
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_USAGE1/chart_size) - (float) GPSIZE_POWER1/chart_size);
+            }
+            else {
+                fprintf(gnuplot_file,"%s",two2one);
+                strcpy(gpscript_usage1, "set size 1,.5\n");
+                strcpy(gpscript_usage2, "set origin 0,.5\n");
+                strcpy(gpscript_power1, "set size 1,.5\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
         /* frequency, thermal and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE ==0) {
-            fprintf(gnuplot_file, "%s", three2one);
-            strcpy(gpscript_freq1, "set size 1,.2\n");
-            strcpy(gpscript_freq2, "set origin 0,.3\n");
-            strcpy(gpscript_thermal1, "set size 1,.5\n");
-            strcpy(gpscript_thermal2, "set origin 0,.5\n");
-            strcpy(gpscript_power1, "set size 1,.3\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && USAGE_ENABLE == 0 && MEM_ENABLE == 0) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - ((float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) GPSIZE_POWER1/chart_tsize);
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_FREQ1/chart_tsize - (float) GPSIZE_POWER1/chart_tsize);
+            }
+            else {
+                fprintf(gnuplot_file, "%s", three2one);
+                strcpy(gpscript_thermal1, "set size 1,.5\n");
+                strcpy(gpscript_thermal2, "set origin 0,.5\n");
+                strcpy(gpscript_freq1, "set size 1,.2\n");
+                strcpy(gpscript_freq2, "set origin 0,.3\n");
+                strcpy(gpscript_power1, "set size 1,.3\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
         /* frequency, thermal and usage chart */
-        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file, "%s", three2one);
-            strcpy(gpscript_freq1, "set size 1,.2\n");
-            strcpy(gpscript_freq2, "set origin 0,.3\n");
-            strcpy(gpscript_thermal1, "set size 1,.5\n");
-            strcpy(gpscript_thermal2, "set origin 0,.5\n");
-            strcpy(gpscript_usage1, "set size 1,.3\n");
-            strcpy(gpscript_usage2, "set origin 0,0\n");
+        if(SP_ENABLE == 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - ((float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) GPSIZE_USAGE1/chart_tsize);
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_FREQ1/chart_tsize - (float) GPSIZE_USAGE1/chart_tsize);
+            }
+            else {
+                fprintf(gnuplot_file, "%s", three2one);
+                strcpy(gpscript_thermal1, "set size 1,.5\n");
+                strcpy(gpscript_thermal2, "set origin 0,.5\n");
+                strcpy(gpscript_freq1, "set size 1,.2\n");
+                strcpy(gpscript_freq2, "set origin 0,.3\n");
+                strcpy(gpscript_usage1, "set size 1,.3\n");
+                strcpy(gpscript_usage2, "set origin 0,0\n");
+            }
         }
         /* frequency, usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file, "%s", three2one);
-            strcpy(gpscript_freq1, "set size 1,.2\n");
-            strcpy(gpscript_freq2, "set origin 0,.3\n");
-            strcpy(gpscript_usage1, "set size 1,.5\n");
-            strcpy(gpscript_usage2, "set origin 0,.5\n");
-            strcpy(gpscript_power1, "set size 1,.3\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) GPSIZE_USAGE1/chart_tsize);
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", 1 - ((float) GPSIZE_FREQ1/chart_tsize) - (float) GPSIZE_USAGE1/chart_tsize);
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) GPSIZE_POWER1/chart_tsize);
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_FREQ1/chart_tsize) - (float) GPSIZE_USAGE1/chart_tsize - (float) GPSIZE_POWER1/chart_tsize);
+            }
+            else {
+                fprintf(gnuplot_file, "%s", three2one);
+                strcpy(gpscript_freq1, "set size 1,.2\n");
+                strcpy(gpscript_freq2, "set origin 0,.3\n");
+                strcpy(gpscript_usage1, "set size 1,.5\n");
+                strcpy(gpscript_usage2, "set origin 0,.5\n");
+                strcpy(gpscript_power1, "set size 1,.3\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
         /* thermal, usage and power chart */
-        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && SENSOR_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file, "%s", three2one);
-            strcpy(gpscript_thermal1, "set size 1,.2\n");
-            strcpy(gpscript_thermal2, "set origin 0,.3\n");
-            strcpy(gpscript_usage1, "set size 1,.5\n");
-            strcpy(gpscript_usage2, "set origin 0,.5\n");
-            strcpy(gpscript_power1, "set size 1,.3\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+        if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && THERMAL_ENABLE == 0 && AMBIENT_ENABLE ==0 && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) GPSIZE_USAGE1/chart_tsize);
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", 1 - ((float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_USAGE1/chart_tsize);
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) GPSIZE_POWER1/chart_tsize);
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_USAGE1/chart_tsize - (float) GPSIZE_POWER1/chart_tsize);
+            }
+            else {
+                fprintf(gnuplot_file, "%s", three2one);
+                strcpy(gpscript_thermal1, "set size 1,.2\n");
+                strcpy(gpscript_thermal2, "set origin 0,.3\n");
+                strcpy(gpscript_usage1, "set size 1,.5\n");
+                strcpy(gpscript_usage2, "set origin 0,.5\n");
+                strcpy(gpscript_power1, "set size 1,.3\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
         /* frequency, thermal, usage chart and power chart*/
-         if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || SENSOR_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
-            fprintf(gnuplot_file, "%s", four2one);
-            strcpy(gpscript_thermal1, "set size 1,.35\n");
-            strcpy(gpscript_thermal2, "set origin 0,.65\n");
-            strcpy(gpscript_freq1, "set size 1,.2\n");
-            strcpy(gpscript_freq2, "set origin 0,.45\n");
-            strcpy(gpscript_usage1, "set size 1,.15\n");
-            strcpy(gpscript_usage2, "set origin 0,.3\n");
-            strcpy(gpscript_power1, "set size 1,.3\n");
-            strcpy(gpscript_power2, "set origin 0,0\n");
+         if(SP_ENABLE > 0 && FREQ_ENABLE > 0 && (THERMAL_ENABLE > 0 || AMBIENT_ENABLE > 0) && (USAGE_ENABLE > 0 || MEM_ENABLE > 0)) {
+
+            if(sensor_count != 0) {
+
+                fprintf(gnuplot_file,"%s",buffer);
+
+                count = sprintf(gpscript_thermal1, "set size 1,%.2f\n", (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_thermal2, "set origin 0,%.2f\n", 1 - (float) GPSIZE_THERMAL1/chart_tsize);
+                count = sprintf(gpscript_freq1, "set size 1,%.2f\n", (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_freq2, "set origin 0,%.2f\n", 1 - ((float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_FREQ1/chart_tsize);
+                count = sprintf(gpscript_usage1, "set size 1,%.2f\n", (float) GPSIZE_USAGE1/chart_tsize);
+                count = sprintf(gpscript_usage2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_FREQ1/chart_tsize - (float) GPSIZE_USAGE1/chart_tsize);
+                count = sprintf(gpscript_power1, "set size 1,%.2f\n", (float) GPSIZE_POWER1/chart_tsize);
+                count = sprintf(gpscript_power2, "set origin 0,%.2f\n", (1 - (float) GPSIZE_THERMAL1/chart_tsize) - (float) GPSIZE_FREQ1/chart_tsize - (float) GPSIZE_USAGE1/chart_tsize - (float) GPSIZE_POWER1/chart_tsize);
+            }
+            else {
+                fprintf(gnuplot_file, "%s", four2one);
+                strcpy(gpscript_thermal1, "set size 1,.35\n");
+                strcpy(gpscript_thermal2, "set origin 0,.65\n");
+                strcpy(gpscript_freq1, "set size 1,.2\n");
+                strcpy(gpscript_freq2, "set origin 0,.45\n");
+                strcpy(gpscript_usage1, "set size 1,.15\n");
+                strcpy(gpscript_usage2, "set origin 0,.3\n");
+                strcpy(gpscript_power1, "set size 1,.3\n");
+                strcpy(gpscript_power2, "set origin 0,0\n");
+            }
         }
 
         fprintf(gnuplot_file,"%s",gpscript_layout[1]);
@@ -1266,6 +2725,11 @@ int main(uint8_t argc, char **argv) {
          * set x axis major tic value
          */
         fprintf(gnuplot_file,"%s",gpscript_xaxis[0]);
+        if(DT_ENABLE) {
+            fprintf(gnuplot_file,"%s", "set xdata time\n");
+            fprintf(gnuplot_file,"%s", "set timefmt \"%Y-%m-%d %H:%M:%S\"\n");
+            fprintf(gnuplot_file,"%s", "set format x \"%Y-%m-%d\\n%H:%M:%S\"\n");
+        }
         fprintf(gnuplot_file,"%s",gpscript_xaxis[1]);
         fprintf(gnuplot_file,"%s",gpscript_xaxis[2]);
         fprintf(gnuplot_file,"%d",xmtics);
@@ -1274,7 +2738,7 @@ int main(uint8_t argc, char **argv) {
         /*
          * build thermal zone chart
          */
-        if(THERMAL_ENABLE != 0 || SENSOR_ENABLE != 0) {
+        if(THERMAL_ENABLE != 0 || AMBIENT_ENABLE != 0) {
 
             i = 0;
             while (i < 9) {
@@ -1302,12 +2766,12 @@ int main(uint8_t argc, char **argv) {
                     fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1 title data_title%d", i+(FREQ_ENABLE+2), i+1, i+1);
                     i++;
                 }
-                if(SENSOR_ENABLE != 0) {
-                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(FREQ_ENABLE+2));
+                if(AMBIENT_ENABLE != 0) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", sensor_ambient+i+(FREQ_ENABLE+2));
                 }
             }
-            if(THERMAL_ENABLE == 0 && SENSOR_ENABLE != 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", i+(FREQ_ENABLE+2));
+            if(THERMAL_ENABLE == 0 && AMBIENT_ENABLE != 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 title data_title9", sensor_ambient+i+(FREQ_ENABLE+2));
             }
 
             fprintf(gnuplot_file, "\n\n");
@@ -1346,6 +2810,53 @@ int main(uint8_t argc, char **argv) {
             fprintf(gnuplot_file, "\n\n");
         }
         /*
+         * build usage chart
+         */
+        if(USAGE_ENABLE != 0 || MEM_ENABLE != 0) {
+
+            uint16_t i = 0;
+            while (i < 11) {
+                if(i != 1 && i != 2) {
+                    fprintf(gnuplot_file,"%s",gpscript_usage[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_usage1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_usage2);
+                        i++;
+                    }
+                }
+            }
+
+            i = 0;
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE;
+
+            if(USAGE_ENABLE == 0 && MEM_ENABLE != 0) {
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1", chart_adj + i + 2);
+            }
+            if(USAGE_ENABLE != 0) {
+                ++USAGE_ENABLE;
+                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", chart_adj + 2);
+                i++;
+                while (i < USAGE_ENABLE) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", chart_adj + i + 2, i + 1);
+                    i++;
+                }
+                if(MEM_ENABLE != 0) {
+                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", chart_adj + i + 3);
+                }
+            }
+
+            fprintf(gnuplot_file, "\n\n");
+        }
+        /*
          * build power chart
          */
         if(SP_ENABLE != 0) {
@@ -1370,111 +2881,657 @@ int main(uint8_t argc, char **argv) {
 
             fprintf(gnuplot_file, "plot ");
 
-            if(SENSOR_ENABLE == 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+2));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+3));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+4));
-            }
-            else {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+3));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+4));
-                fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", (FREQ_ENABLE+THERMAL_ENABLE+5));
-            }
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 4);
+
         }
         /*
-         * build usage chart
+         * build sensor charts
          */
-        if(USAGE_ENABLE != 0 || MEM_ENABLE != 0) {
+        if(MCP9808_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
 
             i = 0;
-            while (i < 11) {
-                if(i != 1 && i != 2) {
-                    fprintf(gnuplot_file,"%s",gpscript_usage[i]);
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_T[i]);
                     i++;
                 }
                 else {
                     if(i == 1) {
-                        fprintf(gnuplot_file,"%s",gpscript_usage1);
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
                         i++;
                     }
                     if(i == 2) {
-                        fprintf(gnuplot_file,"%s",gpscript_usage2);
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_T[i], "MCP9808");
                         i++;
                     }
                 }
             }
 
-            i = 0;
-            uint8_t power = SP_ENABLE > 0 ? 3 : 0;
             fprintf(gnuplot_file, "plot ");
-            if(USAGE_ENABLE != 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1 notitle", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
-                i++;
-                while (i < USAGE_ENABLE) {
-                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls %d axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3, i+1);
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle\n\n", chart_adj + 2);
+
+            ++sensor_pos;
+            sensor_org = (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(SHT4X_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
                     i++;
                 }
-                if(MEM_ENABLE != 0) {
-                    fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+3);
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_TH[i], "SHT4X");
+                        i++;
+                    }
                 }
             }
-            if(USAGE_ENABLE == 0 && MEM_ENABLE != 0) {
-                fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 9 axes x1y1", (FREQ_ENABLE+THERMAL_ENABLE+power)+i+2);
-            }
-            fprintf(gnuplot_file, "\n\n");
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
         }
+        if(SHTC3_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_T[i], "SHTC3");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(AHT20_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_TH[i], "AHT20");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(HTU31D_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_TH[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_TH[i], "HTU31D");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(BMP180_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_P[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_P[i], "BMP180");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(BMP388_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_P[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_P[i], "BMP388");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(BMP390_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_P[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_P[i], "BMP390");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+        }
+        if(BME280_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THP[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THP[i], "BME280");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 4);
+
+            sensor_pos = sensor_pos + 3;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
+        }
+        if(BME680_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THPV[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THPV[i], "BME680");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1", chart_adj + 4);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 5);
+
+            sensor_pos = sensor_pos + 4;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
+        }
+        if(SCD30_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THG[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THG[i], "SCD30");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 4);
+
+            sensor_pos = sensor_pos + 3;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
+        }
+        if(SCD4X_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_THG[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_THG[i], "SCD4X");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 4);
+
+            sensor_pos = sensor_pos + 3;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
+        }
+        if(SGP30_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_VG[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_VG[i], "SGP30");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 5 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 9 axes x1y1\n\n", chart_adj + 3);
+
+            sensor_pos = sensor_pos + 2;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
+        }
+        if(PMSA003I_ENABLE !=0) {
+
+            count = sprintf(gpscript_sensor1, "set size 1,%.2f\n", (float) GPSIZE_SENSOR1/chart_tsize);
+            count = sprintf(gpscript_sensor2, "set origin 0,%.2f\n", sensor_org);
+
+            i = 0;
+            while (i < 12) {
+                if(i != 1 && i != 2 && i != 5) {
+                    fprintf(gnuplot_file,"%s",gpscript_sensor_PM[i]);
+                    i++;
+                }
+                else {
+                    if(i == 1) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor1);
+                        i++;
+                    }
+                    if(i == 2) {
+                        fprintf(gnuplot_file,"%s",gpscript_sensor2);
+                        i++;
+                    }
+                    if(i == 5) {
+                        fprintf(gnuplot_file,"%s%s", gpscript_sensor_PM[i], "PMSA003I");
+                        i++;
+                    }
+                }
+            }
+
+            fprintf(gnuplot_file, "plot ");
+
+            uint8_t chart_adj = FREQ_ENABLE+THERMAL_ENABLE+USAGE_ENABLE+MEM_ENABLE+power+sensor_pos;
+
+            fprintf(gnuplot_file, "ARG2 using 1:%d with lines ls 4 axes x1y1 notitle", chart_adj + 2);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 3 axes x1y1", chart_adj + 3);
+            fprintf(gnuplot_file, ", ARG2 using 1:%d with lines ls 5 axes x1y1\n\n", chart_adj + 4);
+
+            sensor_pos = sensor_pos + 3;
+            sensor_org = sensor_org + (float) GPSIZE_SENSOR1/chart_tsize;
+
+        }
+
         fprintf(gnuplot_file,"%s",gpscript_end);
         fclose(gnuplot_file);
     }
-    if (SENSOR_ENABLE > 0) {
-        close(sensor_in);
-    }
-    if (SP_ENABLE > 0) {
+    /*
+     * close all handles and files
+     */
+    if (SP_ENABLE != 0) {
         close(pwr_in);
     }
-    if ( UDP_ENABLE == 1) {
+    if (UDP_ENABLE == 1) {
         close(udp_socket);
+    }
+    if (BMP180_ENABLE == 1) {
+        (void)bmp180_basic_deinit();
+    }
+    if (BMP388_ENABLE == 1) {
+        (void)bmp388_basic_deinit();
+    }
+    if (BMP390_ENABLE == 1) {
+        (void)bmp390_basic_deinit();
+    }
+    if (BME280_ENABLE == 2) {
+        (void)bme280_basic_deinit();
+    }
+    if (BME680_ENABLE == 8) {
+        (void)bme680_gas_deinit();
+    }
+    if (MCP9808_ENABLE == 3) {
+        close(mcp9808_in);
+    }
+    if (SHT4X_ENABLE == 4) {
+        (void)sht4x_basic_deinit();
+    }
+    if (SHTC3_ENABLE == 5) {
+        (void)shtc3_basic_deinit();
+    }
+    if (AHT20_ENABLE == 6) {
+        (void)aht20_basic_deinit();
+    }
+    if (HTU31D_ENABLE == 7) {
+        (void)htu31d_basic_deinit();
+    }
+    if (SCD30_ENABLE == 1) {
+        (void)scd30_basic_deinit();
+    }
+    if (SCD4X_ENABLE == 1) {
+        (void)scd4x_shot_deinit();
+    }
+    if (SGP30_ENABLE == 1) {
+        (void)sgp30_advance_deinit();
+    }
+    if (PMSA003I_ENABLE == 1) {
+        (void)pmsa003i_basic_deinit();
     }
 }
 
 
 void usage (void) {
-        printf("\nlogenv - Version %s Copyright (C) 2019,2020,2024,2025 by Edward Kisiel\n", version);
-        printf("logs count or time stamp, CPU frequency, thermal zone temperatures,\n");
-        printf("external sensor temperature, volts, amps and watts and CPU core usage\n\n");
+        printf("\nlogenv - Version %s Copyright (C) 2019-Present by Edward A. Kisiel\n", version);
+        printf("A utility to log and chart time stamped CPU frequency, thermal zone temperatures,\n");
+        printf("CPU and memory usage, a SmartPower's volts, amps and watts, and other environmental sensors\n\n");
         printf("usage: logenv [options]\n\n");
         printf("Options:\n");
         printf(" -l,  --log <file>            Log to <file>\n");
-        printf(" -i,  --milliseconds <number> Poll Interval <number> in milliseconds\n");
+        printf(" -i,  --milliseconds <number> Polling Interval <number> in milliseconds\n");
+        printf(" -d,  --date                  Date and Time stamp\n");
         printf(" -f,  --frequency             CPU core frequency\n");
         printf(" -t,  --temperature           Thermal zone temperature\n");
-        printf(" -a,  --bme280 <device>       Ambient Temperature Sensor, BME280 Temperature Sensor default /dev/i2c-0\n");
-        printf("      --bmp180 <device>       BMP180 Temperature Sensor, default /dev/i2c-0\n");
-        printf("      --mcp9808 <device>      MCP9808 TemperatureSensor, default /dev/i2c-0\n");
+        printf(" -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1\n");
+        printf(" -m,  --memory                Physical memory usage (total - available, see man free)\n");
         printf(" -p,  --smartpower3-ch1 <tty> Volt, Amp, Watt (HK SmartPower3 USBC port), default /dev/ttyUSB0\n");
         printf("      --smartpower3-ch2 <tty>\n");
         printf("      --smartpower2 <tty>     Volt, Amp, Watt (HK SmartPower2 microUSB port), default /dev/ttyUSB0\n");
-        printf(" -u,  --usage                 CPU core usage, aggregate and core 0 to core n-1\n");
-        printf(" -m,  --memory                Physical memory usage (total - available, see man free)\n");
-        printf(" -d,  --date                  Date and Time stamp\n");
+        printf(" -a   <temp sensor>           Ambient Temperature sensor to use (e.g. --bme280) for Thermal chart\n");
+        printf("      --mcp9808 <device>      High Accuracy Temperature Sensor I2C 0x18 default /dev/i2c-0\n");
+        printf("      --sht4x <device>        Temperature and Humidity I2C 0x44 default /dev/i2c-0\n");
+        printf("      --shtc3 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
+        printf("      --aht20 <device>        Temperature and Humidity I2C 0x70 default /dev/i2c-0\n");
+        printf("      --htu31d <device>       Temperature and Humidity I2C 0x40 default /dev/i2c-0\n");
+        printf("      --bme280 <device>@addr  Temperature, Humidity, Pressure Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x76\n");
+        printf("      --bme680 <device>       Temperature, Humidity, Pressure & VOC Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77\n");
+        printf("      --bmp180 <device>       Barometric Pressure, Altitude & Temperature Sensor default /dev/i2c-0\n");
+        printf("      --bmp388 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77\n");
+        printf("      --bmp390 <device>       Barometric Pressure, Altitude & Temperature Sensor I2C 0x76 or 0x77 default /dev/i2c-0@0x77\n");
+        printf("      --sgp30 <device>        VOC and eCO2 Sensor I2C 0x58 default /dev/i2c-0\n");
+        printf("      --scd30 <device>        CO2 Temperature and Humidity Sensor I2C 0x61 default /dev/i2c-0\n");
+        printf("      --scd40 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
+        printf("      --scd41 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
+        printf("      --scd43 <device>        CO2 Temperature and Humidity Sensor I2C 0x62 default /dev/i2c-0\n");
+        printf("      --pmsa003i <device>     Particle Sensor PM1.0, PM2.5, PM10.0 I2C 0x12 default /dev/i2c-0\n");
         printf(" -r,  --raw                   Raw output, no formatting of freq. or temp.  e.g. 35000 instead of 35\n");
-        printf(" -v,  --verbose               Readable dashboard output\n"); 
         printf(" -q,  --quiet                 No output to stdout\n");
+        printf(" -v,  --verbose               Readable dashboard output\n");
         printf(" -n,  --udp <host>:<port>     UDP output to <host>:<port>\n");
         printf(" -g,  --gnuplot <file>        Gnuplot script generation\n");
         printf("      --title <string>        Chart title <string>\n");
-        printf("      --xmtics <number>       Chart x-axis major second tics <number>\n");
+        printf("      --xmtics <number>       Chart x-axis major second tics <number>, default 10 seconds\n");
         printf("      --version               Version\n");
         printf(" -h,  --help                  Help screen\n\n");
         printf("Example:\n\n");
-        printf("Data capture every 2 seconds for frequency, thermal zones, ambient temperature and SmartPower3-ch1:\n");
-        printf("logenv -l logfile.csv -i 2000 -f -t -a /dev/i2c-1 -p\n\n");
-        printf("Gnuplot script generation for data capture:\n");
-        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -i -f -t -a -p \n\n");
+        printf("Data capture every 2 seconds for core frequency, thermal zones, ambient temperature mcp9808 and SmartPower3-ch1:\n");
+        printf("logenv -l logfile.csv -i 2000 -f -t -a --mcp9808 -p\n\n");
+        printf("Gnuplot script generation for data capture with title and x axis major tics every 60 seconds:\n");
+        printf("logenv -g gplotscript.gpl --title \"logenv GNUPlot Chart\" --xmtics 60 -f -t -a --mcp9808 -p \n\n");
         printf("Gnuplot chart creation:\n");
         printf("gnuplot -c gplotscript.gpl chart.png logfile.csv\n\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
 }
+
 
 
 int16_t itoa(int32_t n, char s[]) {
@@ -1538,8 +3595,7 @@ void sleep_ms(int32_t milliseconds) {
 }
 
 
-static void sig_handler(int _)
-{
+static void sig_handler(int _) {
     (void)_;
     go = -1;
 }
